@@ -53,8 +53,17 @@ function main(config) {
   //   filter          —— 正向保留，作用于 include-all-proxies
   //   exclude-filter  —— 反向排除，作用于 include-all-proxies
   //   exclude-type    —— 按节点类型排除，仅作用于 proxies 字段
-  // 这里用 filter 排掉「直连」类，用 exclude-filter 排掉机场常见的
-  // 「剩余流量 / 套餐到期 / 官网」等信息节点（它们不可用，会污染测速池）。
+  //
+  // ⚠️ 下面两个常量在本脚本里**只用于 JS 内部预筛**（算 Smart 的成员顺序），
+  //    **不是**输出的配置键 —— 实测：本脚本产出的 22 个组里一个 `exclude-filter` 都没有。
+  //    · NODIRECT / NOJUNK → 只作用于 `usable`（见下方），决定谁进 Smart 的候选顺序；
+  //    · 地区组的成员由 `filter` 在**运行时**筛（见各地区组），不经过这两个常量。
+  //
+  // ⚠️ 信息节点（「剩余流量 / 套餐到期 / 官网」）的排除**不发生在地区组**，
+  //    而是靠 `Other Regions` 的负向断言 —— 三内核一致（Surge / Egern 的
+  //    `Other Regions` 同样把信息词写在排除块里，地区组则都不写）。
+  //    ⇒ 含地区词的信息节点（如「香港 官网」）会落进对应地区组，这是三内核的
+  //      **一致行为**，不是本脚本的疏漏。详见 references/profiles/clash.md §6.4。
   const NODIRECT = "^((?!(直连|DIRECT)).)*$";
   const NOJUNK = "剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB";
 
@@ -99,7 +108,11 @@ function main(config) {
   const allNodes = {};
   allNodes[ALL_KEY] = true;
 
-  // 可用节点名（套用与策略组相同的过滤口径：排掉直连类与机场信息节点）
+  // Smart 的候选节点名：只从**内联 `config.proxies`** 取，并套用与地区组相同的过滤口径。
+  //   ⚠️ 这里是本脚本**唯一**使用 NODIRECT / NOJUNK 的地方（JS 内部预筛，非配置键）。
+  //   ⚠️ 已知边界：脚本在订阅加载时只执行一次、看不到 provider 里的节点，
+  //      故 provider-only 订阅下 `usable` 为空 ⇒ Smart 退化为 `["DIRECT"]`。
+  //      这是机制决定的（详见 references/profiles/clash.md §7），不是缺陷。
   var usable = (config.proxies || [])
     .map(function (p) { return p && p.name; })
     .filter(function (n) {
