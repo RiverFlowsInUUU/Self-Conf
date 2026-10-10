@@ -12,9 +12,11 @@ R2 资产名 ∈ 固定名集合（三内核 × 两产品线 × 完整/min）且
 R3 最新那张 Release 的资产 = 当前应发的 12 件（不多不少）
 R4 最新那张 Release 的正文含当前三内核版本号
 R5 仓库级 Latest 指针指向最新那张 Release
-R6 HEAD 的改动必须已被某张 Release 覆盖（防「改了配置没发版」整类漏发）
-   R6a 期望 tag（= HEAD 提交日）存在于远端 Release
-   R6b 该 tag 那张 Release 的资产与**本地 profile 逐件一致**（改了没重发即判负）
+R6 本地 profile 必须已发出（防「改了配置没发版」整类漏发）
+   R6a 若本地 profile 与已发布资产不一致 ⇒ 当日 Release 必须存在
+   R6b 且该 Release 的资产与本地 profile 逐件一致（改了没重发即判负）
+   ⚠️ 两者**只在「本地 profile 确实与已发布资产不一致」时才要求 Release** ——
+      只改脚本/文档的日子本地 profile 没变，**不需要**当日 Release（ops.md §2）。
 
 ⚠️ R6 的存在理由（2026-10-10 实测事故）：
     R1–R5 全部是「对着**已有** Release 判」。`newest = max(releases)` 取的是
@@ -235,94 +237,91 @@ def main():
             judge(lt == tag, "R5 Latest=%s（最新）" % lt,
                   "R5 Latest=%s ≠ 最新 %s —— 跑 release_publish.py --apply" % (lt, tag))
 
-    # ── R6 HEAD 的改动必须已被某张 Release 覆盖 ──────────────────────────
-    #   见文件头注「R6 的存在理由」。判据（两段，缺一不可）：
-    #     ① 期望 tag = HEAD 提交日（与 release_publish.plan 的
-    #        `today = git log -1 --format=%as` 同口径）必须存在于远端 Release；
-    #     ② 且**该 tag 指向的提交必须覆盖 HEAD** —— 即 tag 的 sha 是 HEAD 本身、
-    #        或 HEAD 的祖先。否则说明「tag 建完之后又提交了新改动」。
-    #
-    #   ⚠️ 为什么必须有 ②（2026-10-10 注错实测发现）：
-    #      只判 ① 会漏掉本仓**最常见的**漏发形态 —— 「一天一版」模型下，
-    #      当天先发了版、之后又改了配置，HEAD 日期仍是当天、tag 已存在
-    #      ⇒ ① 通过，可**改了配置却没重发资产**。实测该场景 ① 判绿（漏判）。
-    #
-    #   ⚠️ ② 的判据对象是「**profile 资产是否与已发布的一致**」，
-    #      不是「tag 是否指向 HEAD」—— 这一点设计时**来回错了三次**，
-    #      三次都实测过，把结论钉在这里：
-    #
-    #      · 错法一 `tag_sha == head_sha`：tag 一经创建即固定，而
-    #        `release_publish.apply()` 只 PATCH body/name、**从不移动 tag**
-    #        （见该函数 patch 分支）。「一天一版」下当天任何后续提交都会让
-    #        `tag != HEAD` ⇒ 门禁**永远红**。实测：`f8f70e1` 提交后判负，
-    #        `--apply` 回写后**依然判负**（tag 未动）。
-    #      · 错法二 `is_ancestor(tag_sha, head_sha)` 取真：它判的是「HEAD 是否
-    #        超出 tag」，同样把「当天改文档/判据」误判成漏发。实测：只改
-    #        `check_releases.py` + `gates.md` 的提交也会被判负 —— 而本仓
-    #        显式规定「只改注释/文档 ⇒ 不必升号」（ops.md §2），更不该因此判负。
-    #      · 错法三 `git diff tag_sha..HEAD` 找变动过的 profile（2026-10-10
-    #        实测撞上）：**与错法一同病**。tag 不动 ⇒ 当天改过 profile 并重发过，
-    #        该 diff 恒非空 ⇒ 永远红，且提示的补救（再跑 --apply）治不了它。
-    #        更糟的是浅克隆下 `git diff` 抛 Invalid revision range，被
-    #        `except CalledProcessError` 吞成空列表 ⇒ **静默判绿**（假阴性）。
-    #        实测：同一提交本地绿、CI（fetch-depth: 0）红。
-    #
-    #      ⇒ 真正该问的是：**本地 profile 与已发布资产一致吗？**
-    #        直接比资产内容（digest 优先，零下载）：既不因 tag 不动而假红，
-    #        也不依赖本地有完整 git 历史（浅克隆同样能判）。
-    #        只改脚本/文档时 profile 内容没变 ⇒ 天然放行，不会误伤。
-    #
+    # ── R6 本地 profile 必须已发出 ────────────────────────────────────────
     #   ⚠️ 只认**远端 Release**，不查本地 `git tag`：本地可能没 fetch 到 tag
     #      （实测 2026-10-10：远端 Release 已在、本地 `git tag --list` 却是空的）。
-    #   ⚠️ 与 R3/R4 的分工：R3/R4 判「最新那张**自身**对不对」，R6 判「HEAD 的
+    #   ⚠️ 与 R3/R4 的分工：R3/R4 判「最新那张**自身**对不对」，R6 判「本地的
     #      改动**有没有**被发出去」。没有 R6 时，一张新 Release 都没建的场景下
     #      R3/R4 会全绿（见头注）。
-    head_tag = rp.plan(root)["tag"]
-    head_sha = git("rev-parse", "HEAD")
-    target_release = next((r for r in releases if r["tag_name"] == head_tag), None)
-    have_tag = target_release is not None
-    judge(have_tag,
-          "R6a HEAD(%s) 的 Release 已发布" % head_tag,
-          "R6a HEAD 该有的 Release %s **不存在** —— 当前 main 的改动还没发版。"
-          "跑 release_publish.py（预览）→ --apply（真发）；"
-          "若本次是功能变动，先按 ops.md §2 升号再发" % head_tag)
-    if have_tag:
-        # ② 该 Release 的资产与**本地 profile 逐件一致**（见上文「② 的判据对象」）
-        #
-        # ⚠️ 2026-10-10 重写（原实现有两个实测缺陷，见 gates.md §10.2.1）：
-        #
-        #   缺陷一 · 当天重发后**永远判负**（假阳性）
-        #     原实现用 `git diff <tag_sha>..HEAD` 找变动过的 profile。但 tag 固定在
-        #     「当天首次发布」的提交上，而 `release_publish.apply()` **从不移动 tag**
-        #     （该函数 PATCH 分支只回写 body/name + 重传资产）。「一天一版」模型下，
-        #     只要当天改过 profile 并重发过，`tag_sha..HEAD` 就恒非空 ⇒ **永远红**，
-        #     且提示的补救办法（再跑 --apply）**治不了它**（实测：重发后依旧判负）。
-        #     这与作者记为「错法一」的 `tag_sha == head_sha` 是**同一个病**，
-        #     只是触发了另一条路径 —— 当时以为避开了，其实没有。
-        #
-        #   缺陷二 · 浅克隆下**静默判绿**（假阴性，更危险）
-        #     本地是浅克隆时 tag 指向的 commit 对象不存在，`git diff` 抛
-        #     `Invalid revision range`，而原实现 `except CalledProcessError: changed = []`
-        #     把异常吞成「无变动」⇒ 判绿。实测：同一提交在本地绿、在 CI（fetch-depth: 0）红。
-        #
-        #   ⇒ 正解是**回到文档早已写明的判据对象**（gates.md §10.2.1 末段）：
-        #     「**profile 是否已发出** —— 本地 profile 与已发布资产一致吗？」
-        #     直接比资产内容，不猜 git 历史：既不会因 tag 不移动而假红，
-        #     也不依赖本地是否有完整历史（浅克隆同样能判）。
-        rel = {}
-        for nm in want_assets:
-            rp_ = asset_relpath(nm)
-            if rp_:
-                rel[nm] = rp_
-        rel_assets = {a["name"]: a for a in target_release.get("assets", [])}
-        unpub, unverified = mismatched_assets(rel, root, rel_assets)
-        judge(not unpub,
-              "R6b %s 的 %d 件资产与本地 profile 逐件一致" % (head_tag, len(rel)),
-              "R6b %s 的资产与本地 profile 不一致（本地已改但没重发）：%s —— "
-              "跑 release_publish.py --apply 重发资产（幂等回写同一张，tag 不动）"
-              % (head_tag, ", ".join(unpub)))
-        if unverified:
-            skipped.append("R6b 部分资产未能比对：%s" % ", ".join(unverified))
+    #
+    #   判据对象的历史（设计时**来回错了四次**，四次都实测过，钉在这里）：
+    #
+    #      · 错法一 `tag_sha == head_sha`：tag 一经创建即固定，而
+    #        `release_publish.apply()` 只 PATCH body/name、**从不移动 tag**。
+    #        「一天一版」下当天任何后续提交都会让 `tag != HEAD` ⇒ 门禁**永远红**。
+    #      · 错法二 `is_ancestor(tag_sha, head_sha)` 取真：判的是「HEAD 是否
+    #        超出 tag」，把「当天只改文档/判据」也误判成漏发 —— 而本仓显式规定
+    #        「只改注释/文档 ⇒ 不必升号」（ops.md §2），更不该因此判负。
+    #      · 错法三 `git diff tag_sha..HEAD` 找变动过的 profile（2026-10-10）：
+    #        **与错法一同病** —— tag 不动 ⇒ 当天改过 profile 并重发过，该 diff
+    #        恒非空 ⇒ 永远红，且提示的补救（再跑 --apply）治不了它。
+    #        更糟的是浅克隆下 `git diff` 抛 Invalid revision range，被
+    #        `except` 吞成空列表 ⇒ **静默判绿**（假阴性）。
+    #      · 错法四 「HEAD 提交日必须有 Release」当作**无条件**前提（2026-10-11
+    #        实测撞上）：跨午夜后提交任何东西（哪怕只改一个错别字）都会逼出一张
+    #        「说明写着什么都没改」的空 Release —— 自相矛盾，见下方长注释。
+    #
+    #      ⇒ 正确的是问：**本地 profile 与已发布资产一致吗？**
+    #        一致 = 该发的都发了，不需要任何新 Release；
+    #        不一致 = 才要求有 Release 承载（并逐件核对资产）。
+    #        直接比内容（digest 优先，零下载），不猜日期、不依赖 git 历史深度。
+    #   ⚠️ 2026-10-11 重写 R6a 的**前置条件**（原设计会逼出「空 Release」）：
+    #
+    #     原 R6a 无条件要求「HEAD 提交日 == 某张 Release 的 tag」。后果：跨过午夜后
+    #     提交任何东西 —— **哪怕只改一个错别字、一个判据** —— 都会因为没有当天的
+    #     Release 而判红，于是被迫发一张「说明里写着什么都没改」的 Release。
+    #     2026-10-11 实测踩中：为消红发了 `v2026-10-11`，正文只能写「配置无变化」，
+    #     自相矛盾（Releases 页面挂着一条没有内容的版本）。
+    #
+    #     而 ops.md §2 的表格明说：只改注释/文案/排版 ⇒ **不升号**，
+    #     且「进 Release」那一栏的措辞是「**并入当天那张**」——
+    #     即：**当日没有 Release 时，注释类改动不该凭空造一张**。
+    #
+    #     ⇒ 正解：先把「本地 profile 与**最新已发布资产**」比一遍。
+    #        · 一致 ⇒ 该发的都发了，**无需任何当日 Release**，直接通过；
+    #        · 不一致 ⇒ 才要求有当日 Release 来承载这批变动（并逐件核对）。
+    #       这样「只改文档」天然放行，「改了配置没发版」仍被判负。
+    #
+    #     顺带：判据对象从「HEAD 的**日期**」换成「**内容**是否已发布」，
+    #     比日期口径更本质 —— 也避免了跨午夜、补发、时区等日期类假红。
+    rel = {}
+    for nm in want_assets:
+        rp_ = asset_relpath(nm)
+        if rp_:
+            rel[nm] = rp_
+
+    # 最新那张 = 已发布状态的真值（tag 形态 vYYYY-MM-DD，字典序即时间序）
+    newest_assets = {a["name"]: a for a in newest.get("assets", [])}
+    stale, unverified_pre = mismatched_assets(rel, root, newest_assets)
+    if unverified_pre:
+        skipped.append("R6 部分资产未能与最新 Release 比对：%s"
+                       % ", ".join(unverified_pre))
+
+    if not stale:
+        judge(True, "R6 本地 profile 与最新 Release(%s) 逐件一致 —— 无需发版"
+                    % newest["tag_name"], "")
+    else:
+        # 有未发布的 profile 变动 ⇒ 必须有**当日** Release 承载（原 R6a 的本意）
+        head_tag = rp.plan(root)["tag"]
+        target_release = next((r for r in releases if r["tag_name"] == head_tag), None)
+        have_tag = target_release is not None
+        judge(have_tag,
+              "R6a 本地 profile 有变动，当日 Release %s 已发布" % head_tag,
+              "R6a 本地 profile 有变动（%s），但没有当日 Release %s —— "
+              "跑 release_publish.py（预览）→ --apply（真发）；"
+              "若本次是功能变动，先按 ops.md §2 升号再发"
+              % (", ".join(stale), head_tag))
+        if have_tag:
+            # ② 该 Release 的资产与**本地 profile 逐件一致**
+            rel_assets = {a["name"]: a for a in target_release.get("assets", [])}
+            unpub, unverified = mismatched_assets(rel, root, rel_assets)
+            judge(not unpub,
+                  "R6b %s 的 %d 件资产与本地 profile 逐件一致" % (head_tag, len(rel)),
+                  "R6b %s 的资产与本地 profile 不一致（本地已改但没重发）：%s —— "
+                  "跑 release_publish.py --apply 重发资产（幂等回写同一张，tag 不动）"
+                  % (head_tag, ", ".join(unpub)))
+            if unverified:
+                skipped.append("R6b 部分资产未能比对：%s" % ", ".join(unverified))
 
     for m in ok:
         print("   ✅ %s" % m)
