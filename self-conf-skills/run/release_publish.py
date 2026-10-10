@@ -142,12 +142,23 @@ def collect_notes(since_tag):
 
 # ──────────────────────────── 计划 ────────────────────────────
 
-def plan(root):
-    """当前版本 → 一张 Release 计划。"""
+def plan(root, tag=None):
+    """当前版本 → 一张 Release 计划。
+
+    tag 缺省 = HEAD 提交日（`vYYYY-MM-DD`）。
+    ⚠️ 可显式指定 `tag=` —— 用于**回写已有 Release 的说明**（如按新文风重写旧版正文）。
+       没有这个入口时，`--apply` 只会对着「HEAD 提交日」那张操作；跨过午夜后
+       想改前一天的正文就无从下手（2026-10-11 实测：删掉空版本 v2026-10-11 后，
+       想重写 v2026-10-10 的正文，工具报「缺 releases/v2026-10-11.md」）。
+    """
     vers = current_versions(root)
     since = last_release_tag()
     notes = collect_notes(since)
     today = git("log", "-1", "--format=%as")
+    if tag is None:
+        tag = "v" + today
+    elif not TAG_RE.match(tag):
+        raise SystemExit("❌ tag 必须形如 vYYYY-MM-DD（收到 %r）" % tag)
     assets = {}
     for fam in FAMS:
         for kern in KERNS:
@@ -157,7 +168,7 @@ def plan(root):
                                  "%s%s%s" % (fam, suffix, ext))
                 if os.path.exists(p):
                     assets["%s-%s%s%s" % (kern, fam, suffix, ext)] = p
-    return {"tag": "v" + today, "date": today, "versions": vers,
+    return {"tag": tag, "date": tag[1:], "versions": vers,
             "notes": notes, "since": since, "assets": assets}
 
 
@@ -382,10 +393,13 @@ def main():
     ap.add_argument("--init", action="store_true",
                     help="生成 releases/<tag>.md 草稿骨架（结构齐备，只待补人话）")
     ap.add_argument("--token", default=os.environ.get("GITHUB_TOKEN"))
+    ap.add_argument("--tag", default=None,
+                    help="指定要操作的 Release tag（默认 = HEAD 提交日）。"
+                         "用于回写已有 Release 的说明，见 plan() 的说明。")
     args = ap.parse_args()
 
     root = repo_root()
-    p = plan(root)
+    p = plan(root, tag=args.tag)
     npath = notes_file_path(root, p["tag"])
     rel = os.path.relpath(npath, root)
 
