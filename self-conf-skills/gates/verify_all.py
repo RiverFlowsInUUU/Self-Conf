@@ -667,6 +667,12 @@ def build_gates():
     add('profile 结构', [PY, 'self-conf-skills/gates/check_structure.py'])
     add('smart 权重口径', [PY, 'self-conf-skills/gates/check_priority_weight.py'])
     add('规则集来源文档同步', [PY, 'self-conf-skills/gates/clash/check_ruleset_doc_sync.py'])
+    # Stash 覆写：clash/override/my_clash*.js 的**派生物**（同一套组名 / 规则次序 /
+    # 防泄露底线，换的是客户端）。派生关系天生会漂移，而 Stash 加载失败不报错
+    # （组空着、规则不生效，面板只「看起来少了东西」）⇒ 必须落成判据。
+    # 六条：YAML 可解析 / 数组带 `#!replace`（这条最关键，见该脚本 docstring）/
+    # filter 可编译 / 引用可解析 / 无孤儿 / behavior·format 合法 + 规模与 mihomo 同数。
+    add('Stash 覆写结构与引用', [PY, 'self-conf-skills/gates/check_stash_override.py'])
 
     # ── ④ 自托管清单的裸 IP 检测 ────────────────────────────────
     # 原为每份 .list 各开一道（3 道），但脚本本就支持多文件 ⇒ 合并成一道。

@@ -1,0 +1,267 @@
+# ============================================================================
+#  self-conf · 懒人版 Stash 覆写
+# ============================================================================
+#
+#  用途
+#    把任意 Stash 订阅改造成本仓「懒人版」结构：
+#      · 3 个策略组（Proxy / AI / AD）· 10 份规则集 · 13 条规则
+#      一个总出口，只做防泄露 + 广告拦截 + AI 分流，省心优先。
+#
+#    这是 clash/override/my_clash_lazy.js 的 **Stash 等价物**。
+#    想要「按应用 + 按地区」的细分，用同目录的 `routing.stoverride`。
+#
+#  用法
+#    1) Stash → 配置 → 覆写 → 新建（或把本文件放进 iCloud 的 Stash 目录再导入）；
+#    2) 与目标订阅在同一份配置上启用本覆写。
+#
+#  ⚠️⚠️ 每个数组都写 `#!replace`（重要）
+#    Stash 覆写对**数组类型**的默认行为是「把覆写数组**插入到原数组前面**」，
+#    而不是替换（官方文档〈覆写配置（Override）〉语法参考）。
+#    不写 `#!replace` 时，订阅自带的 proxy-groups / rules 会残留在前面，
+#    而规则是自上而下首次命中即生效 ⇒ 你的全部改动会被静默架空。
+#
+#  ⚠️ 不需要填订阅地址：策略组用 `include-all: true` 引入订阅里的全部节点。
+# ============================================================================
+
+name: 'self-conf · 懒人版'
+desc: |-
+  一个总出口：3 个策略组 / 10 份规则集 / 13 条规则。
+  只做防泄露 + 广告拦截 + AI 分流，省心优先。
+  适用于任意 Stash 订阅 —— 节点自动并入各组，无需填写订阅地址。
+category: 'self-conf'
+
+# ════════════════════════════════════════════════════════════════════════════
+#  1. 策略组（3 个）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  Proxy  主出口 —— 全池 url-test 自动择优
+#  AI     AI 流量出口 —— 默认随 Proxy，可手动指定
+#  AD     广告拦截 —— 默认 REJECT
+#
+proxy-groups: #!replace
+  - name: Proxy
+    type: url-test
+    include-all: true
+    # 排除两类不可用节点：
+    #   · 直连类（`直连` / `DIRECT`）—— 它们不是真节点
+    #   · 机场信息节点（剩余流量 / 套餐到期 / 官网 …）—— 不可用，会污染测速池
+    # ⚠️ mihomo 侧用独立的 `exclude-filter` 键；**Stash 没有这个键**，
+    #    故把两组词合并成一条 filter 的负向断言。效果等价。
+    filter: '(?i)^(?!.*(?:直连|DIRECT|剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB)).*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Proxy.png
+
+  - name: AI
+    type: select
+    # 默认随 Proxy；也可在面板上钉死某个节点
+    proxies: [Proxy]
+    include-all: true
+    filter: '(?i)^(?!.*(?:直连|DIRECT|剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB)).*$'
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/grok.png
+
+  - name: AD
+    type: select
+    # 单成员 REJECT —— 与懒人版 mihomo 脚本同口径
+    # （分流版才是 REJECT / DIRECT 二选一）
+    proxies: [REJECT]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/AdBlock.png
+
+# ════════════════════════════════════════════════════════════════════════════
+#  2. 规则集（10 份）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  Stash 的 rule-provider 必须显式声明 `behavior` + `format`：
+#    · geosite/* → behavior: domain, format: text
+#    · geoip/*   → behavior: ipcidr, format: text
+#    · 自托管/上游清单 → behavior: classical, format: yaml
+#
+#  ⚠️ 官方〈编写高效配置〉明确「不建议使用大量 classical 类型」——
+#     故能归入 domain / ipcidr 索引结构的一律不写成 classical。
+#
+rule-providers: #!replace
+  # ── 3 份 geosite（域名分类）─────────────────────────────────────────────
+  private:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/private.list
+    path: ./ruleset/private-domain.list
+    interval: 86400
+  cn:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.list
+    path: ./ruleset/cn-domain.list
+    interval: 86400
+  category-ai-chat-!cn:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-ai-chat-!cn.list
+    path: ./ruleset/category-ai-chat-ncn.list
+    interval: 86400
+
+  # ── 2 份 geoip（IP 兜底）────────────────────────────────────────────────
+  geoip-private:
+    behavior: ipcidr
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/private.list
+    path: ./ruleset/geoip-private.list
+    interval: 86400
+  geoip-cn:
+    behavior: ipcidr
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.list
+    path: ./ruleset/geoip-cn.list
+    interval: 86400
+
+  # ── 广告拦截（上游提供 mihomo 二进制格式；改用其 yaml 版）──────────────
+  AWAvenue-Ads:
+    behavior: domain
+    format: yaml
+    url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.yaml
+    path: ./ruleset/AWAvenue-Ads.yaml
+    interval: 86400
+
+  # ── Jinx 白名单 / 广告主清单（自托管 Jinx 仓）───────────────────────────
+  Jinx-CN:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml
+    path: ./ruleset/Jinx-CN.yaml
+    interval: 86400
+  Jinx-Ads:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml
+    path: ./ruleset/Jinx-Ads.yaml
+    interval: 86400
+
+  # ── 本仓自托管清单（上游无对应集）───────────────────────────────────────
+  AI_Domains:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI_Domains.yaml
+    path: ./ruleset/AI_Domains.yaml
+    interval: 86400
+  apple-system:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/apple_system.yaml
+    path: ./ruleset/apple_system.yaml
+    interval: 86400
+
+# ════════════════════════════════════════════════════════════════════════════
+#  3. 分流规则（13 条）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  次序与 clash/profiles/lazy.yaml 逐条一致：
+#    ① 白名单 ② 广告拦截 ×2 ③ Apple 系统服务 ④ 内网 ×2
+#    ⑤ AI 分流 ×2 ⑥ Google Play 补丁 ⑦ 国内域名 + 国内 IP ⑧ 兜底
+#
+rules: #!replace
+  # ① 白名单 —— 抢在广告规则之前放行
+  - RULE-SET,Jinx-CN,DIRECT
+  # ② 广告拦截 —— 两条并列清单，同一出口 AD
+  - RULE-SET,Jinx-Ads,AD
+  - RULE-SET,AWAvenue-Ads,AD
+  # ③ Apple 系统服务（激活 / 推送 / 定位 / 配对）—— 排在内网之前
+  - RULE-SET,apple-system,DIRECT
+  # ④ 内网：私有 IP 段 + 私有域名，一律直连
+  - RULE-SET,geoip-private,DIRECT,no-resolve
+  - RULE-SET,private,DIRECT
+  # ⑤ AI 分流：通用 AI 类目兜底在前，伴生域/宽后缀随后整域收编
+  - RULE-SET,category-ai-chat-!cn,AI
+  - RULE-SET,AI_Domains,AI
+  # ⑥ Google Play 下载 CDN / GMS 网关 —— 补国内直连集的反向误杀
+  #    Android 上 Play 无法更新/下载，根因是这两个域名被 `cn` 规则集接成 DIRECT：
+  #      · `xn--ngstr-lra8j.com` 是 Play 下载 CDN 的 punycode 域（ångströ.com）
+  #      · `services.googleapis.cn` 是 GMS 网关域
+  #    ⚠️ **不可**下移到 `cn` / `geoip-cn` 之后 —— 首次命中即生效，
+  #       落到直连集后面就永远轮不到。
+  #    ⚠️ 挂 `AI` 组（懒人版只有 Proxy / AI / AD 三个组）：Play 走境外 CDN，
+  #       `AI` 组是手动钉死出口的组，出口稳定对 Google 账号风控有利。
+  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,AI
+  - DOMAIN-SUFFIX,services.googleapis.cn,AI
+  # ⑦ 国内：域名集在前、IP 集在后，都直连
+  - RULE-SET,cn,DIRECT
+  - RULE-SET,geoip-cn,DIRECT,no-resolve
+  # ⑧ 兜底
+  - MATCH,Proxy
+
+# ════════════════════════════════════════════════════════════════════════════
+#  4. DNS（防泄露 + 广告拦截口径）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  ⚠️ Stash 的 DNS 关键名与 mihomo **不同**，不能照抄：
+#    · 没有 `enhanced-mode` / `fake-ip-range` —— Stash 默认就用 Fake IP
+#    · 没有 `respect-rules`（对应物叫 `follow-rule`，官方不建议开 —— 会让
+#      DNS 走代理，可能破坏 CDN 就近解析）
+#    · `nameserver-policy` **不支持** mihomo 的 `rule-set:` 前缀，
+#      但支持 `geosite:` 集合（官方〈内置 DNS 服务〉）
+#    · 没有 `rcode://success` ⇒ mihomo 的「DNS 层广告拦截」在 Stash 侧
+#      由**规则层 AD 组**承担，效果等价
+#    · 官方建议移动设备只配 1~2 个 nameserver（配多了徒增功耗与耗电）
+#
+dns: #!replace
+  # 引导解析器：只解析下面 DNS 端点自身的域名。官方要求仅填 IP。
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+
+  # 主解析器：全加密端点，且写 **IP 字面量**（写主机名会多一次明文引导查询）
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+
+  # 按域名换解析器：国内域名与私有域名交国内方（否则 CDN 被调度到境外）
+  nameserver-policy:
+    'geosite:cn': https://223.5.5.5/dns-query
+    'geosite:private': https://223.5.5.5/dns-query
+
+  # 代理节点域名的解析（连节点前还没有代理可用，鸡生蛋问题）
+  proxy-server-nameserver:
+    - https://223.5.5.5/dns-query
+    - https://120.53.53.53/dns-query
+
+  # 以下域名返回真实 IP 而非假 IP ——
+  # 这些服务（NTP / STUN / 局域网发现 / 连通性探测）拿到假 IP 会失效。
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - '*.localdomain'
+    - '*.home.arpa'
+    - '+.msftconnecttest.com'
+    - '+.msftncsi.com'
+    - localhost.ptlogin2.qq.com
+    - '+.srv.nintendo.net'
+    - '+.stun.playstation.net'
+    - '+.xboxlive.com'
+    - 'stun.*'
+    - 'time.*.com'
+    - 'ntp.*.com'
+    - '+.pool.ntp.org'
+    - '+.market.xiaomi.com'
+
+# ════════════════════════════════════════════════════════════════════════════
+#  与 mihomo 脚本的机制差异（**刻意的，不是漏改**）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  ① 节点来源：Stash 只有 `include-all`（= proxies + providers），
+#     mihomo 脚本还在 `include-all` / `include-all-proxies` 之间二选一。
+#
+#  ② 信息节点排除：mihomo 用独立的 `exclude-filter` 键；Stash 无此键 ⇒
+#     把「直连类 + 信息词」合并进 `filter` 的 `(?!...)` 负向断言。
+#
+#  ③ DNS 广告拦截：mihomo 是「fake-ip-filter + nameserver-policy
+#     rcode://success」双层；Stash 没有 rcode 语法 ⇒ 改由**规则层 AD 组**承担。
+#     拦截效果等价，只是发生在连接阶段而非解析阶段。
+#
+#  ④ IPv6：mihomo 侧显式 `ipv6: false`（顶层 + dns 两处）；
+#     Stash 按官方〈IPv6 兼容性〉**自动**选择最佳策略 ⇒ 不写 ipv6 键。
+#
+#  ⑤ 规则集格式：mihomo 用 MRS 二进制（体积小、省内存）；
+#     本文件用官方文档明确列出的 text / yaml（任何 Stash 版本都能加载）。
+#     想省内存可把 domain / ipcidr 项的 `.list` 换成 `.mrs` 并加 `format: mrs`，
+#     但需自行实测 —— Stash 对 MRS 的支持限 behavior 为 domain / ipcidr。
+# ============================================================================

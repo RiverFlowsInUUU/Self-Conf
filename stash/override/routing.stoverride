@@ -1,0 +1,533 @@
+# ============================================================================
+#  self-conf · 分流版 Stash 覆写
+# ============================================================================
+#
+#  用途
+#    把任意 Stash 订阅改造成本仓「分流版」结构：
+#      · 22 个策略组 · 25 份规则集 · 27 条规则
+#      与 clash/profiles/routing.yaml 对齐（同一套组名、规则次序与防泄露底线）。
+#
+#    这是 clash/override/my_clash.js 的 **Stash 等价物** —— 但两者机制不同，
+#    不是逐行翻译。差异见文件末尾〈与 mihomo 脚本的机制差异〉一节。
+#
+#  用法
+#    1) Stash → 配置 → 覆写 → 新建（或把本文件放进 iCloud 的 Stash 目录再导入）；
+#    2) 与目标订阅在同一份配置上启用本覆写；
+#    3) 若你的订阅节点名是纯英文小写（如 `hk 01`），地区分组已按大小写不敏感处理。
+#
+#  ⚠️⚠️ 为什么每个数组都写 `#!replace`（重要）
+#    Stash 覆写对**数组类型**的默认行为是「把覆写里的数组**插入到原数组前面**」，
+#    而不是替换（官方文档〈覆写配置（Override）〉语法参考）。
+#    若不写 `#!replace`，订阅自带的 proxy-groups / rules 会**残留在前面**，
+#    而规则是自上而下首次命中即生效 ⇒ 你的全部改动会被静默架空。
+#    本文件对 proxy-groups / rule-providers / rules / dns 一律 `#!replace`，
+#    与 mihomo 脚本「整体替换」的语义对齐。
+#
+#  ⚠️ 导入前要改一处
+#    下面的策略组用 `include-all: true` 引入订阅里的**全部节点**，
+#    因此**不需要**在这里填订阅地址 —— 节点来自你所启用的那份订阅本身。
+#    （这是 Stash 与本仓 mihomo 静态模板最大的用法差异：静态模板自带
+#      `proxy-providers.Airport` 槽位需要填地址，覆写文件则不必。）
+# ============================================================================
+
+name: 'self-conf · 分流版'
+desc: |-
+  按应用 + 按地区细分：22 个策略组 / 25 份规则集 / 27 条规则。
+  与本仓 mihomo 分流版同结构；DNS 防泄露与广告拦截口径一致。
+  适用于任意 Stash 订阅 —— 节点自动并入各组，无需填写订阅地址。
+category: 'self-conf'
+
+# ════════════════════════════════════════════════════════════════════════════
+#  1. 策略组（22 个）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  结构对齐 clash/profiles/routing.yaml：
+#    Proxy(select) → Smart(fallback) + 6 个地区组
+#    Smart 为单组 fallback（与 my_clash.js 一致；静态模板的「倍率三档」在
+#    Stash 侧可用 filter 实现，但那会偏离本次「对齐脚本」的目标，见文末说明）。
+#
+#  ⚠️ Stash 只有 `include-all`（= proxies + proxy-providers），
+#     **没有** mihomo 的 `include-all-proxies`。故本文件统一用 include-all。
+#
+proxy-groups: #!replace
+  # ── 总出口 ────────────────────────────────────────────────────────────────
+  - name: Proxy
+    type: select
+    # 首项即默认出口（Stash 与 mihomo 一致：select 未指定时取第一个成员）
+    proxies:
+      - Smart
+      - Hong Kong
+      - Taiwan
+      - Japan
+      - Singapore
+      - United States
+      - Other Regions
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Proxy.png
+
+  - name: Smart
+    type: fallback
+    # 与 my_clash.js 同构：单组 fallback，成员为订阅全部节点（排除信息节点）。
+    # ⚠️ 脚本侧会按倍率**排序**成员（sortedByRate）；Stash 覆写是静态文件，
+    #    算不出节点名 ⇒ 成员顺序 = 订阅原顺序。这是刻意接受的差异（见文末）。
+    include-all: true
+    filter: '(?i)^(?!.*(?:直连|DIRECT|剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB)).*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Auto.png
+
+  # ── AI 应用组 ─────────────────────────────────────────────────────────────
+  - name: ChatGPT
+    type: select
+    proxies: [United States, Taiwan, Japan, Singapore]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/openai.png
+
+  - name: Gemini
+    type: select
+    proxies: [United States, Taiwan, Japan, Singapore]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/gemini-color.png
+
+  - name: Claude
+    type: select
+    proxies: [Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/claude-color.png
+
+  - name: AI
+    type: select
+    proxies: [Smart, Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/grok.png
+
+  # ── 应用组 ───────────────────────────────────────────────────────────────
+  - name: YouTube
+    type: select
+    proxies: [Smart, Hong Kong, Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/YouTube.png
+
+  - name: Emby
+    type: select
+    proxies: [Smart, Hong Kong, Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Emby.png
+
+  - name: Google
+    type: select
+    proxies: [Gemini, Smart, Hong Kong, Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Google.png
+
+  - name: Telegram
+    type: select
+    proxies: [Smart, Hong Kong, Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Telegram.png
+
+  - name: YouTube Music
+    type: select
+    proxies: [United States, Hong Kong, Taiwan, Japan, Singapore]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/YouTubeMusic.png
+
+  - name: Spotify
+    type: select
+    proxies: [United States, Hong Kong, Taiwan, Japan, Singapore]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Spotify.png
+
+  - name: Twitter
+    type: select
+    proxies: [Smart, Hong Kong, Taiwan, Japan, Singapore, United States]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Twitter.png
+
+  - name: Microsoft
+    type: select
+    proxies: [DIRECT, Proxy]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Microsoft.png
+
+  - name: Apple Update
+    type: select
+    proxies: [DIRECT, REJECT]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Apple.png
+
+  - name: AD
+    type: select
+    # REJECT / DIRECT 二选一（不设 PASS —— PASS 语义为「绕过代理直连」，
+    # 与二选一的拦截口径不符，易误操作）
+    proxies: [REJECT, DIRECT]
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/AdBlock.png
+
+  # ── 地区组（靠 filter 在运行时筛节点，不写成员表）─────────────────────────
+  #
+  #  ⚠️ 与 mihomo 脚本的两处差异：
+  #    ① `(?i)` 放在正则**最前面**（.NET/mihomo 语义下它只作用于其后部分；
+  #       Stash 侧同样按此写法处理，三者一致）；
+  #    ② mihomo 用 `exclude-filter` 排信息节点，**Stash 没有这个键** ⇒
+  #       把信息词写成 `(?!...)` 负向断言合进 `filter`。
+  #       于是「含地区词的信息节点」（如 `香港 官网`）也会被排除 —— 这一点
+  #       比 mihomo 侧更严格，是**刻意的改进**而非漂移。
+  #
+  - name: Hong Kong
+    type: url-test
+    include-all: true
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:香港|港|HK|Hong))((?!(?:台|日|韩|新|美)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/HongKong.png
+
+  - name: Taiwan
+    type: url-test
+    include-all: true
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:台湾|台|TW|Taiwan|Tai|TPE|Taipei))((?!(?:港|韩|新|美|日)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Taiwan.png
+
+  - name: Japan
+    type: url-test
+    include-all: true
+    # 正向词含机场三字码与城市名：否则「东京 01」「NRT 03」这类节点
+    # 既进不了日本组、又被 Other Regions 排除 ⇒ 无组可归。
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:日本|东京|大阪|日|JP|Japan|NRT|HND|KIX|FUK|NGO|OSA|CTS|SDJ|OKA))((?!(?:港|台|韩|新|美)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Japan.png
+
+  - name: Singapore
+    type: url-test
+    include-all: true
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:新加坡|坡|狮城|SG|SGP|SIN|Singapore))((?!(?:台|日|韩|深|美)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Singapore.png
+
+  - name: United States
+    type: url-test
+    include-all: true
+    # 同上：补美国城市名与机场三字码，避免「LAX 02」「硅谷 03」无组可归。
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:美国|美|US|USA|United|States|America|洛杉矶|硅谷|西雅图|芝加哥|达拉斯|凤凰城|阿什本|纽约|迈阿密|波士顿|休斯顿|亚特兰大|拉斯维加斯|圣地亚哥|盐湖城|奥斯汀|波特兰|丹佛|奥克兰|安大略|圣安娜|LAX|SJC|SFO|SEA|ORD|JFK|DFW|IAD|PHX|ATL|BOS|MIA|EWR|LGA|IAH|HOU|DEN|OAK|ONT|SNA|LAS|PDX|DAL|SAN|SLC|MSP))((?!(?:港|台|韩|新|日)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/UnitedStates.png
+
+  - name: Other Regions
+    type: url-test
+    include-all: true
+    # 纯负向：排除 5 个地区组的关键词 + 信息词，剩下的收进来。
+    # 信息词写在本组（而非各地区组）是**与 mihomo 脚本一致**的口径：
+    # 不含地区词的信息节点在这里被排除，不会进任何组。
+    filter: '(?i)^(?!.*(?:香港|港|HK|Hong|台湾|台|TW|Taiwan|Tai|TPE|Taipei|日本|东京|大阪|日|JP|Japan|NRT|HND|KIX|FUK|NGO|OSA|CTS|SDJ|OKA|新加坡|坡|狮城|SG|Singapore|SIN|SGP|美国|美|US|United|States|America|USA|洛杉矶|硅谷|西雅图|芝加哥|达拉斯|凤凰城|阿什本|纽约|迈阿密|波士顿|休斯顿|亚特兰大|拉斯维加斯|圣地亚哥|盐湖城|奥斯汀|波特兰|丹佛|奥克兰|安大略|圣安娜|LAX|SJC|SFO|SEA|ORD|JFK|DFW|IAD|PHX|ATL|BOS|MIA|EWR|LGA|IAH|HOU|DEN|OAK|ONT|SNA|LAS|PDX|DAL|SAN|SLC|MSP))(?!(.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB|倍率|测试|有效|禁止|邮箱|客服|地址|网站|群组))).+$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/WorldMap.png
+
+# ════════════════════════════════════════════════════════════════════════════
+#  2. 规则集（25 份）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  Stash 的 rule-provider 必须显式声明 `behavior` + `format`（官方〈规则集合〉）。
+#  本文件把 mihomo 的 MRS 换成等价的 **text(.list) / yaml**：
+#    · geosite/*  → behavior: domain, format: text   （.list 就是 mihomo 的 text 形态）
+#    · geoip/*    → behavior: ipcidr, format: text
+#    · 自托管/上游 5 份 → behavior: classical, format: yaml
+#
+#  ⚠️ 为什么不用 MRS：Stash 确实支持 MRS（限 behavior 为 domain / ipcidr），
+#     但官方〈规则集合〉的 format 参数只列了 yaml / text。为避免踩版本差异，
+#     这里统一用**官方明确列出的** text / yaml —— 代价是内存略高，
+#     好处是任何 Stash 版本都能加载。想省内存可把下面 domain / ipcidr 项的
+#     `.list` 换成 `.mrs` 并加 `format: mrs`，自行实测。
+#
+#  ⚠️ 为什么不用 classical 装域名集：Stash 官方〈编写高效配置〉明确「不建议使用
+#     大量 classical 类型的规则集合」—— 它只能顺序匹配，显著增加耗时与内存。
+#     故 geosite/geoip 一律用 domain / ipcidr（有索引结构）。
+#
+rule-providers: #!replace
+  # ── 15 份 geosite（域名分类）────────────────────────────────────────────
+  apple-update:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/apple-update.list
+    path: ./ruleset/apple-update.list
+    interval: 86400
+  spotify:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/spotify.list
+    path: ./ruleset/spotify.list
+    interval: 86400
+  private:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/private.list
+    path: ./ruleset/private-domain.list
+    interval: 86400
+  anthropic:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/anthropic.list
+    path: ./ruleset/anthropic.list
+    interval: 86400
+  category-ai-chat-!cn:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-ai-chat-!cn.list
+    path: ./ruleset/category-ai-chat-ncn.list
+    interval: 86400
+  github:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/github.list
+    path: ./ruleset/github.list
+    interval: 86400
+  youtube:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/youtube.list
+    path: ./ruleset/youtube.list
+    interval: 86400
+  google:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/google.list
+    path: ./ruleset/google.list
+    interval: 86400
+  microsoft:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/microsoft.list
+    path: ./ruleset/microsoft.list
+    interval: 86400
+  apple-cn:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/apple-cn.list
+    path: ./ruleset/apple-cn.list
+    interval: 86400
+  telegram:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/telegram.list
+    path: ./ruleset/telegram.list
+    interval: 86400
+  twitter:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/twitter.list
+    path: ./ruleset/twitter.list
+    interval: 86400
+  cn:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.list
+    path: ./ruleset/cn-domain.list
+    interval: 86400
+  openai:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/openai.list
+    path: ./ruleset/openai.list
+    interval: 86400
+  google-gemini:
+    behavior: domain
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/google-gemini.list
+    path: ./ruleset/google-gemini.list
+    interval: 86400
+
+  # ── 4 份 geoip（IP 兜底）────────────────────────────────────────────────
+  geoip-private:
+    behavior: ipcidr
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/private.list
+    path: ./ruleset/geoip-private.list
+    interval: 86400
+  geoip-google:
+    behavior: ipcidr
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/google.list
+    path: ./ruleset/geoip-google.list
+    interval: 86400
+  geoip-telegram:
+    behavior: ipcidr
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/telegram.list
+    path: ./ruleset/geoip-telegram.list
+    interval: 86400
+  geoip-cn:
+    behavior: ipcidr
+    format: text
+    url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.list
+    path: ./ruleset/geoip-cn.list
+    interval: 86400
+
+  # ── 广告拦截（上游提供 mihomo 二进制格式；改用其 yaml 版）──────────────
+  AWAvenue-Ads:
+    behavior: domain
+    format: yaml
+    url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.yaml
+    path: ./ruleset/AWAvenue-Ads.yaml
+    interval: 86400
+
+  # ── Jinx 白名单 / 广告主清单（自托管 Jinx 仓，命名与 mihomo 侧一致）────
+  Jinx-CN:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml
+    path: ./ruleset/Jinx-CN.yaml
+    interval: 86400
+  Jinx-Ads:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml
+    path: ./ruleset/Jinx-Ads.yaml
+    interval: 86400
+
+  # ── 本仓自托管清单（上游无对应集，或属自用枚举）─────────────────────────
+  emby:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/emby.yaml
+    path: ./ruleset/emby.yaml
+    interval: 86400
+  AI_Domains:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI_Domains.yaml
+    path: ./ruleset/AI_Domains.yaml
+    interval: 86400
+  apple-system:
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/apple_system.yaml
+    path: ./ruleset/apple_system.yaml
+    interval: 86400
+
+# ════════════════════════════════════════════════════════════════════════════
+#  3. 分流规则（27 条）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  次序与 clash/profiles/routing.yaml 逐条一致（自上而下首次命中即生效）：
+#    ① 白名单 ② 广告拦截 ×2 ③ Apple 更新/系统 ④ 内网 ×2
+#    ⑤ AI 分流 ×5 ⑥ 应用分流 ⑦ 国内域名 + 国内 IP ⑧ 兜底
+#
+rules: #!replace
+  # ① 白名单 —— 抢在广告规则之前放行
+  - RULE-SET,Jinx-CN,DIRECT
+  # ② 广告拦截 —— 两条并列清单，同一出口 AD
+  - RULE-SET,Jinx-Ads,AD
+  - RULE-SET,AWAvenue-Ads,AD
+  # ③ Apple 更新 / 系统服务
+  - RULE-SET,apple-update,Apple Update
+  - RULE-SET,apple-system,DIRECT
+  # ④ 内网：私有 IP 段 + 私有域名，一律直连
+  #    ipcidr 类规则集带 no-resolve，避免为判定命中而触发一次本地解析
+  - RULE-SET,geoip-private,DIRECT,no-resolve
+  - RULE-SET,private,DIRECT
+  # ⑤ AI 分流：逐应用细分，其后是通用 AI 类目与伴生域兜底
+  - RULE-SET,openai,ChatGPT
+  - RULE-SET,google-gemini,Gemini
+  - RULE-SET,anthropic,Claude
+  - RULE-SET,category-ai-chat-!cn,AI
+  - RULE-SET,AI_Domains,AI
+  # ⑥ 应用分流
+  #    YouTube Music：上游 Clash 版清单也只有 music.youtube.com 一条，
+  #    与其等效，故保留内联写法（少一次远程拉取）
+  - DOMAIN-SUFFIX,music.youtube.com,YouTube Music
+  - RULE-SET,github,Proxy
+  - RULE-SET,youtube,YouTube
+  - RULE-SET,emby,Emby
+  - RULE-SET,google,Google
+  - RULE-SET,spotify,Spotify
+  - RULE-SET,twitter,Twitter
+  - RULE-SET,microsoft,Microsoft
+  - RULE-SET,apple-cn,DIRECT
+  - RULE-SET,telegram,Telegram
+  # ⑦ 国内：域名集在前、IP 集在后，都直连
+  - RULE-SET,geoip-google,Google,no-resolve
+  - RULE-SET,geoip-telegram,Telegram,no-resolve
+  - RULE-SET,cn,DIRECT
+  - RULE-SET,geoip-cn,DIRECT,no-resolve
+  # ⑧ 兜底
+  - MATCH,Proxy
+
+# ════════════════════════════════════════════════════════════════════════════
+#  4. DNS（防泄露 + 广告拦截口径）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  ⚠️ Stash 的 DNS 关键名与 mihomo **不同**，不能照抄：
+#    · 没有 `enhanced-mode` / `fake-ip-range` —— Stash 默认就用 Fake IP
+#    · 没有 `respect-rules`（对应物叫 `follow-rule`，且官方**不建议**开：
+#      它会让 DNS 走代理，可能破坏 CDN 就近解析。故此处不开，见文末说明）
+#    · `nameserver-policy` 支持精确域名 / 通配域名 / `geosite:` 集合，
+#      **不支持** mihomo 的 `rule-set:` 前缀
+#    · 没有 `rcode://success` ⇒ mihomo 的「DNS 层广告拦截」在 Stash 侧
+#      由**规则层的 AD 组**承担（已在上方 rules 里），效果等价
+#    · 官方建议移动设备只配 1~2 个 nameserver（配多了徒增功耗）
+#
+dns: #!replace
+  # 引导解析器：只用于解析下面那些 DNS 端点自身的域名。
+  # ⚠️ 必须写 IP（官方：default-nameserver 仅支持 IP 地址）。
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+
+  # 主解析器：全加密端点，且一律写 **IP 字面量** ——
+  # 写主机名会多出一次「解析解析器」的明文引导查询。
+  nameserver:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+
+  # 按域名换解析器：国内域名与私有域名交国内 DoH（否则 CDN 会被调度到境外）
+  nameserver-policy:
+    'geosite:cn': https://doh.18bit.cn/dns-query
+    'geosite:private': https://doh.18bit.cn/dns-query
+
+  # 代理节点域名的解析（连节点前还没有代理可用，鸡生蛋问题）
+  proxy-server-nameserver:
+    - https://doh.18bit.cn/dns-query
+    - https://dns.alidns.com/dns-query
+
+  # 以下域名不返回假 IP，而是返回真实 IP ——
+  # 这些服务（NTP / STUN / 局域网设备发现 / 连通性探测）拿到假 IP 会失效。
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - '*.localdomain'
+    - '*.home.arpa'
+    - '+.msftconnecttest.com'
+    - '+.msftncsi.com'
+    - localhost.ptlogin2.qq.com
+    - '+.srv.nintendo.net'
+    - '+.stun.playstation.net'
+    - '+.xboxlive.com'
+    - 'stun.*'
+    - 'time.*.com'
+    - 'ntp.*.com'
+    - '+.pool.ntp.org'
+    - '+.market.xiaomi.com'
+
+# ════════════════════════════════════════════════════════════════════════════
+#  与 mihomo 脚本的机制差异（**这些是刻意的，不是漏改**）
+# ════════════════════════════════════════════════════════════════════════════
+#
+#  ① 节点来源：mihomo 脚本按输入形态在 `include-all` / `include-all-proxies`
+#     之间二选一；Stash **只有** `include-all`（= proxies + providers），故统一用它。
+#
+#  ② 信息节点排除：mihomo 用独立的 `exclude-filter` 键；Stash 无此键 ⇒
+#     把信息词写成 `(?!...)` 负向断言合进 `filter`。
+#     副作用：Stash 侧**连「香港 官网」这类含地区词的信息节点也会被排除**，
+#     比 mihomo 侧更严格。这是刻意的改进（信息节点本就不可用）。
+#
+#  ③ Smart 的成员顺序：mihomo 脚本按倍率**排序**（rateOf/sortedByRate）；
+#     Stash 覆写是静态文件、算不出节点名 ⇒ 成员顺序 = 订阅原顺序。
+#     ⇒ 若你依赖「低倍率优先」，请在 Stash 面板里手动排序，或自行把 Smart
+#       改成三档结构（Low/Auto/High）：Stash 的 filter 支持前瞻断言，
+#       照搬 clash/profiles/routing.yaml 的三档正则即可做到，比脚本还强。
+#
+#  ④ IPv6：mihomo 侧显式 `ipv6: false`（顶层 + dns 两处）；Stash 按官方
+#     〈IPv6 兼容性〉**自动**选择最佳策略，且 Fake IP 机制下 Tunnel 默认仅 IPv4
+#     ⇒ 不写 ipv6 键，交给 Stash 自行判断（写死反而可能与其自动化冲突）。
+#
+#  ⑤ DNS 广告拦截：mihomo 是「fake-ip-filter + nameserver-policy rcode://success」
+#     双层；Stash 没有 rcode 语法 ⇒ 改由**规则层 AD 组**承担（上方
+#     `RULE-SET,Jinx-Ads,AD` / `RULE-SET,AWAvenue-Ads,AD`）。
+#     拦截效果等价，只是发生在连接阶段而非解析阶段。
+# ============================================================================

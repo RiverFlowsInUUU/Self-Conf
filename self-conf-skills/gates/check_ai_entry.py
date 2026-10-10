@@ -50,7 +50,9 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 
 MAIN = "AGENTS.md"
 # 嵌套 AGENTS.md（就近生效）。只在「该目录有独立工具链/约定」时加。
-NESTED = ["clash/AGENTS.md"]
+# ⚠️ 这里的每一项都会被**断言存在**（缺了判负）—— 登记即受保护，不登记则不受
+#    行数上限与去重检查约束。故新增独立子系统的就近入口时，必须一并登记。
+NESTED = ["clash/AGENTS.md", "stash/AGENTS.md"]
 
 # ⚠️ 这些文件名会被各自工具**优先于 AGENTS.md** 读取 ⇒ 存在即屏蔽真源，视为违规。
 #    （Claude Code 官方：有 CLAUDE.md 时只读它，不读 AGENTS.md）

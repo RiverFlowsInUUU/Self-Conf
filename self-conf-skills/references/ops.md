@@ -573,10 +573,15 @@ mihomo 静态 profile **由脚本生成**（`build_profiles.py`），也带 `#! 
    ⚠️ **clash 的 4 份要手改** —— 它的 profile 虽由脚本生成，但头注是**保留**而非生成的
    ⚠️ Surge / Egern 改完整版后 `.min` 由 `make_min.py` 重算继承
    ⚠️ **一天一版**：当天该产品线已升过号就跳过本步、沿用同号（见 §6.1）
+④′ 若改了 `clash/override/my_clash*.js` 的组/规则/次序：**手工同步**
+   `stash/override/{routing,lazy}.stoverride`（Stash 读不了 JS，是本仓唯一无生成器的派生）。
+   判据 `check_stash_override.py` 只守结构自洽与规模同数，**语义同步靠人**。
+   三条硬机制（数组必须 `#!replace` / 无 `include-all-proxies` / 无 `exclude-filter`）
+   与全部差异见 [`stash/AGENTS.md`](../../stash/AGENTS.md)。
 ⑤ 收尾：`python self-conf-skills/gates/check_secrets.py && python self-conf-skills/gates/check_portability.py && python self-conf-skills/gates/check_min_pair.py && python self-conf-skills/gates/check_links.py .`（push 后 CI 会再跑一遍同组检查）
    ↑ 也可一键：`python self-conf-skills/gates/verify_all.py` —— 与 ci.yml 同源的全套闸门并行跑、出汇总表（含 DNS 审计与 releases 方案，比本行列的更全）
 ⑥ 发布 Release（push 之后）：`python self-conf-skills/run/release_publish.py --apply`
-   —— 说明**从 commit subject 自动汇总**，无需手写条目表。详见 §6.9
+   —— 说明以**人工撰写的 `releases/<tag>.md` 为唯一来源**（缺它即拒绝发布）。详见 §6.9
 ```
 
 > **注意**　`.min` 不手工编辑。手工同步迟早漂 —— `check_min_pair.py` 会拿完整版对拍 `.min`，漂了就红。
