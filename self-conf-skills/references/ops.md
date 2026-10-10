@@ -603,6 +603,38 @@ python self-conf-skills/gates/check_portability.py
 
 换机常见坑：行尾（本仓 `.gitattributes` 统一 `text=auto eol=lf`，不要动任何人的 git config）、编码（脚本内部已钉 UTF-8 输出）、路径分隔符（拼接一律用 `/`）。
 
+#### 6.5 克隆方式：**必须完整克隆，永不浅克隆**
+
+**这是原则，不是建议。** 不要用 `--depth=1` / `--shallow-since` / `--filter=blob:none`
+这类会截断历史的选项。已存在的浅克隆就地补全，别重克隆：
+
+```bash
+git fetch --unshallow        # 浅克隆 → 完整历史
+git rev-parse --is-shallow-repository   # 自查：应输出 false
+```
+
+**为什么**：浅克隆下 `git log` 的提交日期**全退化成 clone 当天**（CI 的
+`fetch-depth: 0` 注释里也写了这点）。而本仓有两处判据**依赖提交日期**，
+浅克隆会让它们**各错一个方向，且都不报错**：
+
+| 判据 | 浅克隆下的表现 | 机理 |
+|:--|:--|:--|
+| `check_version_cadence.py`（一天一版） | **假红**（exit 1） | 浅克隆的**根提交**本身是完整快照，其头注已含旧版本号，却被判据当成"当日升到该号" ⇒ 与当日真实的升号撞成"同日升 2 个号" |
+| `check_releases.py` R6b（防漏发） | **静默判绿**（假阴性，更危险） | tag 指向的 commit 对象在浅克隆里不存在 ⇒ `git diff` 抛 `Invalid revision range`，而该处 `except` 把异常吞成"无变动" ⇒ 判绿 |
+
+**实测（2026-10-10）**：
+
+- 一天一版：本地浅克隆报「`2026-10-10` routing 同一天升了 2 个号」，
+  完整克隆（132 提交）**全绿** —— 真实升号是 `10-08 v1.0.0` → `10-10 v1.0.1`，
+  **不同天，完全合规**。
+- R6b：同一提交**本地绿、CI 红**；反之在浅克隆下故意改 profile 不发版，
+  旧实现仍**静默判绿**（该缺陷本身已修，见 §6.9 与 gates.md §10.2.1，
+  但"不得浅克隆"这条纪律对其它依赖日期的场景仍然成立）。
+
+⚠️ **CI 不受影响**（`.github/workflows/ci.yml` 固定 `fetch-depth: 0`）——
+本条纪律管的是**本地与人工审查**场景：本地判据报红/报绿而 CI 结论相反时，
+**先查 `git rev-parse --is-shallow-repository`**，再怀疑配置。
+
 #### 6.6 精简配置（给自己瘦身）
 
 不要另开第三份配置 —— 历史教训是"同一件事写在两个地方，早晚会只改一处"（`v0` / `v1` 分叉就是这么砍掉的）。在你要用的那份上直接删，按收益排序：
@@ -700,9 +732,14 @@ python self-conf-skills/gates/check_portability.py
 📌 已被闸门调用的（不用手动跑）：`audit_routing_coverage` · `audit_ruleset_content` ·
 `audit_ruleset_noresolve` · `check_clash_dns` —— 这些**已进闸门**。
 
-📌 **本仓的 CI 不受此影响**：`.github/workflows/ci.yml` 已固定 `fetch-depth: 0`（该处注释亦写明"shallow clone 会把所有日期退化成 push 当天"）。这条纪律管的是**本地与人工审查**场景。
+📌 **本仓的 CI 不受此影响**：`.github/workflows/ci.yml` 已固定 `fetch-depth: 0`（该处注释亦写明"shallow clone 会把所有日期退化成 push 当天"）。这条纪律管的是**本地与人工审查**场景 —— 见 §6.5「必须完整克隆，永不浅克隆」。
 
 🔍 **判据的通用姿势**：断言报红时，先问「它依赖的输入是否齐全」（历史深度 / 网络 / 凭据 / 前置文件），再问「是不是真的不过」。⚠️ 但**反向也成立**：不得因为"可能是前置问题"就把红当噪声放过 —— 判据与 CI 结论冲突时（如 CI 绿、本地红），先查**两边跑法差异**（历史深度、工作目录、环境变量），再下结论。上面的实证里，审查者一度把该冲突解释成"CI 只验当前状态、本地更全"，方向正好相反。
+
+> ⚠️ **「历史深度」这一类现在有了明确处置**：先跑
+> `git rev-parse --is-shallow-repository`。若为 `true`，**先把克隆补全**
+> （`git fetch --unshallow`）再复查判据 —— 浅克隆会让依赖提交日期的判据
+> 一个方向**假红**、另一个方向**静默假绿**（详见 §6.5）。
 
 #### 6.9 Release 发布规矩
 
