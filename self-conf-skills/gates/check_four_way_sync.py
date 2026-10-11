@@ -23,13 +23,27 @@
 
 断言（全部为**实测成立**的不变量，不是设计理想）
 ────────────────────────────────────────────────
-F1  `clash` 与 `stash` 的**规则列表逐字相同**（实测 27/27、13/13）。
-F2  `clash` 与 `stash` 的**组（name / type / proxies）逐项相同**，且组名**序列**相同。
-F3  `clash` 与 `stash` 的 **rule-provider 键集合与序列**相同。
+F1  `clash` 与 `stash` 的**规则逐字相同**（含 `no-resolve` 等 options；实测 27/27、13/13）。
+F2  `clash` 与 `stash` 的**组逐字段相同**（除 `filter`/`exclude-filter` 两个刻意项）。
+F3  `clash` 与 `stash` 的 rule-provider **键集合与序列**相同，且**逐字段**相同
+    （除 `format`/`url`/`path`/`type`）；`url` 另比「去扩展名后的完整 URL」。
 F4  `surge` 与 `egern` 的**组名序列**相同。
 F5  四侧的**规则集去向（source → target）**一致，豁免表内的刻意差异除外。
 F6  四侧**组名集合**的差集只能是登记过的刻意项（`Airport` 只在 Surge/Egern；
     倍率三档只在 Clash/Stash）。
+
+⚠️ **F1/F2/F3 的「全字段」是对抗性自审后补的**（2026-10-11）。初版只比
+   `kind/source/target`、`name/type/proxies`、provider **键序列** ——
+   实测有 **4 处漏报**（判据仍绿但配置已漂）：
+     · 删掉 stash 某条规则的 `no-resolve` ⇒ 会为判定命中触发本地解析（DNS 泄露入口）
+     · 改组的 `interval` ⇒ 测速周期静默漂移
+     · 改组的 `hidden` ⇒ 本该隐藏的倍率子组暴露在面板上
+     · 换 provider 的 `url` ⇒ 整份名单被换源
+   ⚠️ 第二个坑：F2 一度读的是 `build_ir._load_clash_groups()` 的结果，而那个加载器
+      只抽 name/type/members 三字段 ⇒ 「全字段比对」名不副实、仍漏报。
+      现改为 `_raw_groups()` 直读原始 YAML。
+   ⇒ 教训：**判据的「全绿」不能自己声明，要用对抗性自审去证伪**
+      （本仓 gates.md §2 三条铁律的同构应用）。
 
 ⚠️ 刻意豁免都写在下面的表里，**并注明理由与出处**。新增豁免要一并写理由 ——
    本仓纪律：差异可以刻意，但不能「没人知道它刻意」（见 profiles/*.md 的
@@ -98,6 +112,87 @@ GROUP_EXEMPT = {
 FAMS = ("routing", "lazy")
 
 
+def _rule_sig(r):
+    """规则的可比签名 —— **含 options**（no-resolve 等），不只是 kind/source/target。
+
+    ⚠️ 2026-10-11 对抗性自审补：最初只比 `kind,source,target`，实测**漏报**
+       「删掉 stash 某条规则的 `no-resolve`」（判据仍绿）。`no-resolve` 是有语义的
+       ——丢了它会为判定命中而触发一次本地解析，是 DNS 泄露的一个入口。故纳入。
+    """
+    opts = tuple(r.get("options") or [])
+    return (r["kind"], str(r.get("source")), str(r.get("target")), opts)
+
+
+# 组级字段的**豁免**：这些字段在 clash 与 stash 之间**刻意不同**，不参与逐字段对拍。
+#   · filter —— Stash 无 `exclude-filter`，把信息词合进了 filter（见 stash/AGENTS.md ③）
+#   · exclude-filter —— 同上（Stash 没有这个键）
+# ⚠️ 其余字段（type/proxies/url/interval/tolerance/hidden/icon/lazy/…）**全部逐字对拍**。
+GROUP_FIELD_EXEMPT = ("filter", "exclude-filter")
+
+
+def _raw_groups(root, side, fam):
+    """从**原始文件**读组的全部字段。
+
+    ⚠️ 2026-10-11 对抗性自审补：不能用 `build_ir._load_clash_groups()` 的结果 ——
+       那个加载器**只抽 name/type/members 三个字段**（IR 只需要这些），
+       于是「全字段比对」实际只比了那三个 ⇒ 实测**漏报**「改 interval」「改 hidden」。
+       必须直接读原始 YAML。
+    """
+    import yaml
+    path = build_ir._kernel_paths(Path(root), fam)[side]
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return data.get("proxy-groups") or []
+
+
+def _group_fields(g):
+    """组的全部字段（除豁免项）—— 用于逐字段对拍。
+
+    ⚠️ 2026-10-11 对抗性自审补：最初只比 `name/type/proxies`，实测**漏报**
+       「改 interval」「改 hidden」。后者会让本该隐藏的倍率子组暴露在面板上；
+       前者是测速周期的静默漂移。故改为**全字段**（数据源见 `_raw_groups`）。
+    """
+    return {k: v for k, v in g.items() if k not in GROUP_FIELD_EXEMPT}
+
+
+def _provider_fields(root, side, fam):
+    """rule-provider 的全部字段（url/path/interval 等）—— 用于逐字段对拍。
+
+    ⚠️ 2026-10-11 对抗性自审补：最初只比**键序列**，实测**漏报**
+       「改 provider 的 url」。那会让规则集指向错误的源（或换掉整份名单）。
+       注意：`format`（mrs→text）与 `url`/`path` 的后缀在两侧**刻意不同**，
+       故只比对**同一键在两侧都存在时的 interval 等参数**，格式类差异单列豁免。
+    """
+    path = build_ir._kernel_paths(Path(root), fam)[side]
+    import yaml
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return data.get("rule-providers") or {}
+
+
+# provider 中**刻意不同**的字段：
+#   · format —— mihomo 用 mrs（省内存），Stash 官方只列 yaml/text（见 stash/AGENTS.md）
+#   · url/path —— 前者指向 .mrs、后者指向 .list/.yaml；path 前缀也不同（rule_provider vs ruleset）
+#   · type —— mihomo 写 `type: http`，Stash 无此键
+# ⚠️ 其余（interval 等）必须一致 —— 刷新周期漂移是真实风险。
+PROVIDER_FIELD_EXEMPT = ("format", "url", "path", "type")
+
+
+def _url_stem(url):
+    """规则集 URL 的「资源标识」—— **去掉扩展名，其余原样保留**。
+
+    用于跨侧比对「是否指向同一份上游资源」：两侧扩展名刻意不同
+    （mihomo `.mrs` / Stash `.list`、`.yaml`），故不能直接比 url；
+    但**去掉扩展名后必须逐字相同** —— 实测 25 份 + 10 份全部一致。
+
+    ⚠️ 2026-10-11 对抗性自审补：最初只取 **basename**，实测**漏报**
+       「把 stash 的 github 规则集指向 `example.com/github.list`」——
+       basename 同为 `github`，比不出来。改为保留完整 URL（仅去扩展名）后能抓住。
+    """
+    if not url:
+        return None
+    import re as _re
+    return _re.sub(r"\.(list|txt|yaml|yml|mrs)$", "", str(url).rstrip("/"), flags=_re.I)
+
+
 def _load(root, side, fam):
     path = build_ir._kernel_paths(Path(root), fam)[side]
     if not path.exists():
@@ -150,13 +245,12 @@ def main():
         return 2
 
     for fam in FAMS:
-        # ── F1：clash 与 stash 规则逐字相同 ──────────────────────────────
-        rc = [r["kind"] + "," + str(r.get("source")) + "," + str(r.get("target"))
-              for r in data[(fam, "clash")][1]]
-        rs = [r["kind"] + "," + str(r.get("source")) + "," + str(r.get("target"))
-              for r in data[(fam, "stash")][1]]
+        # ── F1：clash 与 stash 规则逐字相同（**含 options**）─────────────
+        rc = [_rule_sig(r) for r in data[(fam, "clash")][1]]
+        rs = [_rule_sig(r) for r in data[(fam, "stash")][1]]
         if rc == rs:
-            ok.append("F1 %-7s clash ≡ stash 规则逐字相同（%d 条）" % (fam, len(rc)))
+            ok.append("F1 %-7s clash ≡ stash 规则逐字相同（%d 条，含 no-resolve 等选项）"
+                      % (fam, len(rc)))
         else:
             detail = []
             for i in range(max(len(rc), len(rs))):
@@ -168,28 +262,33 @@ def main():
                     break
             bad.append("F1 %-7s clash 与 stash 规则不一致：%s" % (fam, "；".join(detail)))
 
-        # ── F2：组（name/type/proxies）逐项相同 ──────────────────────────
-        gc = [(g["name"], g["type"], tuple(g["members"])) for g in data[(fam, "clash")][0]]
-        gs = [(g["name"], g["type"], tuple(g["members"])) for g in data[(fam, "stash")][0]]
-        if gc == gs:
-            ok.append("F2 %-7s clash ≡ stash 组逐项相同（%d 组）" % (fam, len(gc)))
+        # ── F2：组逐字段相同（除 filter/exclude-filter 两个刻意项）───────
+        # ⚠️ 数据源必须是 _raw_groups（原始 YAML 全字段），不能用 IR 的组
+        #    —— 后者只含 name/type/members，会让「全字段比对」名不副实。
+        cg = [(g.get("name"), _group_fields(g)) for g in _raw_groups(root, "clash", fam)]
+        sg = [(g.get("name"), _group_fields(g)) for g in _raw_groups(root, "stash", fam)]
+        if cg == sg:
+            ok.append("F2 %-7s clash ≡ stash 组逐字段相同（%d 组，除 filter/exclude-filter）"
+                      % (fam, len(cg)))
         else:
             d = []
-            for i in range(max(len(gc), len(gs))):
-                a = gc[i] if i < len(gc) else ("（缺）", "", ())
-                b = gs[i] if i < len(gs) else ("（缺）", "", ())
+            for i in range(max(len(cg), len(sg))):
+                a = cg[i] if i < len(cg) else ("（缺）", {})
+                b = sg[i] if i < len(sg) else ("（缺）", {})
                 if a != b:
-                    d.append("%s vs %s" % (a, b))
-                if len(d) >= 3:
+                    fields = {k for k in set(a[1]) | set(b[1]) if a[1].get(k) != b[1].get(k)}
+                    d.append("%s 差异字段%s => %s vs %s"
+                             % (a[0], sorted(fields),
+                                {k: a[1].get(k) for k in fields},
+                                {k: b[1].get(k) for k in fields}))
+                if len(d) >= 2:
                     break
             bad.append("F2 %-7s clash 与 stash 组不一致：%s" % (fam, "；".join(d)))
 
-        # ── F3：rule-provider 键序列相同 ─────────────────────────────────
+        # ── F3：rule-provider 键序列 + 逐字段（除 format/url/path/type）──
         pc = _providers(root, "clash", fam)
         ps = _providers(root, "stash", fam)
-        if pc == ps:
-            ok.append("F3 %-7s clash ≡ stash 规则集键序列相同（%d 份）" % (fam, len(pc or [])))
-        else:
+        if pc != ps:
             only_c = [x for x in (pc or []) if x not in (ps or [])]
             only_s = [x for x in (ps or []) if x not in (pc or [])]
             if set(pc or []) != set(ps or []):
@@ -198,6 +297,36 @@ def main():
             else:
                 bad.append("F3 %-7s 规则集键**集合相同但次序不同** —— "
                            "Stash 覆写默认前置插入，次序影响可读性与后续 diff" % fam)
+        else:
+            fc = _provider_fields(root, "clash", fam)
+            fs = _provider_fields(root, "stash", fam)
+            pd = []
+            for k in fc:
+                a = {f: v for f, v in fc[k].items() if f not in PROVIDER_FIELD_EXEMPT}
+                b = {f: v for f, v in (fs.get(k) or {}).items()
+                     if f not in PROVIDER_FIELD_EXEMPT}
+                if a != b:
+                    fields = {f for f in set(a) | set(b) if a.get(f) != b.get(f)}
+                    pd.append("%s 差异字段%s => %s vs %s"
+                              % (k, sorted(fields), {f: a.get(f) for f in fields},
+                                 {f: b.get(f) for f in fields}))
+            # ⚠️ url 虽在豁免表内（后缀 .mrs vs .list 刻意不同），但**语义必须等价**：
+            #    同一份规则集两侧必须指向**同名的上游资源**。对抗性自审实测：
+            #    只豁免 url 会**漏报**「把 stash 的 github 规则集指向 example.com」
+            #    —— 那是整份名单被换掉，比 interval 漂移严重得多。
+            #    故这里再比一层「去后缀后的 basename」。
+            for k in fc:
+                uc = _url_stem(fc[k].get("url"))
+                us = _url_stem((fs.get(k) or {}).get("url"))
+                if uc and us and uc != us:
+                    pd.append("%s 的 url 指向不同资源：clash=…/%s stash=…/%s"
+                              % (k, uc, us))
+            if not pd:
+                ok.append("F3 %-7s clash ≡ stash 规则集键序列与字段相同"
+                          "（%d 份，除 format/url/path/type）" % (fam, len(pc or [])))
+            else:
+                bad.append("F3 %-7s 规则集字段不一致（如 interval 漂移）：%s"
+                           % (fam, "；".join(pd[:3])))
 
         # ── F4：surge ≡ egern 组名序列相同 ───────────────────────────────
         names_sg = [g["name"] for g in data[(fam, "surge")][0]]

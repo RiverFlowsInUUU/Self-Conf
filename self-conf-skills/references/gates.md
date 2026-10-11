@@ -155,12 +155,29 @@ python self-conf-skills/gates/verify_all.py
 
 | 断言 | 内容 | 实测依据 |
 |:--|:--|:--|
-| F1 | `clash` 与 `stash` 规则**逐字相同** | 27/27、13/13 |
-| F2 | `clash` 与 `stash` 组（name/type/proxies）**逐项相同**且序列相同 | 25 组、3 组 |
-| F3 | `clash` 与 `stash` 的 rule-provider **键集合与序列**相同 | 25 份、10 份 |
+| F1 | `clash` 与 `stash` 规则**逐字相同**（**含 `no-resolve` 等 options**） | 27/27、13/13 |
+| F2 | `clash` 与 `stash` 组**逐字段相同**（除 `filter`/`exclude-filter`） | 25 组、3 组 |
+| F3 | rule-provider **键集合与序列**相同 + **逐字段**相同（除 `format`/`url`/`path`/`type`） | 25 份、10 份 |
 | F4 | `surge` 与 `egern` **组名序列**相同 | 23 组、4 组 |
 | F5 | 四侧**规则集去向**（source→target）一致 | 37 / 18 个 source |
 | F6 | 四侧**组名差集**只能是登记过的刻意项 | 见下豁免表 |
+
+> ⚠️ **这道判据的初版有 4 处漏报，是对抗性自审抓出来的**（2026-10-11）——
+> 初版只比 `kind/source/target`、`name/type/proxies`、provider **键序列**：
+>
+> | 漏报的注错 | 危害 |
+> |:--|:--|
+> | 删掉 stash 某条规则的 `no-resolve` | 会为判定命中触发本地解析，是 **DNS 泄露入口** |
+> | 改组的 `interval` | 测速周期静默漂移 |
+> | 改组的 `hidden` | 本该隐藏的倍率子组**暴露在面板上** |
+> | 换 provider 的 `url` | **整份名单被换源** |
+>
+> 还有一个更隐蔽的坑：F2 一度读 `build_ir._load_clash_groups()` 的结果，而那个
+> 加载器**只抽 name/type/members 三个字段** ⇒ 「全字段比对」名不副实、照样漏报。
+> 现改为直读原始 YAML。
+>
+> ⇒ **判据的「全绿」不能自己声明，要用对抗性自审去证伪** —— 这是本文件 §2
+> 三条铁律的同构应用：写判据的人最该怀疑自己的扫描面。
 
 **刻意豁免表**（判据文件顶部，唯一真源）：
 
