@@ -10,7 +10,7 @@ Surge / Egern / mihomo（Clash Meta）**三内核代理配置模板**。
 > **优先于** `AGENTS.md` 读取（Claude 有 `CLAUDE.md` 时只读它；Gemini CLI 默认只读
 > `GEMINI.md`），那是第二份要同步的东西，且会屏蔽真源。本仓只留这一个入口。）
 > ⚠️ `clash/` 有独立的生成链，**在那里工作时先读就近的 [`clash/AGENTS.md`](./clash/AGENTS.md)**；
-> 改 `clash/override/*.js` 的组/规则后**必须同步** [`stash/override/*.stoverride`](./stash/AGENTS.md)。
+> 改 `clash/profiles/*.yaml` 的组/规则后**必须同步** [`stash/override/*.stoverride`](./stash/AGENTS.md)。
 
 ---
 
@@ -63,7 +63,7 @@ python self-conf-skills/run/repo_state.py                    # 一屏现状：�
 | Surge 配置 | `surge/profiles/*.conf` | **不是**生成物，直接改 |
 | Egern 配置 | `egern/profiles/*.yaml` | **不是**生成物，直接改 |
 | mihomo 配置 | `clash/override/my_clash*.js` | ⚠️ **是**生成物 ⇒ 改 JS 再 build |
-| **Stash 覆写** | `stash/override/*.stoverride` | ⚠️ 与 clash 的 JS **同源**（改了 JS 要一起改）；数组**必须** `#!replace` |
+| **Stash 覆写** | `stash/override/*.stoverride` | ⚠️ 基准是**静态模板** `clash/profiles/routing.yaml`；数组**必须** `#!replace` |
 | 远程规则集内容 | `rules/*.list` | ⚠️ `.yaml` 是生成的 |
 | **版本号** | ⚠️ **12 处头注**（见下） | 不是 6 处 —— 每份文件都有自己的头注 |
 
@@ -72,13 +72,13 @@ python self-conf-skills/run/repo_state.py                    # 一屏现状：�
 ```
 三内核 profiles/*.yaml|conf        ──make_min.py──▶        *.min.*（六份，clash 侧 2026-10-09 起）
 clash/override/my_clash*.js        ──build_profiles.py──▶  clash/profiles/*.yaml + *.min.yaml
-clash/override/my_clash*.js        ──（手工派生）──▶        stash/override/*.stoverride
+clash/profiles/routing.yaml         ──（手工派生）──▶        stash/override/*.stoverride
 rules/*.list                       ──build_rules.py──▶     rules/*.yaml
 self-conf-skills/run/ai_sources/*  ──ai_domains_build.py──▶ rules/AI.list
 三内核现役 profiles（只读）          ──build_ir.py──▶        references/intent.json（统一意图 IR，给 AI 读）
 ```
 
-⚠️ **`stash/` 是唯一「没有生成器」的派生**（Stash 不能跑 mihomo 的 JS）⇒ 改了 JS 的
+⚠️ **`stash/` 是唯一「没有生成器」的派生**（Stash 不能跑 mihomo 的 JS）⇒ 改了**静态模板**的
 组/规则/次序就**必须手工同步**它；`check_stash_override.py` 只守结构自洽与规模同数，
 **语义同步靠人**。机制差异与坑见 [`stash/AGENTS.md`](./stash/AGENTS.md)。
 

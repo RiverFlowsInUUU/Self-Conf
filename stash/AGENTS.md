@@ -1,9 +1,14 @@
 # stash/ · Stash 覆写
 
-**本目录是 `clash/override/*.js` 的派生物 —— 不是第四个内核。**
+**本目录把本仓的分流意图搬到 Stash —— 不是第四个内核。**
 Stash 是 iOS / macOS 上的 Clash 系**客户端**（内核是 Clash Premium），
 它**不能**运行 mihomo 的 JS 覆写脚本：两者机制完全不同（见下）。
 所以本目录用 Stash 自己的 `.stoverride` 语法，重新表达**同一套分流意图**。
+
+**结构基准是「静态模板」（能力强于脚本）**：Stash 的 `filter` 与静态模板一样是
+**运行时**求值的，能看到全部节点名 ⇒ 能做到脚本做不到的**倍率分档**。
+故 `routing.stoverride` 对齐 `clash/profiles/routing.yaml`（**25 组**），
+而不是只排序、做不到分档的覆写脚本（22 组）。
 
 根 [`AGENTS.md`](../AGENTS.md) 的规则仍然适用；这里只写 stash/ 特有的、agent 推不出来的东西。
 
@@ -12,15 +17,17 @@ Stash 是 iOS / macOS 上的 Clash 系**客户端**（内核是 Clash Premium）
 ## 唯一真源与派生关系
 
 ```
-clash/override/my_clash.js       ─┐
-clash/override/my_clash_lazy.js  ─┴──▶  stash/override/routing.stoverride
-                                        stash/override/lazy.stoverride
+clash/profiles/routing.yaml      ──（结构基准）──▶  stash/override/routing.stoverride
+clash/profiles/lazy.yaml         ──（结构基准）──▶  stash/override/lazy.stoverride
 ```
 
-⚠️ **改了 JS 的组/规则/次序，就必须同步改这里的 stoverride** ——
-两者表达同一套意图。`check_stash_override.py` 守**结构自洽**（引用、正则、规模
-与 mihomo 侧同数），但它**没法**替你判断「语义是否也同步了」：
-新增一个组、改一条规则的落点，仍需人工对齐两边。
+⚠️ **结构基准是「静态模板」，不是覆写脚本** —— 因为 Stash 的 `filter` 是运行时求值、
+能看到节点名，能力上等同静态模板（详见文末「倍率三档」一节）。
+
+⚠️ 但**规则与组名**同源于 `clash/override/my_clash*.js` 与静态模板共用的那套意图：
+改了组/规则/次序，**两边都要同步**。`check_stash_override.py` 只守**结构自洽**
+（引用、正则、规模），它**没法**替你判断「语义是否也同步了」：
+新增一个组、改一条规则的落点，仍需人工对齐。
 
 ---
 
@@ -86,17 +93,29 @@ python self-conf-skills/gates/check_stash_override.py   # 结构 / 引用 / 正�
 
 ---
 
-## 一个刻意的能力差（**不要试图"补齐"**）
+## 唯一一处 Stash **强于**脚本的地方：倍率三档
 
-`my_clash.js` 的 `Smart` 组会按**倍率排序**成员（`rateOf` / `sortedByRate`）——
-那是 JS 在运行时读节点名算出来的。**`.stoverride` 是静态文件，算不出节点名**，
-故本目录的 `Smart` 成员顺序 = 订阅原顺序。
+`routing.stoverride` 的 `Smart` 用的是**倍率三档**（`Smart` → `Low Mult.` /
+`Auto` / `High Mult.`），与静态模板 `clash/profiles/routing.yaml` **完全一致**
+（25 组，而非覆写脚本的 22 组 —— 差的 3 个就是这三个子组）。
 
-⇒ 若你依赖「低倍率优先」，两条路：
-- 在 Stash 面板里手动排序；
-- 或把 `Smart` 改成三档（Low / Auto / High）—— Stash 的 `filter` 支持前瞻断言，
-  照搬 `clash/profiles/routing.yaml` 的三档正则即可，**比 JS 脚本还强**
-  （静态模板能做而脚本做不到的事，Stash 同样能）。
+**为什么脚本做不到、Stash 能做到**：
 
-这与根 AGENTS.md 的「**不要把三内核『对齐』**」是同一条纪律：看起来的不一致，
-常是机制决定的。
+| | 求值时机 | 能看到节点名？ | 结果 |
+|:--|:--|:--|:--|
+| mihomo 覆写脚本 | **生成期**（订阅加载时执行一次） | ❌ 看不到 provider 里的节点 | 只能对**内联**节点按倍率**排序**，且 `rateOf` 只认 `0.x` 低倍率，抓不到高倍率 |
+| 静态模板 / Stash | **运行时**（`filter` 每次筛节点时求值） | ✅ 能 | 按倍率**分档**，语义化 |
+
+⇒ 所以本目录**照搬静态模板的三档**，而不是翻译脚本。这是「静态模板能做、脚本做不到」
+那件事在 Stash 侧的等价实现 —— 与根 AGENTS.md 记的 `EXPECTED_DIFF`（脚本 vs 模板的
+已知差异）互为镜像。
+
+⚠️ **对齐的是静态模板，不是脚本** —— 改 `Smart` 结构时以 `routing.yaml` 为准。
+`check_stash_override.py` 已按 25 组断言（不是 22）。
+
+**写这三档时的两条注意**：
+
+- 三个子组都 `hidden: true`（不在面板上让人误选）。该键虽未见于官方〈策略组〉正文，
+  但真实 Stash 配置中广泛使用（实测某份社区覆写有 30+ 处 `hidden: true`），可用。
+- 信息词（`剩余|流量|到期|…`）合进了 `filter` 的前置 `(?!...)`（Stash 无
+  `exclude-filter`）。实测 38 个样本与「`filter` + `exclude-filter` 两键式」**逐样本等价**。

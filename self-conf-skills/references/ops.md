@@ -573,9 +573,11 @@ mihomo 静态 profile **由脚本生成**（`build_profiles.py`），也带 `#! 
    ⚠️ **clash 的 4 份要手改** —— 它的 profile 虽由脚本生成，但头注是**保留**而非生成的
    ⚠️ Surge / Egern 改完整版后 `.min` 由 `make_min.py` 重算继承
    ⚠️ **一天一版**：当天该产品线已升过号就跳过本步、沿用同号（见 §6.1）
-④′ 若改了 `clash/override/my_clash*.js` 的组/规则/次序：**手工同步**
-   `stash/override/{routing,lazy}.stoverride`（Stash 读不了 JS，是本仓唯一无生成器的派生）。
-   判据 `check_stash_override.py` 只守结构自洽与规模同数，**语义同步靠人**。
+④′ 若改了 `clash/profiles/routing.yaml`（静态模板）的组/规则/次序：**手工同步**
+   `stash/override/{routing,lazy}.stoverride`。Stash 读不了 JS，故基准取**静态模板**
+   —— 它的 `filter` 与模板一样运行时求值、能看到节点名 ⇒ 能做到脚本做不到的**倍率分档**
+   （故 stash 分流版是 25 组，而非脚本的 22 组）。
+   判据 `check_stash_override.py` 只守结构自洽，**语义同步靠人**。
    三条硬机制（数组必须 `#!replace` / 无 `include-all-proxies` / 无 `exclude-filter`）
    与全部差异见 [`stash/AGENTS.md`](../../stash/AGENTS.md)。
 ⑤ 收尾：`python self-conf-skills/gates/check_secrets.py && python self-conf-skills/gates/check_portability.py && python self-conf-skills/gates/check_min_pair.py && python self-conf-skills/gates/check_links.py .`（push 后 CI 会再跑一遍同组检查）

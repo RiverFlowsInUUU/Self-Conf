@@ -4,7 +4,7 @@
 #
 #  用途
 #    把任意 Stash 订阅改造成本仓「分流版」结构：
-#      · 22 个策略组 · 25 份规则集 · 27 条规则
+#      · 25 个策略组 · 25 份规则集 · 27 条规则
 #      与 clash/profiles/routing.yaml 对齐（同一套组名、规则次序与防泄露底线）。
 #
 #    这是 clash/override/my_clash.js 的 **Stash 等价物** —— 但两者机制不同，
@@ -32,19 +32,23 @@
 
 name: 'self-conf · 分流版'
 desc: |-
-  按应用 + 按地区细分：22 个策略组 / 25 份规则集 / 27 条规则。
+  按应用 + 按地区细分：25 个策略组 / 25 份规则集 / 27 条规则。
   与本仓 mihomo 分流版同结构；DNS 防泄露与广告拦截口径一致。
   适用于任意 Stash 订阅 —— 节点自动并入各组，无需填写订阅地址。
 category: 'self-conf'
 
 # ════════════════════════════════════════════════════════════════════════════
-#  1. 策略组（22 个）
+#  1. 策略组（25 个）
 # ════════════════════════════════════════════════════════════════════════════
 #
-#  结构对齐 clash/profiles/routing.yaml：
-#    Proxy(select) → Smart(fallback) + 6 个地区组
-#    Smart 为单组 fallback（与 my_clash.js 一致；静态模板的「倍率三档」在
-#    Stash 侧可用 filter 实现，但那会偏离本次「对齐脚本」的目标，见文末说明）。
+#  结构与 clash/profiles/routing.yaml **完全一致**（25 组）：
+#    Proxy(select) → Smart(fallback) → 倍率三档(Low Mult./Auto/High Mult.)
+#                                     + 6 个地区组
+#
+#  🧠 Smart 用「倍率三档」而非 my_clash.js 的单组 fallback ——
+#     因为 Stash 的 `filter` 是**运行时**求值、能看到全部节点名，能做到分档；
+#     而覆写脚本在生成期只执行一次、看不到 provider 节点名，只能排序。
+#     ⇒ 这一处 Stash **比 mihomo 覆写脚本更强**，与静态模板等同。
 #
 #  ⚠️ Stash 只有 `include-all`（= proxies + proxy-providers），
 #     **没有** mihomo 的 `include-all-proxies`。故本文件统一用 include-all。
@@ -64,16 +68,60 @@ proxy-groups: #!replace
       - Other Regions
     icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Proxy.png
 
+  # ── 总出口的「倍率三档」（与 clash/profiles/routing.yaml 同构）─────────────
+  #
+  #  🧠 这是 Stash **比 mihomo 覆写脚本更强**的一处：
+  #     `filter` 是运行时求值的，能看到全部节点名 ⇒ 可以按倍率**分档**。
+  #     而 my_clash.js 在生成期只执行一次、看不到 provider 节点名，
+  #     只能对**内联**节点做「排序」（且它的 rateOf 只认 0.x 低倍率，抓不到高倍率）。
+  #     静态模板能做到的，Stash 同样能做到。
+  #
+  #  档位语义（与静态模板逐字一致）：
+  #    Low Mult.   倍率 < 1（0.01 / 0.1 / 0.5 …）· 最省钱，优先
+  #    Auto        正常倍率（节点名无倍率标记）
+  #    High Mult.  倍率 > 1（1.5倍 / 2倍 / 3.0x …）· 最贵，兜底
+  #
+  #  Smart 是 fallback：按顺序回落，不是择优 —— 低倍率不可用或过慢时自动让位。
+  #
   - name: Smart
     type: fallback
-    # 与 my_clash.js 同构：单组 fallback，成员为订阅全部节点（排除信息节点）。
-    # ⚠️ 脚本侧会按倍率**排序**成员（sortedByRate）；Stash 覆写是静态文件，
-    #    算不出节点名 ⇒ 成员顺序 = 订阅原顺序。这是刻意接受的差异（见文末）。
-    include-all: true
-    filter: '(?i)^(?!.*(?:直连|DIRECT|剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB)).*$'
+    proxies: [Low Mult., Auto, High Mult.]
     url: https://www.gstatic.com/generate_204
     interval: 300
     icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Auto.png
+
+  # 三个子组都 hidden（不在面板上让人误选）+ include-all + filter。
+  # ⚠️ Stash 没有 `exclude-filter` ⇒ 静态模板里那个独立的排除键，
+  #    这里写成 `^(?!.*(?:信息词))` 前置到 filter 的开头。
+  #    实测（33 个样本、.NET 引擎）：与「filter + exclude-filter」两键式**逐样本等价**。
+  - name: Low Mult.
+    type: url-test
+    hidden: true
+    include-all: true
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:^|[^\d.])(0\.\d*[1-9]))((?!(?:直连|DIRECT)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: Auto
+    type: url-test
+    hidden: true
+    include-all: true
+    # 两个负向断言：既不是低倍率、也不是高倍率 ⇒ 无倍率标记
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?!.*(?:^|[^\d.])(0\.\d*[1-9]))(?!.*(?:^|[^\d.])([1-9]\d*(?:\.\d+)?\s*(?:倍率|倍|x|X|\*)))((?!(?:直连|DIRECT)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: High Mult.
+    type: url-test
+    hidden: true
+    include-all: true
+    # 高倍率必须紧跟倍率单位（倍/倍率/x/X/*），否则会把序号「香港 09」误判成高倍率
+    filter: '(?i)^(?!.*(?:剩余|流量|到期|过期|官网|订阅|重置|续费|Traffic|Expire|GB))(?=.*(?:^|[^\d.])([1-9]\d*(?:\.\d+)?\s*(?:倍率|倍|x|X|\*)))((?!(?:直连|DIRECT)).)*$'
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
 
   # ── AI 应用组 ─────────────────────────────────────────────────────────────
   - name: ChatGPT
@@ -516,11 +564,12 @@ dns: #!replace
 #     副作用：Stash 侧**连「香港 官网」这类含地区词的信息节点也会被排除**，
 #     比 mihomo 侧更严格。这是刻意的改进（信息节点本就不可用）。
 #
-#  ③ Smart 的成员顺序：mihomo 脚本按倍率**排序**（rateOf/sortedByRate）；
-#     Stash 覆写是静态文件、算不出节点名 ⇒ 成员顺序 = 订阅原顺序。
-#     ⇒ 若你依赖「低倍率优先」，请在 Stash 面板里手动排序，或自行把 Smart
-#       改成三档结构（Low/Auto/High）：Stash 的 filter 支持前瞻断言，
-#       照搬 clash/profiles/routing.yaml 的三档正则即可做到，比脚本还强。
+#  ③ 倍率分档：**Stash 侧做到了，脚本侧做不到** ——
+#     mihomo 覆写脚本在生成期只执行一次、看不到 provider 节点名，故 `Smart` 只能
+#     对**内联**节点按倍率**排序**（且 rateOf 只认 0.x 低倍率，抓不到高倍率）。
+#     Stash 的 `filter` 是运行时求值的 ⇒ 本文件直接照搬静态模板的**三档结构**
+#     （Low Mult. / Auto / High Mult.），语义与 clash/profiles/routing.yaml 一致。
+#     ⇒ 这处 Stash **强于** mihomo 覆写脚本，与静态模板等同。
 #
 #  ④ IPv6：mihomo 侧显式 `ipv6: false`（顶层 + dns 两处）；Stash 按官方
 #     〈IPv6 兼容性〉**自动**选择最佳策略，且 Fake IP 机制下 Tunnel 默认仅 IPv4

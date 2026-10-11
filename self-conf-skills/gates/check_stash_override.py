@@ -23,7 +23,8 @@
     ⑤ 规则引用的规则集 / 出口组都存在；末条为 MATCH
     ⑥ 规则集无孤儿；behavior/format ∈ Stash 官方支持的组合
 
-    另外对**分流版**额外断言：22 组 / 25 集 / 27 条（与 mihomo 侧同数）。
+    另外断言规模：分流版 25 组 / 25 集 / 27 条（= 静态模板 `routing.yaml` 的形态，
+    **不是**覆写脚本的 22 组 —— 差的 3 个是倍率子组，脚本做不到分档）。
 
 退出码：0 = 通过 · 1 = 判负 · 2 = 环境/参数问题（文件缺失 / 解析失败）
 用法：
@@ -60,9 +61,12 @@ OK_BEHAVIOR_FORMAT = {
 
 BUILTIN_POLICIES = {"DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE", "GLOBAL"}
 
-# 文件 → 期望规模（分流版与 mihomo 侧同数）
+# 文件 → 期望规模。
+# ⚠️ 分流版是 **25 组**（不是 22）—— 它与 `clash/profiles/routing.yaml` 的**静态形态**
+#    对齐，用的是「倍率三档」结构（Smart → Low Mult./Auto/High Mult.），
+#    而 mihomo 覆写脚本做不到分档、只有 22 组。两者差的就是那 3 个倍率子组。
 FILES = {
-    "stash/override/routing.stoverride": (22, 25, 27),
+    "stash/override/routing.stoverride": (25, 25, 27),
     "stash/override/lazy.stoverride": (3, 10, 13),
 }
 
@@ -178,14 +182,14 @@ def main():
         else:
             ok.append("%s behavior/format 全部合法" % rel)
 
-        # ⑦ 规模（与 mihomo 侧同数）
+        # ⑦ 规模（对齐静态模板形态）
         got = (len(groups), len(rp), len(rules))
         if got == (want_g, want_p, want_r):
-            ok.append("%s 规模 %d 组 / %d 集 / %d 条（与 mihomo 侧同数）"
+            ok.append("%s 规模 %d 组 / %d 集 / %d 条"
                       % ((rel,) + got))
         else:
             bad.append("%s 规模 %d 组 / %d 集 / %d 条，应为 %d / %d / %d"
-                       "（须与 mihomo 侧一致）" % ((rel,) + got + (want_g, want_p, want_r)))
+                       % ((rel,) + got + (want_g, want_p, want_r)))
 
     print("Stash 覆写结构检查（stash/override/*.stoverride）")
     print("-" * 78)
