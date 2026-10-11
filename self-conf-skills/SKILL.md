@@ -17,8 +17,12 @@ license: MIT
 | **[AGENTS.md](https://agents.md)**（Linux Foundation 托管，60k+ 项目） | 仓库根的常驻指令 | 根 `AGENTS.md` 是**唯一**入口；不建 `CLAUDE.md`/`.cursorrules`/`GEMINI.md` 等工具专属入口（会被优先读取、屏蔽真源） | `gates/check_ai_entry.py` |
 | 本仓自制：**写死数字必漂** | 文档里的数量 | 一律现抓，不写死 | `gates/check_doc_numbers.py` |
 
-> 两个入口**分工不同、不重复**：根 `AGENTS.md` 常驻（底线/命令/边界，~90 行）；
-> 本文件按需加载（详细参考 + 流程）。
+> **三个入口分工不同、不重复**（2026-10-11 定案）：
+> · 根 `AGENTS.md` —— **常驻**，底线 / 命令 / 边界 + **四侧指路标**（~145 行）；
+> · 本文件 —— **按需加载**，详细参考与流程；
+> · `references/INDEX.md` —— **路由表**（想问什么去哪份 / 我要做 X 读什么）。
+> ⚠️ **本仓不用嵌套 `AGENTS.md`**（嵌套入口跨工具行为不一致：
+> Codex/Cursor 会加载，**Claude Code 不加载**，issue #98796）。
 
 > 📌 **常驻规则在仓库根的 [`AGENTS.md`](../AGENTS.md)** —— 那份每次会话都会加载，
 > 只有底线、命令与边界。本文件按需加载，装的是**详细参考与流程**。
@@ -34,10 +38,14 @@ grep -n "include-all" references/profiles/clash.md
 # ② 只读那一节：从命中行往上找最近标题，往下读到下一个同级标题（通常 2~5 KB）
 ```
 
+> **完整路由表（含「我要做 X → 读什么 → 跑什么」）在
+> [`references/INDEX.md`](references/INDEX.md)** —— 本表只列最常用的几条。
+
 | 你要做什么 | 读哪份 |
 |:--|:--|
-| 改某个配置键的语义与边界 | `references/profiles/{surge,egern,clash}.md` |
-| DNS / 防泄露原理与三内核落地 | `references/dns.md` |
+| 改某个配置键的语义与边界 | `references/profiles/{surge,egern,clash,stash}.md` |
+| **把某侧做法搬到另一侧**（对齐前必读） | `references/DIFFERENCES.md` |
+| DNS / 防泄露原理与四侧落地 | `references/dns.md` |
 | 规则集选型、权重、跨内核差异 | `references/rulesets.md` |
 | 排查拦截失效 / 分流异常 | `references/pitfalls.md` |
 | 日常操作 / 发版 / 加固清单 | `references/ops.md` |
@@ -53,7 +61,8 @@ grep -n "include-all" references/profiles/clash.md
 ```
 self-conf-skills/
   SKILL.md        本文件（技能入口，按需加载）
-  references/     8 篇知识：profiles/* · dns · rulesets · pitfalls · ops · gates
+  references/     11 篇知识：profiles/*{surge,egern,clash,stash} · DIFFERENCES · dns
+                  · rulesets · pitfalls · ops · gates · INDEX
   gates/          全部判据 + verify_all.py（唯一入口）· <kern>/ 各内核专属
                   （道数**现抓**：`verify_all.py --index | head -1`）
   run/            按需工具：生成 / 审计 / 探测 / 发布 · <kern>/
@@ -166,4 +175,4 @@ mihomo 的 `dns` 段整体比对、`default-nameserver` 误报）
    再怀疑判据失灵（本仓已两次误判：改 GEOIP 而判据扫的是地区组正则；
    把 `[General]` 插进注释行而判据要求行首）。
 
-本技能也提供 8 篇参考中的 `gates.md` 作为方法论（注错三铁律、判别力矩阵）。
+本技能也提供 `references/` 中的 `gates.md` 作为方法论（注错三铁律、判别力矩阵）。

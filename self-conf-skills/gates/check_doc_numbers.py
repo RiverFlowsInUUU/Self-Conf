@@ -37,8 +37,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 
 # 面向人类的入口文件（AI 也要读，但它们常被手改，最容易漂）
+# ⚠️ 2026-10-11：`clash/AGENTS.md` 已随「取消嵌套入口」删除 ⇒ 换成新的指路标文件。
 SCAN = ["README.md", "SECURITY.md", "AGENTS.md",
-        "self-conf-skills/SKILL.md", "clash/AGENTS.md"]
+        "self-conf-skills/SKILL.md",
+        "self-conf-skills/references/INDEX.md",
+        "self-conf-skills/references/DIFFERENCES.md"]
 
 # 能现算的量：正则 → (现算函数, 量的名字)
 ICON_N = re.compile(r"(\d+)\s*个\s*图标")

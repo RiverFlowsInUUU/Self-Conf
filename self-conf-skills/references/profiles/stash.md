@@ -1,8 +1,8 @@
 # Stash · 覆写语义与加固
 
 > **何时读**：改 `stash/override/*.stoverride`，或想弄明白「为什么 Stash 不能照抄 mihomo」时。
-> 本文件是 Stash 侧的**主文档**（详情层，无行数限制）；
-> 就近入口 [`stash/AGENTS.md`](../../../stash/AGENTS.md) 是**指路标**，只放结论与索引。
+> 本文件是 Stash 侧的**主文档**；指路标在根 [`AGENTS.md`](../../../AGENTS.md) 的
+> 「四侧指路标」一节（本仓**没有**嵌套 `AGENTS.md` —— 嵌套入口跨工具行为不一致）。
 
 > 只想赶紧用起来 → 看 [`README`](../../../README.md) 的下载表（Stash 一行是**两份覆写文件**）。
 >

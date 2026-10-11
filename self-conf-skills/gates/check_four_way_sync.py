@@ -124,7 +124,7 @@ def _rule_sig(r):
 
 
 # 组级字段的**豁免**：这些字段在 clash 与 stash 之间**刻意不同**，不参与逐字段对拍。
-#   · filter —— Stash 无 `exclude-filter`，把信息词合进了 filter（见 stash/AGENTS.md ③）
+#   · filter —— Stash 无 `exclude-filter`，把信息词合进了 filter（见 profiles/stash.md §3.3）
 #   · exclude-filter —— 同上（Stash 没有这个键）
 # ⚠️ 其余字段（type/proxies/url/interval/tolerance/hidden/icon/lazy/…）**全部逐字对拍**。
 GROUP_FIELD_EXEMPT = ("filter", "exclude-filter")
@@ -169,7 +169,7 @@ def _provider_fields(root, side, fam):
 
 
 # provider 中**刻意不同**的字段：
-#   · format —— mihomo 用 mrs（省内存），Stash 官方只列 yaml/text（见 stash/AGENTS.md）
+#   · format —— mihomo 用 mrs（省内存），Stash 官方只列 yaml/text（见 profiles/stash.md §2）
 #   · url/path —— 前者指向 .mrs、后者指向 .list/.yaml；path 前缀也不同（rule_provider vs ruleset）
 #   · type —— mihomo 写 `type: http`，Stash 无此键
 # ⚠️ 其余（interval 等）必须一致 —— 刷新周期漂移是真实风险。

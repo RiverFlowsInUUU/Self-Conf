@@ -1266,11 +1266,17 @@ Surge / Egern 侧的 secrets 扫描不认识它，整合时加了白名单（§5
 python self-conf-skills/gates/clash/check_structure.py      # 悬空引用 / 规则指向 / 双条件 / IPv6
 python self-conf-skills/gates/check_min_pair.py       # .yaml ↔ .min.yaml 对象对拍
 python self-conf-skills/gates/clash/check_script_sync.py    # 脚本 ↔ 静态 profile 对拍
+python self-conf-skills/gates/clash/check_version_header.py # 头注版本（三内核同号）
+python self-conf-skills/gates/clash/check_ruleset_doc_sync.py # 配置里的规则集 URL ↔ 文档表
+python self-conf-skills/gates/clash/check_clash_dns.py clash/profiles/routing.yaml clash/profiles/lazy.yaml  # DNS 防泄露（14 项分级）
 python self-conf-skills/run/clash/build_rules.py --check # 规则集生成物是否过期
 
 python self-conf-skills/gates/clash/check_remote_urls.py    # 慢，按需：远程 URL 可达性
 python self-conf-skills/gates/clash/check_secrets.py        # 占位符纪律
 ```
+
+> 改完只想**快速自查**时单独跑上面几条；`verify_all.py` 会跑其中大部分。
+> ⚠️ **改了组数/规则数，脚本头注里的数字要一起改** —— `check_header_numbers.py` 判这条。
 
 `check_structure.py` 对**四份** profile 都跑（`lazy` / `lazy.min` / `routing` / `routing.min`）。
 

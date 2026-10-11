@@ -581,7 +581,7 @@ mihomo 静态 profile **由脚本生成**（`build_profiles.py`），也带 `#! 
    `clash` 与 `stash` 规则**逐字相同**、F2 断言组逐项相同、F3 断言规则集键序列相同），
    改了 clash 不改 stash ⇒ 判红。刻意差异走该文件顶部的豁免表。
    三条硬机制（数组必须 `#!replace` / 无 `include-all-proxies` / 无 `exclude-filter`）
-   与全部差异见 [`stash/AGENTS.md`](../../stash/AGENTS.md)。
+   与全部差异见 [`profiles/stash.md`](./profiles/stash.md)。
 ⑤ 收尾：`python self-conf-skills/gates/check_secrets.py && python self-conf-skills/gates/check_portability.py && python self-conf-skills/gates/check_min_pair.py && python self-conf-skills/gates/check_links.py .`（push 后 CI 会再跑一遍同组检查）
    ↑ 也可一键：`python self-conf-skills/gates/verify_all.py` —— 与 ci.yml 同源的全套闸门并行跑、出汇总表（含 DNS 审计与 releases 方案，比本行列的更全）
 ⑥ 发布 Release（push 之后）：`python self-conf-skills/run/release_publish.py --apply`
