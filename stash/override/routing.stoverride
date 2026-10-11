@@ -500,8 +500,25 @@ rules: #!replace
 #  4. DNS（防泄露 + 广告拦截口径）
 # ════════════════════════════════════════════════════════════════════════════
 #
+#  🚨🚨 第一大坑：**主 `nameserver` 必须「大陆直连可达」**（2026-10-11 真机事故）
+#
+#    官方〈内置 DNS 服务〉原文：
+#      「默认情况下，Stash 发出的 DNS 查询均会**直接出站**，而不经由任何代理规则转发。」
+#      「所有 DNS 请求将会**直接发送到服务器，不经过任何代理**。」
+#
+#    而 mihomo 侧靠 `respect-rules: true` 让 DNS 查询**走代理** —— 所以那侧可以写
+#    境外 DoH（`1.1.1.1` / `8.8.8.8`）。**这一条绝不能照抄到 Stash**：
+#      照抄 ⇒ 设备在大陆**直连**境外 DoH ⇒ 所有未被 policy 覆盖的域名 `resolve timeout`
+#      （实测症状：Apple 天气 / App Store / APNs 全部卡住打不开）。
+#
+#    ⭐ 正确的键映射：mihomo 的 `direct-nameserver`（国内端点，专管 DIRECT 域名）
+#       ＝ Stash 的**主 `nameserver`**。
+#       mihomo 的主 `nameserver`（境外、靠 respect-rules 走代理）在 Stash 侧
+#       **没有对应物**；Stash 也没有 `direct-nameserver` 这个键。
+#
 #  ⚠️ Stash 的 DNS 关键名与 mihomo **不同**，不能照抄：
 #    · 没有 `enhanced-mode` / `fake-ip-range` —— Stash 默认就用 Fake IP
+#    · 没有 `direct-nameserver` ⇒ 直连域名的解析由**主 `nameserver`** 承担
 #    · 没有 `respect-rules`（对应物叫 `follow-rule`，且官方**不建议**开：
 #      它会让 DNS 走代理，可能破坏 CDN 就近解析。故此处不开，见文末说明）
 #    · `nameserver-policy` 支持精确域名 / 通配域名 / `geosite:` 集合，
@@ -517,16 +534,22 @@ dns: #!replace
     - 223.5.5.5
     - 119.29.29.29
 
-  # 主解析器：全加密端点，且一律写 **IP 字面量** ——
-  # 写主机名会多出一次「解析解析器」的明文引导查询。
+  # 主解析器：**大陆直连可达**的加密端点（Stash 并发查询、取最快返回）。
+  # 🚨 别写 `https://1.1.1.1/dns-query` / `https://8.8.8.8/dns-query` —— 见上方第一大坑。
+  #    那正是本文件 2026-10-11 之前的写法，导致 Apple 相关域名全部 resolve timeout。
+  # 选型依据：`doh.18bit.cn` 是本仓跨内核通用端点，且实测**能解析境外域名拿到真实地址**
+  # （对照：`dns.alidns.com` 解境外域名会拿到 GFW 污染 IP，见 profiles/egern.md 的
+  #  「实测铁律：国内解析器不能用来解析境外域名」⇒ 故它只用于 policy，不当主解析器）。
   nameserver:
-    - https://1.1.1.1/dns-query
-    - https://8.8.8.8/dns-query
+    - https://doh.18bit.cn/dns-query
+    - https://doh.pub/dns-query
 
-  # 按域名换解析器：国内域名与私有域名交国内 DoH（否则 CDN 会被调度到境外）
+  # 按域名换解析器：国内域名与私有域名交国内方（否则 CDN 会被调度到境外）。
+  # ⚠️ 主 `nameserver` 已是国内端点 ⇒ 这两条属**显式声明**（防止将来有人把主端点
+  #    换成境外时，国内域名的解析路径仍被钉住），不是必需但让意图读得出来。
   nameserver-policy:
-    'geosite:cn': https://doh.18bit.cn/dns-query
-    'geosite:private': https://doh.18bit.cn/dns-query
+    'geosite:cn': https://223.5.5.5/dns-query
+    'geosite:private': https://223.5.5.5/dns-query
 
   # 代理节点域名的解析（连节点前还没有代理可用，鸡生蛋问题）
   proxy-server-nameserver:

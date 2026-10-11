@@ -193,8 +193,23 @@ rules: #!replace
 #  4. DNS（防泄露 + 广告拦截口径）
 # ════════════════════════════════════════════════════════════════════════════
 #
+#  🚨🚨 第一大坑：**主 `nameserver` 必须「大陆直连可达」**（2026-10-11 真机事故）
+#
+#    官方〈内置 DNS 服务〉原文：
+#      「默认情况下，Stash 发出的 DNS 查询均会**直接出站**，而不经由任何代理规则转发。」
+#      「所有 DNS 请求将会**直接发送到服务器，不经过任何代理**。」
+#
+#    mihomo 侧靠 `respect-rules: true` 让 DNS 查询**走代理**，所以那侧可以写境外 DoH
+#    （`1.1.1.1` / `8.8.8.8`）。**这一条绝不能照抄**：照抄 ⇒ 设备在大陆**直连**境外
+#    DoH ⇒ 所有未被 policy 覆盖的域名 `resolve timeout` ⇒ Apple 天气 / App Store /
+#    APNs 全部卡住（实测症状）。
+#
+#    ⭐ 键映射：mihomo 的 `direct-nameserver`（国内端点，专管 DIRECT 域名）
+#       ＝ Stash 的**主 `nameserver`**。Stash 没有 `direct-nameserver` 这个键。
+#
 #  ⚠️ Stash 的 DNS 关键名与 mihomo **不同**，不能照抄：
 #    · 没有 `enhanced-mode` / `fake-ip-range` —— Stash 默认就用 Fake IP
+#    · 没有 `direct-nameserver` ⇒ 直连域名的解析由**主 `nameserver`** 承担
 #    · 没有 `respect-rules`（对应物叫 `follow-rule`，官方不建议开 —— 会让
 #      DNS 走代理，可能破坏 CDN 就近解析）
 #    · `nameserver-policy` **不支持** mihomo 的 `rule-set:` 前缀，
@@ -209,10 +224,11 @@ dns: #!replace
     - 223.5.5.5
     - 119.29.29.29
 
-  # 主解析器：全加密端点，且写 **IP 字面量**（写主机名会多一次明文引导查询）
+  # 主解析器：**大陆直连可达**的加密端点（Stash 并发查询、取最快返回）。
+  # 🚨 别写 `https://1.1.1.1/dns-query` / `https://8.8.8.8/dns-query` —— 见上方第一大坑。
   nameserver:
-    - https://1.1.1.1/dns-query
-    - https://8.8.8.8/dns-query
+    - https://doh.18bit.cn/dns-query
+    - https://doh.pub/dns-query
 
   # 按域名换解析器：国内域名与私有域名交国内方（否则 CDN 被调度到境外）
   nameserver-policy:

@@ -679,6 +679,12 @@ def build_gates():
     # 就真实发生过「漏改而无判据会叫」。断言 F1–F6 全部取自实测成立的不变量，
     # 刻意差异走文件顶部豁免表。详见该脚本 docstring。
     add('四侧分流意图对拍', [PY, 'self-conf-skills/gates/check_four_way_sync.py'])
+    # Stash DNS 端点必须**大陆直连可达**。真机事故（2026-10-11）：官方文档明确
+    # 「Stash 发出的 DNS 查询均会直接出站，不经任何代理规则转发」+「所有 DNS 请求
+    # 直接发送到服务器，不经过任何代理」⇒ 照抄 mihomo 的境外 nameserver（1.1.1.1）
+    # 会裸直连超时，表现为 Apple 天气/App Store 全部 resolve timeout。
+    # mihomo 的 direct-nameserver（国内端点）＝ Stash 的主 nameserver。
+    add('Stash DNS 端点可达', [PY, 'self-conf-skills/gates/check_stash_dns.py'])
 
     # ── ④ 自托管清单的裸 IP 检测 ────────────────────────────────
     # 原为每份 .list 各开一道（3 道），但脚本本就支持多文件 ⇒ 合并成一道。

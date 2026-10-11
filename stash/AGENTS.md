@@ -7,8 +7,7 @@ Stash 是 iOS / macOS 上的 Clash 系**客户端**（内核是 Clash Premium）
 
 **结构基准是「静态模板」（能力强于脚本）**：Stash 的 `filter` 与静态模板一样是
 **运行时**求值的，能看到全部节点名 ⇒ 能做到脚本做不到的**倍率分档**。
-故 `routing.stoverride` 对齐 `clash/profiles/routing.yaml`（**25 组**），
-而不是只排序、做不到分档的覆写脚本（22 组）。
+故 `routing.stoverride` 对齐 `clash/profiles/routing.yaml`（**25 组**），而非脚本的 22 组。
 
 根 [`AGENTS.md`](../AGENTS.md) 的规则仍然适用；这里只写 stash/ 特有的、agent 推不出来的东西。
 
@@ -21,16 +20,15 @@ clash/profiles/routing.yaml      ──（结构基准）──▶  stash/overri
 clash/profiles/lazy.yaml         ──（结构基准）──▶  stash/override/lazy.stoverride
 ```
 
-⚠️ **结构基准是「静态模板」，不是覆写脚本** —— 因为 Stash 的 `filter` 是运行时求值、
+⚠️ **结构基准是「静态模板」，不是覆写脚本** —— Stash 的 `filter` 是运行时求值、
 能看到节点名，能力上等同静态模板（详见文末「倍率三档」一节）。
 
 ⚠️ **规则与组名以静态模板为准，改了必须同步** —— 好消息是**漏改会被抓住**：
 `check_four_way_sync.py` 对拍四侧（surge · egern · clash · stash）意图，
 其中 F1 断言 `clash` 与 `stash` 的规则**逐字相同**、F2 断言组（name/type/proxies）
 **逐项相同**、F3 断言 rule-provider 键序列相同 —— 改了 clash 不改 stash ⇒ **判红**。
-
-⚠️ 但它对拍的是**结构**（规则序列 / 组 / 规则集键），**不是每一条注释**：
-头注里的数字、散文说明改了但没同步，判据看不出。**改结构靠判据，改陈述靠人。**
+但它对拍的是**结构**（规则序列 / 组 / 规则集键），**不是每一条注释**：
+头注数字、散文说明改了没同步，判据看不出。**改结构靠判据，改陈述靠人。**
 
 ---
 
@@ -48,8 +46,7 @@ clash/profiles/lazy.yaml         ──（结构基准）──▶  stash/overri
 
 ⚠️ 漏写的后果是**静默的**：订阅自带的 proxy-groups / rules 会残留在前面，
 而规则**自上而下首次命中即生效** ⇒ 你的全部改动被架空，但 Stash 照常启动、
-不报任何错。这是本目录第一大坑。
-
+不报任何错。这是**结构上的**第一大坑（DNS 那个是运行时第一大坑，见下）。
 `check_stash_override.py` 判据 ② 专守这一条。
 
 ### ② 没有 `include-all-proxies`，只有 `include-all`
@@ -76,6 +73,8 @@ Stash 只列了 `filter` ⇒ 排除词必须写成 `(?!...)` **合进** `filter`
 
 | 项 | mihomo | Stash |
 |:--|:--|:--|
+| 🚨 **DNS 查询路径** | `respect-rules: true` ⇒ DNS 查询**走代理**，故可写境外 DoH | **默认「直接出站」、不经任何代理规则** ⇒ 端点**必须大陆直连可达**（见下） |
+| 直连域名解析器 | `direct-nameserver`（国内端点） | **没有这个键** ⇒ 由**主 `nameserver`** 承担（这两者是同一个东西） |
 | Fake IP 开关 | `enhanced-mode: fake-ip` + `fake-ip-range` | **没有**，默认就用 Fake IP |
 | DNS 跟随规则 | `respect-rules: true` | 叫 `follow-rule`，且官方**不建议**开（会破坏 CDN 就近解析）⇒ 不写 |
 | 按域名换解析器 | `nameserver-policy` 用 `rule-set:` 前缀 | 只支持精确域名 / 通配 / `geosite:` 集合，**没有 `rule-set:`** |
@@ -83,24 +82,43 @@ Stash 只列了 `filter` ⇒ 排除词必须写成 `(?!...)` **合进** `filter`
 | IPv6 | 显式 `ipv6: false`（顶层 + dns 两处） | 按官方〈IPv6 兼容性〉**自动**选择 ⇒ 不写该键 |
 | 规则集格式 | MRS 二进制（省内存） | 官方 `format` 只列 `yaml` / `text`；MRS 支持限 `domain`/`ipcidr`。本目录用 `text`/`yaml` 保守取值 |
 
+### 🚨🚨 运行时第一大坑（真机事故，2026-10-11）：DNS 端点必须大陆直连可达
+
+官方〈内置 DNS 服务〉原文：
+
+> 「默认情况下，Stash 发出的 DNS 查询均会**直接出站**，而不经由任何代理规则转发。」
+> 「所有 DNS 请求将会**直接发送到服务器，不经过任何代理**。」
+
+⇒ `nameserver` / `nameserver-policy` 的值 / `proxy-server-nameserver` **全是裸直连**。
+
+- **症状**（用户实测）：Apple 天气 / App Store 打不开，日志刷
+  `connect error: resolve failed: 46-courier2.push.apple.com (A: resolve timeout…)`。
+- **成因**：主 `nameserver` 从 mihomo 列照抄了 `https://1.1.1.1/dns-query` ——
+  大陆裸直连境外 DoH 必超时，所有未被 policy 覆盖的域名全解析不了
+  （`push.apple.com` / `ls.apple.com` 走 DIRECT，正落在这条路上）。
+- **变体**：把 `clash/profiles/*.yaml` 原样导入 Stash **同样会坏** ——
+  `respect-rules: true` 是 mihomo 独有，Stash **静默忽略**它，`1.1.1.1` 变裸直连。
+- **正确写法**：主 `nameserver` 用大陆可达端点（`doh.18bit.cn` / `doh.pub`）。选型依据：
+  `doh.18bit.cn` 解境外域名得**真实地址**、`dns.alidns.com` 得**污染 IP** ⇒ 前者当主
+  `nameserver`，后者只用于 policy（见 `references/dns.md` §7.1）。判据 `check_stash_dns.py`。
+
 ---
 
 ## 本侧专属判据
 
 ```bash
-# 本侧结构 / 引用 / 正则 / 规模（八条注错全部实测能判红）
-python self-conf-skills/gates/check_stash_override.py
-# 四侧意图对拍（含 F1–F3 断言 clash ≡ stash，漏改一处即判红）
-python self-conf-skills/gates/check_four_way_sync.py
+python self-conf-skills/gates/check_stash_override.py  # 结构/引用/正则/规模（8 条注错判红）
+python self-conf-skills/gates/check_stash_dns.py       # DNS 端点大陆可达（9 条判红）
+python self-conf-skills/gates/check_four_way_sync.py   # 四侧意图对拍（clash ≡ stash）
 ```
 
-`check_stash_override.py` 覆盖：YAML 语法 · `#!replace` · 正则可编译 · 组引用 ·
-规则集引用 · 出口策略 · 孤儿 · behavior·format · 规模。
+`check_stash_dns.py`：主 `nameserver` 存在且**大陆可达** · `nameserver-policy`
+的值同样可达 · `proxy-server-nameserver` 存在且可达 · 端点必须加密 ·
+`default-nameserver` 只能是 IP/`system`。
 
-`check_four_way_sync.py` 覆盖四侧（surge · egern · clash · stash）：规则逐字相同 ·
-组逐项相同 · 规则集键序列相同 · 组名差集只含登记的刻意项 · 去向一致。
-**豁免表在该文件顶部**（`Airport` 仅 Surge/Egern；倍率三档仅 Clash/Stash；
-两条广告规则的去向差异）—— 新增豁免必须写清为什么刻意。
+`check_four_way_sync.py`：四侧规则逐字相同 · 组逐项相同 · 规则集键序列相同 ·
+组名差集只含登记的刻意项 · 去向一致。**豁免表在该文件顶部**（`Airport` 仅
+Surge/Egern；倍率三档仅 Clash/Stash；两条广告规则的去向差异）。
 
 ---
 

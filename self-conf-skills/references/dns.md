@@ -244,26 +244,29 @@ provider 的 `behavior`，不是 `geoip-` 名字前缀。）
 
 ---
 
-### 7 · 三内核语法对照
+### 7 · 四侧语法对照
 
 > 原理共用，**键名一律不能照抄**。目标可以照搬为「关闭 IPv6 / 端点钉 IP / 劫持 :53」，
 > 但把 Surge 的 `ipv6-vif` 或 mihomo 的 `dns.ipv6` 搬到另一个内核是**无意义的**（甚至被判负）。
 
-| 语义 | Surge | Egern | mihomo（clash） |
-|:--|:--|:--|:--|
-| 接管 DNS 的开关 | `[General]` 里写全套 DNS 键即接管 | `dns:` 段 | **`dns.enable: true` 必须显式给**（缺省是不接管） |
-| 主解析器（加密） | `encrypted-dns-server` | `dns.upstreams.<名>` | `dns.nameserver`（＋可选 `fallback`） |
-| 引导 / 兜底解析器 | `dns-server`（裸 IP，**绝不写 `system`**） | `dns.bootstrap` | `dns.default-nameserver`（**必须纯 IP**） |
-| 节点域名专用解析器 | 无需（走本地路径） | `dns.proxy_nameservers` ⚠️ 会绕过 `forward` | **`dns.proxy-server-nameserver`**（鸡生蛋层） |
-| 直连域名专用解析器 | — | 由 `forward` 分流到 `Domestic-DNS` | **`dns.direct-nameserver`** |
-| 按域换解析器 | — | `dns.forward`（`proxy_rule_set` → `value`） | **`dns.nameserver-policy`**（`rule-set:xxx`） |
-| 假 IP 模式 | 默认 Fake-IP | 默认 Fake-IP | **`enhanced-mode: fake-ip` 必须显式给** |
-| 跳过假 IP 的名单 | `always-real-ip` | `real_ip_domains` | **`dns.fake-ip-filter`**（`+.` ≠ `*.`） |
-| 旁路设备 :53 收口 | `hijack-dns = 8.8.8.8:53, …`（**列举式**） | `hijack_dns: ['*']` | **`tun.dns-hijack: [any:53]`** ⭐ 覆盖整个地址空间 |
-| 是否走路由规则 | `encrypted-dns-follow-outbound-mode = false` | — | **`respect-rules: true`**（反向：要它**跟着**规则走） |
-| 关闭 IPv6 | `ipv6 = false` + `ipv6-vif = disable` | `ipv6: false` | **顶层 `ipv6: false` + `dns.ipv6: false`（两处）** |
-| 地理判定依赖 | `GeoLite2-Country.mmdb` | `Country.mmdb` + `GeoLite2-ASN.mmdb` | **无 dat** —— 全部远程 `.mrs` |
-| 判据脚本 | `self-conf-skills/gates/surge/check_surge_dns.py` | `self-conf-skills/gates/egern/check_egern_dns.py` | `self-conf-skills/gates/clash/check_clash_dns.py` |
+| 语义 | Surge | Egern | mihomo（clash） | **Stash（覆写）** |
+|:--|:--|:--|:--|:--|
+| 接管 DNS 的开关 | `[General]` 里写全套 DNS 键即接管 | `dns:` 段 | **`dns.enable: true` 必须显式给**（缺省是不接管） | 写 `dns:` 段即接管 |
+| 主解析器（加密） | `encrypted-dns-server` | `dns.upstreams.<名>` | `dns.nameserver`（＋可选 `fallback`） | **`dns.nameserver`** ⚠️ **必须大陆可达**，见下 |
+| 引导 / 兜底解析器 | `dns-server`（裸 IP，**绝不写 `system`**） | `dns.bootstrap` | `dns.default-nameserver`（**必须纯 IP**） | **`dns.default-nameserver`**（**仅 IP 或 `system`**） |
+| 节点域名专用解析器 | 无需（走本地路径） | `dns.proxy_nameservers` ⚠️ 会绕过 `forward` | **`dns.proxy-server-nameserver`**（鸡生蛋层） | **`dns.proxy-server-nameserver`** |
+| 直连域名专用解析器 | — | 由 `forward` 分流到 `Domestic-DNS` | **`dns.direct-nameserver`** | ⚠️ **无此键** ⇒ 由**主 `nameserver`** 承担 |
+| 按域换解析器 | — | `dns.forward`（`proxy_rule_set` → `value`） | **`dns.nameserver-policy`**（`rule-set:xxx`） | **`dns.nameserver-policy`**（`geosite:xxx`，**无 `rule-set:`**） |
+| 假 IP 模式 | 默认 Fake-IP | 默认 Fake-IP | **`enhanced-mode: fake-ip` 必须显式给** | **默认就是 Fake IP**，无该键 |
+| 跳过假 IP 的名单 | `always-real-ip` | `real_ip_domains` | **`dns.fake-ip-filter`**（`+.` ≠ `*.`） | **`dns.fake-ip-filter`**（同形） |
+| 旁路设备 :53 收口 | `hijack-dns = 8.8.8.8:53, …`（**列举式**） | `hijack_dns: ['*']` | **`tun.dns-hijack: [any:53]`** ⭐ 覆盖整个地址空间 | 由 Stash 网络引擎自动接管 |
+| 是否走路由规则 | `encrypted-dns-follow-outbound-mode = false` | — | **`respect-rules: true`**（反向：要它**跟着**规则走） | **默认"直接出站"、无 `respect-rules`**；对应物 `follow-rule`，官方不建议开 |
+| 关闭 IPv6 | `ipv6 = false` + `ipv6-vif = disable` | `ipv6: false` | **顶层 `ipv6: false` + `dns.ipv6: false`（两处）** | 按官方〈IPv6 兼容性〉**自动**选择，不写该键 |
+| 地理判定依赖 | `GeoLite2-Country.mmdb` | `Country.mmdb` + `GeoLite2-ASN.mmdb` | **无 dat** —— 全部远程 `.mrs` | 同 mihomo（stash 侧用 `.list`/`.yaml`） |
+| 判据脚本 | `self-conf-skills/gates/surge/check_surge_dns.py` | `self-conf-skills/gates/egern/check_egern_dns.py` | `self-conf-skills/gates/clash/check_clash_dns.py` | **`self-conf-skills/gates/check_stash_dns.py`** |
+
+🚨 **Stash 列的「主 `nameserver` 必须大陆可达」是本表最贵的一格**（2026-10-11 真机事故）。
+   原因见 §7.1，**不要**从 mihomo 列照抄 `1.1.1.1`。
 
 ⚠️ 三处最容易照抄错的地方：
 
@@ -275,6 +278,60 @@ provider 的 `behavior`，不是 `geoip-` 名字前缀。）
    ⚠️ 代价：打开后内核**强制要求**同时给 `proxy-server-nameserver`，缺了直接报错。
 3. **IPv6 的关闭处数不同**：Surge 两处（`ipv6` + `ipv6-vif`）、Egern 一处（`ipv6`）、
    mihomo 两处（顶层 `ipv6` + `dns.ipv6`）—— 但**是不同语义的两处**，不是同一处的两种写法。
+
+#### 7.1 ⭐ Stash 的 DNS 查询**不经代理** —— 端点必须大陆直连可达
+
+官方〈内置 DNS 服务〉原文（决定性）：
+
+> 「默认情况下，Stash 发出的 DNS 查询均会**直接出站**，而不经由任何代理规则转发。」
+> 「所有 DNS 请求将会**直接发送到服务器，不经过任何代理**。」
+> （`default-nameserver` 注释）「除 `system` 外，服务器地址必须使用 IP。」
+
+⇒ **Stash 里每一个 DNS 端点都是「裸直连」发出的**：`nameserver` /
+`nameserver-policy` 的值 / `proxy-server-nameserver` **全部**如此。
+在大陆网络下写境外端点（`1.1.1.1` / `8.8.8.8` / `dns.google` …）⇒ **必然超时**。
+
+**真机症状**（2026-10-11 实测）：
+
+```
+connect error: resolve failed: 46-courier2.push.apple.com (A: resolve timeout…)
+connect error: resolve failed: configuration-carry.ls.apple.com (A: resolve timeout…)
+```
+Apple 天气 / App Store / APNs 全部卡住 —— 因为 `push.apple.com`、`ls.apple.com`
+在 `apple_system.yaml` 里（走 DIRECT），而它们的解析要落到主 `nameserver`。
+
+**键映射（照抄 mihomo 会错在哪）**：
+
+| mihomo | Stash | 说明 |
+|:--|:--|:--|
+| `direct-nameserver`（国内端点，管 DIRECT 域名） | **主 `nameserver`** | ⭐ 这才是对应物 |
+| 主 `nameserver`（境外，靠 `respect-rules` 走代理） | —— | **无对应物**；Stash 没有 `respect-rules` |
+| `respect-rules: true` | 无（默认直接出站） | 对应物 `follow-rule`，官方**不建议**开 |
+
+⚠️ **`respect-rules` 是 mihomo 独有**。把 clash 模板原样导入 Stash 时，它被**静默忽略**，
+于是 `nameserver: [https://1.1.1.1/dns-query]` 变成裸直连 ⇒ **同样超时**。
+这解释了一个常见的误判：「clash 模板能跑，为什么导入 Stash 就坏了」——模板本身没坏，
+是**这条键在 Stash 不存在**。
+
+✅ **正确写法**（两份覆写现役口径）：
+
+```yaml
+dns:
+  default-nameserver: [223.5.5.5, 119.29.29.29]        # 仅 IP
+  nameserver:                                          # 大陆直连可达 + 加密
+    - https://doh.18bit.cn/dns-query
+    - https://doh.pub/dns-query
+  nameserver-policy:
+    'geosite:cn': https://223.5.5.5/dns-query
+    'geosite:private': https://223.5.5.5/dns-query
+  proxy-server-nameserver: [https://doh.18bit.cn/dns-query, https://dns.alidns.com/dns-query]
+```
+
+端点选型依据 —— 见 [`profiles/egern.md`](./profiles/egern.md) 的「实测铁律：国内解析器
+不能用来解析境外域名」：`doh.18bit.cn` 解 `www.google.com` 得真实地址，而
+`dns.alidns.com` 得到 GFW 污染 IP ⇒ **前者可当主 `nameserver`，后者只用于 policy**。
+
+⭐ 判据：`self-conf-skills/gates/check_stash_dns.py`（D1–D7，含境外端点黑名单）。
 
 ### 8 · mihomo 的六个专属特点
 

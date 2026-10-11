@@ -109,6 +109,7 @@ python self-conf-skills/gates/verify_all.py
 | 豁免用量 | 造一条不会触发的 `# audit-waive: 7 …`（陈旧豁免）|
 | 一天一版 | 同一天把头注从 `v1.0.1` 再升到 `v1.0.2` |
 | Stash 覆写结构与引用 | 去掉 `rules: #!replace`；或把 filter 的括号改得不配对；或删一个组让规则引用悬空 |
+| Stash DNS 端点可达 | 把主 `nameserver` 改回 `https://1.1.1.1/dns-query`（= 真机事故现场，**必须判红**）；或混入一个境外端点；或 `nameserver-policy` 值改境外；或删 `proxy-server-nameserver`；或写明文 `8.8.8.8`；或 `default-nameserver` 写域名 —— **9/9 判红**；反例 `1.1.1.10` **不误判** |
 | 四侧分流意图对拍 | 改 `clash/profiles/routing.yaml` 的规则落点而**不改 stash**（F1）；改 stash 组名不改 clash（F2）；改 provider 键或其次序（F3）；改 surge 组名不改 egern（F4）；改 egern 规则落点（F5）；clash 新增一个未登记组（F6）—— **9 条断言全部实测判红、还原复绿** |
 
 > 🔁 **2026-10-09 起部分自动化**：闸门「负样例回归」（`check_negative_fixtures.py`）把上表中
