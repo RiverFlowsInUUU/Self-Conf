@@ -290,34 +290,53 @@ def main():
         if rp_:
             rel[nm] = rp_
 
+    # ⭐ R6 的内容比对**只看 6 件 `.min`**（2026-10-11，用户裁定）：
+    #    「我们发版只发配置文件，脚本文件的变更不需要发版。」
+    #
+    #    为什么要收窄（真实误判）：R6a 原来拿**原始字节**（sha256）比全部 12 件。
+    #    mihomo 完整版 `clash/profiles/*.yaml` 的**头注**写着「由 override/<脚本>.js 生成」
+    #    —— 2026-10-11 统一脚本命名（my_clash*.js → clash-*.js）后头注跟着变，
+    #    **配置正文一个字节没动**，却因头注字节不同被判「本地 profile 有变动」，
+    #    逼出一张「只改了文件名」的空发版。
+    #
+    #    为什么 `.min` 是正确口径：`.min` 就是**配置正文**（Surge/Egern 剔整行注释；
+    #    clash 由 YAML 对象生成、注释根本不进）—— 配置真变 ⇒ .min 必变；
+    #    只改注释/脚本名/文档 ⇒ .min 不动。与 ops.md §2「只改注释 ⇒ 不升号」
+    #    和 check_min_pair「两份只差注释」的既有语义严丝合缝。
+    #
+    #    完整版的资产存在性与版本头注仍由 R3/R4 守着（R5 判最新），不受影响。
+    content_watch = {nm: rp for nm, rp in rel.items() if ".min." in nm}
     # 最新那张 = 已发布状态的真值（tag 形态 vYYYY-MM-DD，字典序即时间序）
     newest_assets = {a["name"]: a for a in newest.get("assets", [])}
-    stale, unverified_pre = mismatched_assets(rel, root, newest_assets)
+    stale, unverified_pre = mismatched_assets(content_watch, root, newest_assets)
     if unverified_pre:
         skipped.append("R6 部分资产未能与最新 Release 比对：%s"
                        % ", ".join(unverified_pre))
 
     if not stale:
-        judge(True, "R6 本地 profile 与最新 Release(%s) 逐件一致 —— 无需发版"
-                    % newest["tag_name"], "")
+        judge(True, "R6 配置正文（%d 件 .min）与最新 Release(%s) 逐件一致 —— 无需发版"
+                    % (len(content_watch), newest["tag_name"]), "")
     else:
-        # 有未发布的 profile 变动 ⇒ 必须有**当日** Release 承载（原 R6a 的本意）
+        # 配置正文（.min）有未发布变动 ⇒ 必须有**当日** Release 承载
         head_tag = rp.plan(root)["tag"]
         target_release = next((r for r in releases if r["tag_name"] == head_tag), None)
         have_tag = target_release is not None
         judge(have_tag,
-              "R6a 本地 profile 有变动，当日 Release %s 已发布" % head_tag,
-              "R6a 本地 profile 有变动（%s），但没有当日 Release %s —— "
+              "R6a 配置正文有变动，当日 Release %s 已发布" % head_tag,
+              "R6a 配置正文有变动（%s），但没有当日 Release %s —— "
               "跑 release_publish.py（预览）→ --apply（真发）；"
               "若本次是功能变动，先按 ops.md §2 升号再发"
               % (", ".join(stale), head_tag))
         if have_tag:
-            # ② 该 Release 的资产与**本地 profile 逐件一致**
+            # ② 该 Release 的 .min 资产与本地配置正文逐件一致
+            #    （完整版只由 R3/R4 查资产存在性与版本头注，不进字节比对 ——
+            #      其头注/注释可以随文档变化，不算「配置变动」。）
             rel_assets = {a["name"]: a for a in target_release.get("assets", [])}
-            unpub, unverified = mismatched_assets(rel, root, rel_assets)
+            unpub, unverified = mismatched_assets(content_watch, root, rel_assets)
             judge(not unpub,
-                  "R6b %s 的 %d 件资产与本地 profile 逐件一致" % (head_tag, len(rel)),
-                  "R6b %s 的资产与本地 profile 不一致（本地已改但没重发）：%s —— "
+                  "R6b %s 的 %d 件 .min 与本地配置正文逐件一致"
+                  % (head_tag, len(content_watch)),
+                  "R6b %s 的 .min 与本地配置正文不一致（本地已改但没重发）：%s —— "
                   "跑 release_publish.py --apply 重发资产（幂等回写同一张，tag 不动）"
                   % (head_tag, ", ".join(unpub)))
             if unverified:
