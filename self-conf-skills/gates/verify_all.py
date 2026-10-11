@@ -685,6 +685,13 @@ def build_gates():
     # 会裸直连超时，表现为 Apple 天气/App Store 全部 resolve timeout。
     # mihomo 的 direct-nameserver（国内端点）＝ Stash 的主 nameserver。
     add('Stash DNS 端点可达', [PY, 'self-conf-skills/gates/check_stash_dns.py'])
+    # 四侧覆盖：「加了一侧却漏改别处」必须判负。
+    # 起因是真实事故 —— 加 Stash 那一轮补了脚本，但多处陈述/表格/**判据扫描面**
+    # 没跟上。最危险的一档是判据：`check_secrets.py` 的扩展名表漏 `.stoverride`
+    # ⇒ 往 Stash 注入假密钥**判绿**；`check_remote_urls.py` 手写目录列表漏 `stash/`
+    # ⇒ 25 个远程 URL 不检查。本闸门用「交付面注册表」把三边（注册表/文件系统/关键文档）
+    # 对拍，并列出所有「按扩展名枚举扫描面」的判据提醒人工核对。
+    add('四侧覆盖一致', [PY, 'self-conf-skills/gates/check_side_coverage.py'])
 
     # ── ④ 自托管清单的裸 IP 检测 ────────────────────────────────
     # 原为每份 .list 各开一道（3 道），但脚本本就支持多文件 ⇒ 合并成一道。

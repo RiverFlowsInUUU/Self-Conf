@@ -230,17 +230,21 @@ provider 的 `behavior`，不是 `geoip-` 名字前缀。）
 > ⇒ 所以本仓库多了一个脚本：`audit_routing_coverage.py` —— 拿真实域名走一遍，
 > 而且国内探针**刻意混入非 `.cn` 域名**（只靠 `DOMAIN-SUFFIX,cn` 兜住的配置会在这里暴露）。
 
-#### 五个案例的共同点（三内核判据对照）
+#### 五个案例的共同点（四侧判据对照）
 
-| 案例 | 缺陷在哪 | 能不能静态审出来 | Surge | Egern | **mihomo** |
-|---|---|:---:|:--|:--|:--|
-| 1 · 透明重定向 | 链路上 | ❌ 只能靠"不产生明文"来规避 | — | — | — |
-| 2 · 规则缺 no-resolve | profile 里 | ✅ | `check_surge_dns.py` 第 12 项 | `check_egern_dns.py` | **判据 ⑩** |
-| 3 · 规则集缺 no-resolve | **别人仓库里** | ✅ 但必须**下载下来数** | `audit_ruleset_content.py` | `audit_ruleset_noresolve.py` | ⚠️ **判不了**，只给 LOW 提示（面⑤） |
-| 4 · 配置自身依赖的域名 | profile + 规则集 | ⚠️ 部分可判（远程内容未知） | 第 11 项 | 对应项 | 判据 **④**（节点域名） |
-| 5 · 分流覆盖 | 规则集**内容** | ✅ 必须**拿真实域名走一遍** | `audit_routing_coverage.py` | 同左 | 同思路（差集 + 人工分类） |
+| 案例 | 缺陷在哪 | 能不能静态审出来 | Surge | Egern | **mihomo** | **Stash** |
+|---|---|:---:|:--|:--|:--|:--|
+| 1 · 透明重定向 | 链路上 | ❌ 只能靠"不产生明文"来规避 | — | — | — | — |
+| 2 · 规则缺 no-resolve | profile 里 | ✅ | `check_surge_dns.py` 第 12 项 | `check_egern_dns.py` | **判据 ⑩** | `check_stash_dns.py`（D6 加密 + 端点可达） |
+| 3 · 规则集缺 no-resolve | **别人仓库里** | ✅ 但必须**下载下来数** | `audit_ruleset_content.py` | `audit_ruleset_noresolve.py` | ⚠️ **判不了**，只给 LOW 提示（面⑤） | 同 mihomo（`RULE-SET,…no-resolve` 写在规则行，内容在远端） |
+| 4 · 配置自身依赖的域名 | profile + 规则集 | ⚠️ 部分可判（远程内容未知） | 第 11 项 | 对应项 | 判据 **④**（节点域名） | `check_stash_dns.py` D4/D5（`proxy-server-nameserver` 必须存在且可达） |
+| 5 · 分流覆盖 | 规则集**内容** | ✅ 必须**拿真实域名走一遍** | `audit_routing_coverage.py` | 同左 | 同思路（差集 + 人工分类） | ⚠️ 无专属审计器；由 `check_four_way_sync.py` 对拍 clash 侧间接覆盖 |
 
 ⇒ 结论：**判据必须落到"实际会发生什么"上，而不是"配置里写了什么"。**
+
+⚠️ **Stash 列的空白是真实的**：它是客户端，`hijack-dns` / TUN 那类「旁路设备」判据
+在它身上**没有对应物**（由网络引擎接管）⇒ 表中标 `—` 是机制差异，不是漏改。
+但「分流覆盖」那一行的空白**是待补的缺口**（登记在案）。
 
 ---
 

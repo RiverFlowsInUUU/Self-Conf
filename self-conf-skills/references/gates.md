@@ -111,6 +111,7 @@ python self-conf-skills/gates/verify_all.py
 | Stash 覆写结构与引用 | 去掉 `rules: #!replace`；或把 filter 的括号改得不配对；或删一个组让规则引用悬空 |
 | Stash DNS 端点可达 | 把主 `nameserver` 改回 `https://1.1.1.1/dns-query`（= 真机事故现场，**必须判红**）；或混入一个境外端点；或 `nameserver-policy` 值改境外；或删 `proxy-server-nameserver`；或写明文 `8.8.8.8`；或 `default-nameserver` 写域名 —— **9/9 判红**；反例 `1.1.1.10` **不误判** |
 | 四侧分流意图对拍 | 改 `clash/profiles/routing.yaml` 的规则落点而**不改 stash**（F1）；改 stash 组名不改 clash（F2）；改 provider 键或其次序（F3）；改 surge 组名不改 egern（F4）；改 egern 规则落点（F5）；clash 新增一个未登记组（F6）—— **9 条断言全部实测判红、还原复绿** |
+| 四侧覆盖一致 | 删注册表里的 stash 项 / 锚点删 stash / README 删 Stash 行 / AGENTS 去掉 stash.md 链接 / DIFFERENCES 表头去掉 Stash 列 —— **7/7 判红**；另：`check_secrets.py` 与 `check_selfcontained.py` 的 `EXTS` 去掉 `.stoverride` 也判红（覆盖形态断言）|
 
 > 🔁 **2026-10-09 起部分自动化**：闸门「负样例回归」（`check_negative_fixtures.py`）把上表中
 > `clash 结构`、`min-pair 一致`、`clash 脚本/静态对拍`、`.min 漂移`（build_rules --check）
@@ -169,6 +170,53 @@ python self-conf-skills/gates/verify_all.py
 ⚠️ ④⑤⑥ 是**一个闭环**：唯一入口（④）→ 真的指路（⑤）→ 全图连通（⑥）。
 少任何一条都会漏：只做 ④ 找不到东西；只做 ⑤ 留下第二入口；缺 ⑥ 则「新建文档忘了接线」
 无人发现。
+
+#### ⭐ 四侧覆盖一致（`check_side_coverage.py`）—— 防「加了一侧却漏改别处」
+
+**这是用户提出的第三个诉求**（2026-10-11）：「AI 修改时不能只改当前这一块，
+其他相关地方不管。比如刚才，有些地方只提供了 Stash 的脚本，但其他相关位置
+没有补充 Stash 的内容 —— 这种修改就是错误的。」
+
+**为什么单独立一道**：上面 ④⑤⑥ 守的是**入口与文档结构**；
+这道守的是**「同一件事在仓库各处的覆盖是否同步」** —— 两回事。
+
+**结构**：
+- **交付面注册表**（`DELIVERABLES`）是**唯一真源**：四侧各自的入口文件、
+  配置形态、是否 Release 资产、是否有版本头注、详情文档、文档列名。
+  其他「按侧枚举」的检查应从这里取，而不是各写一份。
+- **完整性锚点**（`REQUIRED_SIDES` + `SIDE_EVIDENCE`）取自**与注册表无关的事实**：
+  「`stash/override/` 目录存在 ⇒ 注册表必须有 stash 项」。
+
+⚠️ **锚点为什么必须独立**（对抗性注错发现）：初版只遍历 `DELIVERABLES` 自己的项
+⇒ 把注册表里的 `"stash"` 键改名或删掉，判据**照样绿** —— 因为它只检查
+「注册表提到的文件在不在」，**没有独立真源说"必须恰好这四侧"**。
+这是**自指判据的通病**：判据与它要守的东西同源 ⇒ 改一处两边一起变，谁也发现不了。
+
+**断言**（L0 锚点 + L1 文件系统 + L2a–c 三处关键文档）：
+注册表恰好覆盖客观存在的四侧 · 交付入口与详情文档都存在 ·
+README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENTS 链接到四侧详情。
+
+**外加一条信息输出**：列出所有「按扩展名枚举扫描面」的判据，提醒加侧时人工核对。
+
+#### ⚠️ 扫描面：历次最容易漏、后果最重的一档
+
+「加了一侧」时最危险的不是忘记改文档，而是**忘记扩判据的扫描面** ——
+新配置完全不被检查，而判据照样绿。本仓实测三例（都已修）：
+
+| 判据 | 漏法 | 后果 |
+|:--|:--|:--|
+| `check_secrets.py` | 扩展名表 `(.conf,.yaml,.yml)` 漏 `.stoverride` | 往 Stash 注入假密钥**判绿**（安全洞）|
+| `check_selfcontained.py` | 同上（`EXTS` 漏 `.stoverride`）| 注入外部仓引用**判绿** |
+| `check_remote_urls.py` | **手写目录列表**漏 `stash/` | 25 个远程 URL 不验证可达性 |
+
+**共同对策（两条，都要）**：
+1. **优先「全仓 walk + 扩展名表」，而不是「手写目录列表」** —— 后者加目录时必漏。
+2. **在判据自己身上加「覆盖形态断言」** —— 该形态不在表里 ⇒ 判负。
+   `check_secrets.py` 与 `check_selfcontained.py` 现都有 `KNOWN_FORMS`。
+
+⚠️ **写这条断言的坑**（我踩过）：`check_selfcontained.py` 的初版只 walk
+**文件系统**看有没有 `.stoverride` 文件 —— 于是**改 `EXTS` 不会红**（文件还在那儿）。
+⇒ 必须查**两件事**：① `EXTS` 表里有没有该形态 ② 文件系统里确实有这种文件。
 
 #### ⑥ 文档可达性 —— 「不错过任何一个角落」的机器实现
 

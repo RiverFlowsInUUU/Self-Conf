@@ -46,50 +46,51 @@ python self-conf-skills/run/repo_state.py                    # 一屏现状：�
 
 ---
 
-## 改动去哪
+## ⭐ 动手前：先列**影响面清单**（防「盲人摸象」）
 
-| 改什么 | 改哪个文件 | ⚠️ 易错 |
-|:--|:--|:--|
-| Surge 配置 | `surge/profiles/*.conf` | **不是**生成物，直接改 |
-| Egern 配置 | `egern/profiles/*.yaml` | **不是**生成物，直接改 |
-| mihomo 配置 | `clash/override/my_clash*.js` | ⚠️ **是**生成物 ⇒ 改 JS 再 build |
-| **Stash 覆写** | `stash/override/*.stoverride` | ⚠️ 基准是**静态模板**；数组**必须** `#!replace` |
-| 远程规则集内容 | `rules/*.list` | ⚠️ `.yaml` 是生成的 |
-| **版本号** | ⚠️ **12 处头注**（三内核 × 两产品线 × 完整版/`.min`） | clash 的 4 处要**手改 profile**（头注是保留而非生成的） |
+**改动不是改一个文件，而是改一个「面」。** 先问：这件事在仓库里还有哪些地方被
+**描述**（散文）· **枚举**（表格/清单）· **判据化**（扫描面）？
+
+⚠️ 真实事故：加 Stash 时补了脚本，但**多处陈述、表格、及三道判据的扫描面**没跟上 ——
+其中两道是**安全判据**（漏 `.stoverride` ⇒ 往 Stash 注入假密钥**判绿**）。
+
+- **完整清单 + 自检三问** → [`ops.md`](./self-conf-skills/references/ops.md) §6.0
+- **机器替你查**（`check_side_coverage.py`）：注册表 / 文件系统 / README 下载表 /
+  DIFFERENCES 对照表 / AGENTS 指路标 **五边对拍**，并列出「按扩展名枚举扫描面」的判据
+  提醒人工核对。**加侧只改一处 ⇒ 判负。**
+
+---
+
+## 改动去哪（= 四侧指路标）
+
+| 侧 / 改什么 | 改哪个文件 | 详情主文档（逐键语义 / 事故 / 实测） | 本侧判据（改完自查） |
+|:--|:--|:--|:--|
+| **Surge** | `surge/profiles/*.conf`（**不是**生成物） | [`profiles/surge.md`](./self-conf-skills/references/profiles/surge.md) | `gates/surge/check_surge_dns.py` + 全套 |
+| **Egern** | `egern/profiles/*.yaml`（**不是**生成物） | [`profiles/egern.md`](./self-conf-skills/references/profiles/egern.md) | `gates/egern/check_egern_dns.py` + 全套 |
+| **mihomo** | `clash/override/my_clash*.js` ⚠️ **是**生成物 | [`profiles/clash.md`](./self-conf-skills/references/profiles/clash.md) | `gates/clash/{check_structure,check_script_sync,check_version_header,check_clash_dns}.py` |
+| **Stash** | `stash/override/*.stoverride`（数组**必须** `#!replace`） | [`profiles/stash.md`](./self-conf-skills/references/profiles/stash.md) | `gates/{check_stash_override,check_stash_dns,check_four_way_sync}.py` |
+| 远程规则集内容 | `rules/*.list` | ⚠️ `rules/*.yaml` 是生成的 | `build_rules.py --check` |
+| **版本号** | ⚠️ **12 处头注**（三内核 × 两产品线 × 完整版/`.min`） | clash 的 4 处要**手改 profile**（头注是保留而非生成的） | `check_min_pair.py` |
+
+**两条跨侧的高频坑**：
+
+- **mihomo**：⚠️ **直接改 `clash/profiles/*.yaml` 会在下次生成时被覆盖**（本侧最高频错误）；
+  改了组数/规则数，**脚本头注里的数字要一起改**（`check_header_numbers.py` 判）。
+- **Stash**：⚠️ **mihomo 的脚本与配置都不能直接用**（JS 跑不了；配置文件会让 DNS 坏掉）；
+  三条硬约束（数组 `#!replace` / 无 `include-all-proxies` / 无 `exclude-filter`）写错都**静默失效**。
 
 **生成链 / 派生关系**（改左边，跑右边重生成或**手工同步**）：
 
 ```
-三内核 profiles/*  ──make_min.py──▶ *.min.*（六份）      clash/override/*.js ──build_profiles.py──▶ clash/profiles/*
-rules/*.list      ──build_rules.py──▶ rules/*.yaml      ai_sources/*        ──ai_domains_build.py──▶ rules/AI.list
+三内核 profiles/*  ──make_min.py──▶ *.min.*（六份）   clash/override/*.js ──build_profiles.py──▶ clash/profiles/*
+rules/*.list ──build_rules.py──▶ rules/*.yaml        ai_sources/* ──ai_domains_build.py──▶ rules/AI.list
 clash/profiles/routing.yaml ──（手工派生）──▶ stash/override/*.stoverride
 任一侧现役 profiles（只读） ──build_ir.py──▶ references/intent.json
 ```
 
-⚠️ **`stash/` 是唯一「没有生成器」的派生**（Stash 跑不了 mihomo 的 JS）⇒ 改了静态模板的
-组/规则/次序**必须手工同步**它。**漏改判据会抓**（`check_four_way_sync.py` 对拍四侧），
-但**注释与散文不在判据面上 —— 靠人**。完整动线 → [`ops.md`](./self-conf-skills/references/ops.md) §6.2。
-
----
-
-## 四侧指路标（**本文件不写详情，只指路**）
-
-四侧各有**详情主文档**与**本侧判据**；本文件不再重复它们的内容。
-
-| 侧 | 详情主文档（逐键语义 / 事故 / 实测） | 改哪份 | 本侧判据（改完自查） |
-|:--|:--|:--|:--|
-| **Surge** | [`references/profiles/surge.md`](./self-conf-skills/references/profiles/surge.md) | `surge/profiles/*.conf` | `gates/surge/check_surge_dns.py` + 全套 |
-| **Egern** | [`references/profiles/egern.md`](./self-conf-skills/references/profiles/egern.md) | `egern/profiles/*.yaml` | `gates/egern/check_egern_dns.py` + 全套 |
-| **mihomo** | [`references/profiles/clash.md`](./self-conf-skills/references/profiles/clash.md) | `clash/override/my_clash*.js` | `gates/clash/{check_structure,check_script_sync,check_version_header,check_clash_dns}.py` |
-| **Stash** | [`references/profiles/stash.md`](./self-conf-skills/references/profiles/stash.md) | `stash/override/*.stoverride` | `gates/{check_stash_override,check_stash_dns,check_four_way_sync}.py` |
-
-**两条跨侧的高频坑**（详情见各自主文档）：
-
-- **mihomo 侧**：⚠️ **直接改 `clash/profiles/*.yaml` 会在下次生成时被覆盖**（本侧最高频错误）；
-  改了组数/规则数，**脚本头注里的数字要一起改**（`check_header_numbers.py` 判）。
-- **Stash 侧**：⚠️ **mihomo 的脚本与配置都不能直接用**（JS 跑不了；配置文件会让 DNS 坏掉）；
-  三条硬约束（数组必须 `#!replace` / 无 `include-all-proxies` / 无 `exclude-filter`）
-  写错都**静默失效**。见 [`stash.md`](./self-conf-skills/references/profiles/stash.md) §3–§4。
+⚠️ **`stash/` 是唯一「没有生成器」的派生** ⇒ 改了静态模板的组/规则/次序**必须手工同步**它；
+**漏改判据会抓**（`check_four_way_sync.py`），但**注释与散文不在判据面上 —— 靠人**。
+完整动线 → [`ops.md`](./self-conf-skills/references/ops.md) §6.2。
 
 ---
 
@@ -125,11 +126,10 @@ clash/profiles/routing.yaml ──（手工派生）──▶ stash/override/*.s
 
 ## 两条铁律
 
-1. **🚫 永不浅克隆（`--depth=1` / `--shallow-since`）—— 必须完整克隆。这是原则，不是建议。**
-   浅克隆下 `git log` 的日期全退化成 clone 当天，而本仓多处依赖**提交日期**
-   ⇒ `check_version_cadence.py` **假红**、`check_releases.py` R6b **静默假绿**。
-   已有浅克隆就地补全：`git fetch --unshallow`。（CI 固定 `fetch-depth: 0`，不受影响。）
-2. **改动涉及路径 / 编码 / 联网 / git 历史时，等 CI 结果，别只看本地。**
-   同理：闸门「跑了没红」时，**先怀疑自己的注错没落在判据扫描面上**，再怀疑判据失灵。
+1. **🚫 永不浅克隆（`--depth=1`）—— 必须完整克隆。** 浅克隆下 `git log` 日期全退化成
+   clone 当天，而本仓多处依赖**提交日期** ⇒ `check_version_cadence.py` **假红**、
+   `check_releases.py` R6b **静默假绿**。就地补全：`git fetch --unshallow`。
+2. **改动涉及路径 / 编码 / 联网 / git 历史时，等 CI，别只看本地。** 同理：闸门「跑了没红」
+   时，**先怀疑自己的注错没落在判据扫描面上**，再怀疑判据失灵。
 
-> 完整推导、实测记录与失败形态 → [`gates.md`](./self-conf-skills/references/gates.md) 的「两件事」一节。
+> 两条的完整推导与失败形态 → [`gates.md`](./self-conf-skills/references/gates.md) 的「两件事」一节（**做这类改动前必读**）。

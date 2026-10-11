@@ -57,8 +57,8 @@ vulnerability），不要公开发 issue：
 
 | 判据 | 守什么 |
 |:--|:--|
-| [`self-conf-skills/gates/check_secrets.py`](self-conf-skills/gates/check_secrets.py) | 扫描 Surge / Egern / mihomo 的配置，阻止非文档地址、真实凭据、非 `REPLACE_WITH_YOUR_*` 值与订阅 token 进入公开仓库。 |
-| [`self-conf-skills/gates/check_selfcontained.py`](self-conf-skills/gates/check_selfcontained.py) | 扫描三内核配置与脚本中的在线引用，阻止本仓自有图标、规则和派生资产回指其他仓库。 |
+| [`self-conf-skills/gates/check_secrets.py`](self-conf-skills/gates/check_secrets.py) | 扫描**四侧**配置（Surge `.conf` / Egern、mihomo `.yaml` / **Stash `.stoverride`**），阻止非文档地址、真实凭据、非 `REPLACE_WITH_YOUR_*` 值与订阅 token 进入公开仓库。⚠️ 曾因扩展名表漏 `.stoverride` 而**完全跳过 Stash**（2026-10-11 已修，并加「覆盖形态断言」防再漏）。 |
+| [`self-conf-skills/gates/check_selfcontained.py`](self-conf-skills/gates/check_selfcontained.py) | 扫描四侧配置与脚本中的在线引用，阻止本仓自有图标、规则和派生资产回指其他仓库。 |
 
 ### Surge
 

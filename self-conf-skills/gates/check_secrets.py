@@ -78,12 +78,24 @@ def strip_c(s, yaml_=False):
 
 
 def scan_targets(root):
+    """全仓 walk 出要扫的配置。
+
+    ⚠️ 2026-10-11：**扩展名表曾漏 `.stoverride`**（Stash 覆写）——
+       它写成 `(".conf", ".yaml", ".yml")`，于是 Stash 的配置**完全不进扫描**：
+       实测往 `stash/override/routing.stoverride` 注入 `token=AbcDef1234567890`
+       与外部仓 URL，本判据**判绿**。这是「加了一侧却漏改扫描面」的典型，
+       也是安全判据上最不该有的洞（覆写文件同样会含订阅地址与节点）。
+    ⇒ 教训：**按扩展名枚举的扫描面，加新形态时必须同步扩展名表**。
+       本仓的形态现为：`.conf`（Surge）· `.yaml`（Egern/mihomo）·
+       **`.stoverride`（Stash）** · 以及将来可能的新形态。
+       为防止再漏，下面同时断言「已知形态」都至少覆盖到一个文件（见 main）。
+    """
     out = []
     for dp, dns, fns in os.walk(root):
         dns[:] = [d for d in dns if not d.startswith(".")
                   and d not in ("node_modules", "__pycache__")]
         for fn in sorted(fns):
-            if not fn.endswith((".conf", ".yaml", ".yml")):
+            if not fn.endswith((".conf", ".yaml", ".yml", ".stoverride")):
                 continue
             p = os.path.join(dp, fn)
             rel = os.path.relpath(p, root).replace(os.sep, "/")
@@ -99,6 +111,25 @@ def main():
     if not live:
         print("❌ 全仓 walk 不到任何当前版 profile —— 目录被挪走了，这**不是**\"没有敏感串\"")
         return 2
+
+    # ⭐ 覆盖形态断言（2026-10-11 新增）：每一种**已知交付形态**都至少要覆盖到一个文件。
+    #
+    #    为什么要有它：本判据曾因**扩展名表漏 `.stoverride`** 而完全跳过 Stash 配置
+    #    （实测注入假密钥仍判绿）。而「扩展名表」这种写法**天生会漏** ——
+    #    加新形态的人不一定会想到这里。故用一条断言把「漏」变成**判据会叫**：
+    #    你新增一种形态却没进扩展名表 ⇒ 它 walk 不到 ⇒ 这里判负。
+    #
+    #    ⚠️ 加新形态时**必须同时**：① 扩展名表加后缀 ② 下面加期望项（写清该形态属于哪一侧）。
+    KNOWN_FORMS = {
+        ".conf": "Surge（`surge/profiles/*.conf`）",
+        ".yaml": "Egern / mihomo（`*/profiles/*.yaml`）",
+        ".stoverride": "**Stash**（`stash/override/*.stoverride`）",
+    }
+    for ext, who in KNOWN_FORMS.items():
+        if not any(x[1].endswith(ext) for x in scan):
+            fails.append("覆盖形态缺失：没有任何 `*%s` 进入扫描面，但它是已知交付形态 —— "
+                         "%s。⇒ 要么扩展名表漏了它，要么该侧配置被挪走/删除。"
+                         "**新加一侧时，扩展名表与 KNOWN_FORMS 必须同步**" % (ext, who))
 
     for tier, f, path in scan:
         yaml_ = f.endswith((".yaml", ".yml"))

@@ -562,6 +562,94 @@ mihomo 静态 profile **由脚本生成**（`build_profiles.py`），也带 `#! 
   （Release 资产 URL 例外，那是钉版快照）。
 - **仓内不保留历史版本** —— 要看历史用 `git log`，要下载历史版本去 Releases。
 
+#### 6.0 ⭐ 全局观：改动前先列**影响面清单**（制度化，不靠记忆）
+
+> **这是「日常操作」的第 0 步** —— 在动手改任何东西**之前**做。
+> **这一节解决的是「盲人摸象」**：AI 只改眼前这一块，其他相关位置不管。
+> 本仓真实事故（2026-10-11）：加 Stash 时补了脚本，但**多处陈述、表格、
+> 以及三道判据的扫描面**没跟上 —— 靠肉眼才发现，其中两道是**安全判据**。
+
+##### 为什么必须制度化
+
+「记得检查」不可靠。本仓的经验是：**把它变成一道会跑的闸门**（见 `gates.md` §0）。
+但闸门只能守「已被写下的不变量」，守不住「我根本没想到要改那里」——
+所以还要一份**可执行的清单**，让「想到」这件事本身有据可依。
+
+##### 一句话原则
+
+**改动不是改一个文件，而是改一个「面」。** 改完先问：
+「这件事在仓库里还有哪些地方被**描述、枚举、判据化**？」
+
+三个动词对应三类连带位置：
+
+| 类型 | 表现 | 漏了会怎样 | 谁来抓 |
+|:--|:--|:--|:--|
+| **描述** | 散文说「三内核…」 | 读者以为只有三侧 | 人工（本清单） |
+| **枚举** | 表格列、清单项、目录列表 | 照抄者按错的表去改 | `check_side_coverage.py` |
+| **判据化** | 扫描面（扩展名/路径）| ⚠️ **新配置完全不被检查，判据却绿** | 各判据的覆盖断言 + 本清单 |
+
+##### 加一侧 / 加一种交付形态时的**完整清单**
+
+（以「加 Stash」为实例；`check_side_coverage.py` 会逐条检查前 5 项）
+
+```bash
+# ① 注册：把该侧写进「交付面注册表」（唯一真源）
+#    self-conf-skills/gates/check_side_coverage.py 的 DELIVERABLES
+#    字段：is_kernel / entry / exts / in_release / has_version / profile / doc_column
+
+# ② 入口：README 下载表加一行
+#    ↑ 判据：check_side_coverage.py（README 分节内必须出现该侧的列名）
+
+# ③ 差异：references/DIFFERENCES.md 的对照表加一列
+#    ↑ 判据：check_side_coverage.py（必须存在含全部侧列的对照表）
+
+# ④ 入口指路：AGENTS.md 的「四侧指路标」链接到该侧详情
+#    ↑ 判据：check_side_coverage.py + check_ai_entry.py ⑤⑥
+
+# ⑤ 详情：建 references/profiles/<侧>.md
+#    ↑ 判据：check_side_coverage.py（文件必须存在）
+
+# ⑥ ⚠️ 扫描面：**所有「按扩展名 / 按路径枚举」的判据**加该形态
+#    ↑ 判据：check_side_coverage.py 会**列出**这些判据提醒你逐个人工核对；
+#            各判据自己也有「覆盖形态断言」（如 check_secrets.py 的 KNOWN_FORMS）
+python self-conf-skills/gates/check_side_coverage.py
+
+# ⑦ 全景表：所有「按侧分列」的表都要问一遍「该不该有这一列」
+grep -rn "| Surge " self-conf-skills/references/ README.md SECURITY.md
+```
+
+> ⚠️ **⑥ 是历次最容易漏、后果最重的一档**。本仓实测三例（都已修）：
+>
+> | 判据 | 漏法 | 后果 |
+> |:--|:--|:--|
+> | `check_secrets.py` | 扩展名表 `(.conf,.yaml,.yml)` 漏 `.stoverride` | 往 Stash 注入假密钥**判绿**（安全洞）|
+> | `check_selfcontained.py` | 同上（`EXTS` 漏 `.stoverride`）| 注入外部仓引用**判绿** |
+> | `check_remote_urls.py` | **手写目录列表**漏 `stash/` | 25 个远程 URL 不验证可达性 |
+>
+> ⇒ **优先用「全仓 walk + 扩展名表」而不是「手写目录列表」** —— 后者加目录时必漏。
+> 两者的共同对策：**加一份「覆盖形态断言」到判据自己身上**，漏了就判负（见 ⑥）。
+
+##### 改「四侧共有」的东西时的清单
+
+改 A 侧时先判断它是不是**四侧共有**，是则四侧同改：
+
+| 四侧共有 | 改哪 | 判据 |
+|:--|:--|:--|
+| DNS 底线（防泄露八出口）| 各侧 DNS 段 | `check_{surge,egern,clash,stash}_dns.py` |
+| 组结构 / 规则次序 | 各侧 profile | `check_four_way_sync.py`（对拍 F1–F6）|
+| 规则集来源 | `rules/*.list` + 各侧 provider | `check_ruleset_doc_sync.py` |
+| 版本号 | **12 处头注**（三内核 × 两产品线 × 两形态）| `check_min_pair.py` |
+
+> 📌 **规则集内容 vs 规则集引用**：改 `rules/*.list`（内容）要跑 `build_rules.py`；
+> 改引用（URL / provider 名）要**四侧都改**并跑上面两张判据。
+
+##### 自检三问（每次改完，提交前问）
+
+1. **描述**：我改的东西，散文/文档里还有几处提到它？（`grep` 一遍关键词）
+2. **枚举**：有没有表格/清单/目录列表需要加项？
+3. **判据化**：我加的**新形态**（新扩展名/新目录/新文件类型）进扫描面了吗？
+   → `python self-conf-skills/gates/check_side_coverage.py` 会列出待核对的判据。
+
 #### 6.2 改配置的标准动线
 
 ```

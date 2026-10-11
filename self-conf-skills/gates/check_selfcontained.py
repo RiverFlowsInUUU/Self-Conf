@@ -38,7 +38,12 @@ FORBIDDEN_REPOS = ("Self-Configuration", "RiverFlowsInUUU/Clash")
 # 排除：说明性文字（注释里提及来源不算引用）
 COMMENT_PREFIX = ("#", "//", ";")
 
-EXTS = (".yaml", ".conf", ".js", ".list", ".txt", ".json", ".yml", ".py")
+# ⚠️ 2026-10-11：**曾漏 `.stoverride`**（Stash 覆写）—— 本判据是全仓 walk，
+#    但扩展名表没有它 ⇒ Stash 配置**完全不进扫描**（实测注入外部仓引用仍判绿）。
+#    与 `check_secrets.py` 同一类漏改（见那边的 KNOWN_FORMS 断言）。
+#    ⇒ **加新交付形态时必须同步这张表**；`check_side_coverage.py` 会列出所有
+#      「按扩展名枚举扫描面」的判据提醒人工核对。
+EXTS = (".yaml", ".conf", ".js", ".list", ".txt", ".json", ".yml", ".py", ".stoverride")
 # ⚠️ `config_old` 已于 2026-10-08 删除（历史交给 git）；仍列在此处是**防御性**的
 #    —— 万一有人重新建了归档目录，它同样不该进扫描面。
 SKIP_DIRS = {".git", "__pycache__", "icons", "config_old"}
@@ -70,6 +75,41 @@ def main():
     print("自洽性检查 —— 整合仓不得引用原仓在线资源")
     print("-" * 78)
     bad = []
+
+    # ⭐ 覆盖形态断言（2026-10-11 新增）：每一种**已知交付形态**都至少要扫到一个文件。
+    #
+    #    为什么要有它：本判据曾因 `EXTS` 漏 `.stoverride` 而**完全跳过 Stash 配置**
+    #    （实测注入外部仓引用仍判绿）。而「扩展名表」这种写法**天生会漏** ——
+    #    加新形态的人不一定会想到这里。更隐蔽的是：漏了之后判据**照样输出
+    #    「自洽 —— 均引用本仓资源」**，是彻头彻尾的假绿。
+    #    ⇒ 用一条断言把「漏」变成判据会叫。加新形态时必须同步两处：
+    #      ① `EXTS` 加后缀 ② 下面加期望项。
+    KNOWN_FORMS = {
+        ".conf": "Surge（`surge/profiles/*.conf`）",
+        ".yaml": "Egern / mihomo（`*/profiles/*.yaml`）",
+        ".stoverride": "**Stash**（`stash/override/*.stoverride`）",
+    }
+    # ⚠️ 必须查**两件事**（初版只查了文件系统 ⇒ 改 `EXTS` 不会红，那是查错了对象）：
+    #    ① `EXTS` 这张表里有没有该形态 ② 文件系统里确实有这种文件。
+    seen_exts = set()
+    for dp, dn, fs in os.walk(ROOT):
+        dn[:] = [d for d in dn if d not in SKIP_DIRS]
+        for f in fs:
+            for e in KNOWN_FORMS:
+                if f.endswith(e):
+                    seen_exts.add(e)
+    for ext, who in KNOWN_FORMS.items():
+        if ext not in EXTS:
+            bad.append(("(扫描面 EXTS)", 0,
+                        "覆盖形态缺失：`EXTS` 不含 `%s`，但它是已知交付形态 —— %s。"
+                        "**新加一侧时 EXTS 与 KNOWN_FORMS 必须同步**"
+                        "（`check_side_coverage.py` 也会列出这类扫描面提醒核对）"
+                        % (ext, who)))
+        elif ext not in seen_exts:
+            bad.append(("(扫描面 文件)", 0,
+                        "覆盖形态缺失：`EXTS` 收了 `%s`，但仓库里**找不到**这种文件 —— %s"
+                        "。该侧配置是被挪走还是删了？" % (ext, who)))
+
     for dp, dn, fs in os.walk(ROOT):
         dn[:] = [d for d in dn if d not in SKIP_DIRS]
         for f in fs:

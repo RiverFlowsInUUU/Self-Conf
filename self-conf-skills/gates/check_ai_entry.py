@@ -251,6 +251,7 @@ def main():
                    "修法：在 %s 的路由表或某篇被引到的文档里**加一条链接**"
                    "（纯文本提及不算）" % (len(orphans), MAIN, orphans, MAIN))
 
+
     print("AI 入口唯一性（唯一真源 %s，不做工具专属兼容）" % MAIN)
     print("-" * 78)
     if bad:

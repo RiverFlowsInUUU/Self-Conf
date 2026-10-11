@@ -90,19 +90,34 @@ RESOURCE_SUFFIX = (".mrs", ".yaml", ".yml", ".list", ".txt", ".json")
 
 
 def collect_urls():
-    """(url, 出处) 列表，去重保序。"""
+    """(url, 出处) 列表，去重保序。
+
+    ⚠️ 2026-10-11：**扫描面曾漏 Stash**。原写法是手写一串目录
+       （`override/` · `profiles/` · `surge/…` · `egern/…`），加 Stash 时没跟上
+       ⇒ `stash/override/*.stoverride` 里的 **25 个远程规则集 URL 完全不检查**。
+       这是「按路径手写枚举」的典型漏改（与 `check_secrets.py` 漏 `.stoverride` 同源）。
+    ⇒ 改为**按「配置目录」模式扫 + 已知形态后缀**，并显式覆盖四侧；
+       目录列表由 `SIDE_DIRS` 一处给全 —— 加侧只改这里。
+    """
     seen = {}
     targets = []
-    repo_root = os.path.dirname(ROOT)   # clash/ 的上级：并列着 surge/ 与 egern/
-    # 三内核配置都要扫（缺哪个目录就跳哪个）；surge 用 .conf，egern/clash 用 .yaml
-    bases = [os.path.join(ROOT, "override"), os.path.join(ROOT, "profiles"),
-             os.path.join(repo_root, "surge"), os.path.join(repo_root, "surge", "profiles"),
-             os.path.join(repo_root, "egern"), os.path.join(repo_root, "egern", "profiles")]
+    repo_root = os.path.dirname(ROOT)   # clash/ 的上级：并列着 surge/ · egern/ · stash/
+    # 四侧的配置目录（加侧只改这一处）
+    SIDE_DIRS = [
+        os.path.join(ROOT, "override"),                       # clash/override/*.js
+        os.path.join(ROOT, "profiles"),                       # clash/profiles/*.yaml
+        os.path.join(repo_root, "surge"), os.path.join(repo_root, "surge", "profiles"),
+        os.path.join(repo_root, "egern"), os.path.join(repo_root, "egern", "profiles"),
+        os.path.join(repo_root, "stash"), os.path.join(repo_root, "stash", "override"),
+    ]
+    # 已知交付形态的后缀（与 check_secrets.py 的 KNOWN_FORMS 对齐）
+    EXTS = (".js", ".yaml", ".yml", ".conf", ".stoverride")
+    bases = SIDE_DIRS
     for base in bases:
         if not os.path.isdir(base):
             continue
         for fn in sorted(os.listdir(base)):
-            if not fn.endswith((".js", ".yaml", ".yml", ".conf")):
+            if not fn.endswith(EXTS):
                 continue
             p = os.path.join(base, fn)
             try:
