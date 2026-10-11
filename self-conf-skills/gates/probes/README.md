@@ -42,7 +42,7 @@
 
 | # | 题目 | 期望答案（现役） |
 |:-:|:--|:--|
-| 1 | 把 mihomo 的 `AI` 组从手动选择改成自动选优 | 改 `clash/override/my_clash*.js`（**不是** yaml）→ `build_profiles.py` → `verify_all.py` |
+| 1 | 把 mihomo 的 `AI` 组从手动选择改成自动选优 | 改 `clash/override/clash-*.js`（**不是** yaml）→ `build_profiles.py` → `verify_all.py` |
 | 2 | 给分流版新增一份远程规则集 | 见 `references/rulesets.md` 顶部「🚀 新增一份规则集：完整步骤」6 步 |
 | 3 | `rules/AI.list` 里加一条域名 | 改 `run/ai_sources/` 再跑 `ai_domains_build.py`（**AI.list 是生成物**）|
 | 4 | 三内核版本号从 v1.0.0 升到 v1.1.0 | **12 处**头注；**clash 的头注要手改 profile**（生成器只保留不生成）|

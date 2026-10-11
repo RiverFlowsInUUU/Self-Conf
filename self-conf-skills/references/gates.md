@@ -1063,7 +1063,7 @@ clash 走的是「剔掉整行注释、其余原样保留」的**纯函数**分�
 留在下载文件里的语义注释。
 
 ⇒ 改完 clash 完整版后：`python self-conf-skills/run/make_min.py --family lazy --apply`。
-⚠️ 但 `clash/profiles/*.yaml` 本身**是生成物**（真源是 `clash/override/my_clash*.js`），
+⚠️ 但 `clash/profiles/*.yaml` 本身**是生成物**（真源是 `clash/override/clash-*.js`），
 所以常规动线是 **改 JS → `build_profiles.py`**，那一步已经把 `.min.yaml` 一并写好了；
 `make_min.py` 是**对拍/兜底**（`--check` 抓「有人手工编辑了 `.min.yaml`」）。
 `check_min_pair.py` 继续比 YAML 对象兜住配置本体。
@@ -1095,7 +1095,7 @@ mihomo 侧每份配置有**两个交付形态**：
 | 形态 | 路径 | 用法 |
 |:-----|:-----|:-----|
 | 静态文件 | `clash/profiles/routing.yaml` | 下载即用 |
-| 覆写脚本 | `clash/override/my_clash.js` | 挂到任意订阅上 |
+| 覆写脚本 | `clash/override/clash-routing.js` | 挂到任意订阅上 |
 
 两者是**同一套配置**的两种形态，脚本的输出就应该是静态文件的样子。一旦漂移：
 
@@ -1115,7 +1115,7 @@ mihomo 侧每份配置有**两个交付形态**：
 | `dns` | 除 `listen` 外逐键一致 |
 | `ipv6` | 必须相同 |
 
-比对对：`my_clash.js ↔ routing.yaml`、`my_clash_lazy.js ↔ lazy.yaml`。
+比对对：`clash-routing.js ↔ routing.yaml`、`clash-lazy.js ↔ lazy.yaml`。
 
 #### 6.1 两处有意差异（命中不判负，但打印提醒）
 
@@ -1171,7 +1171,7 @@ if out.get("rules") != (st.get("rules") or []):
 #### 6.3 失败怎么修
 
 1. 先分清是**哪种漂移**：读报错行（修好 `NameError` 前只能人工 diff）。
-2. `rules` 漂移 ⇒ 改 `override/my_clash*.js` 里的规则数组，或改静态 profile。
+2. `rules` 漂移 ⇒ 改 `override/clash-*.js` 里的规则数组，或改静态 profile。
    ⚠️ **规则是逐位比对的**，插一条/删一条/换顺序都会判负。
 3. `dns` 漂移 ⇒ 两处的 `dns` 块除 `listen` 外必须逐键相同。
    常见是只改了一侧的端点。
@@ -1365,9 +1365,9 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 
 | # | 注入 | 期望 | 实际（⚠️ 见 §6.2）|
 |:-:|:-----|:-----|:------------------|
-| 13 | 从 `override/my_clash_lazy.js` 的规则数组里删掉一条 `RULE-SET,Jinx-CN,DIRECT` | exit 1 + 报出 rules 差异 | **exit 1，但输出是 `NameError` traceback**，无差异明细 |
+| 13 | 从 `override/clash-lazy.js` 的规则数组里删掉一条 `RULE-SET,Jinx-CN,DIRECT` | exit 1 + 报出 rules 差异 | **exit 1，但输出是 `NameError` traceback**，无差异明细 |
 
-> ✅ 已实测：基线 `my_clash.js` / `my_clash_lazy.js` 双双 `OK`（exit 0）；
+> ✅ 已实测：基线 `clash-routing.js` / `clash-lazy.js` 双双 `OK`（exit 0）；
 > 删掉一条规则后 exit 1 —— **闸门会红，不会假绿**，但诊断信息缺失（§6.2）。
 
 ⚠️ 因此这道门的判别力是**"半条"**：能判负（1 对），给不出定位（2 不成立）。
@@ -1692,7 +1692,7 @@ mihomo 版（`self-conf-skills/gates/clash/check_secrets.py`）覆盖 `.js`、�
 
 **跑生成器，别手工改。** mihomo 侧自 2026-10-09 起已纳入 `make_min.py`（`PAIRS` 含
 clash 两族，见 §5.1）：`python self-conf-skills/run/make_min.py --family lazy --apply`。
-⚠️ 但 clash 完整版本身是生成物 —— 常规动线是改 `clash/override/my_clash*.js` 再跑
+⚠️ 但 clash 完整版本身是生成物 —— 常规动线是改 `clash/override/clash-*.js` 再跑
 `build_profiles.py`（那一步已同时写好 `.min.yaml`）；`make_min.py` 用于对拍/兜底。
 若确实要手工核一份纯配置，用 `yaml.safe_load` + `yaml.safe_dump` 重出再比对，
 **别逐行手改**（容易漏、也容易改错本体）。

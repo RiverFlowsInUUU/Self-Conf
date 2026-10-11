@@ -72,7 +72,7 @@ self-conf-skills/
 # ① 改（注意哪侧是生成物，见仓库根 AGENTS.md 的「改动去哪」表）
 # ② 同步派生文件
 python self-conf-skills/run/make_min.py --apply            # 完整版 → .min
-python self-conf-skills/run/clash/build_profiles.py        # my_clash*.js → profiles/*.yaml
+python self-conf-skills/run/clash/build_profiles.py        # clash-*.js → profiles/*.yaml
 python self-conf-skills/run/clash/build_rules.py           # rules/*.list → rules/*.yaml
 # ③ 验证（唯一入口，与 CI 同源）
 python self-conf-skills/gates/verify_all.py
@@ -93,7 +93,7 @@ python self-conf-skills/gates/verify_all.py
 # ② 改配置（注意哪侧是生成物）
 #    Surge   → surge/profiles/routing.conf 的 [Rule] 段加 RULE-SET,<名>,<策略>
 #    Egern   → egern/profiles/routing.yaml 的 rules: 加 rule_set:
-#    mihomo  → clash/override/my_clash.js 的 rule-providers + rules
+#    mihomo  → clash/override/clash-routing.js 的 rule-providers + rules
 # ③ 同步派生
 python self-conf-skills/run/make_min.py --apply           # Surge/Egern 的 .min
 python self-conf-skills/run/clash/build_profiles.py       # mihomo 的 profile

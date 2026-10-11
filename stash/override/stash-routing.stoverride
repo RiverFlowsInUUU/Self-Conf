@@ -7,7 +7,7 @@
 #      · 25 个策略组 · 25 份规则集 · 27 条规则
 #      与 clash/profiles/routing.yaml 对齐（同一套组名、规则次序与防泄露底线）。
 #
-#    这是 clash/override/my_clash.js 的 **Stash 等价物** —— 但两者机制不同，
+#    这是 clash/override/clash-routing.js 的 **Stash 等价物** —— 但两者机制不同，
 #    不是逐行翻译。差异见文件末尾〈与 mihomo 脚本的机制差异〉一节。
 #
 #  用法
@@ -45,7 +45,7 @@ category: 'self-conf'
 #    Proxy(select) → Smart(fallback) → 倍率三档(Low Mult./Auto/High Mult.)
 #                                     + 6 个地区组
 #
-#  🧠 Smart 用「倍率三档」而非 my_clash.js 的单组 fallback ——
+#  🧠 Smart 用「倍率三档」而非 clash-routing.js 的单组 fallback ——
 #     因为 Stash 的 `filter` 是**运行时**求值、能看到全部节点名，能做到分档；
 #     而覆写脚本在生成期只执行一次、看不到 provider 节点名，只能排序。
 #     ⇒ 这一处 Stash **比 mihomo 覆写脚本更强**，与静态模板等同。
@@ -72,7 +72,7 @@ proxy-groups: #!replace
   #
   #  🧠 这是 Stash **比 mihomo 覆写脚本更强**的一处：
   #     `filter` 是运行时求值的，能看到全部节点名 ⇒ 可以按倍率**分档**。
-  #     而 my_clash.js 在生成期只执行一次、看不到 provider 节点名，
+  #     而 clash-routing.js 在生成期只执行一次、看不到 provider 节点名，
   #     只能对**内联**节点做「排序」（且它的 rateOf 只认 0.x 低倍率，抓不到高倍率）。
   #     静态模板能做到的，Stash 同样能做到。
   #

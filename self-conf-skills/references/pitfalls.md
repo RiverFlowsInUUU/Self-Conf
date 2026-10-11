@@ -924,7 +924,7 @@ rule-provider 拉取失败
 ⚠️ **第二条路径是关键设计，缺了它这道门等于半瞎**：
 
 ```javascript
-// override/my_clash.js 里 MRS 是拼出来的
+// override/clash-routing.js 里 MRS 是拼出来的
 url: JS + "/geosite/" + c + ".mrs"
 //         ↑ 基址常量 + 变量拼接 —— 纯文本扫描抓不到完整 URL
 ```
@@ -1139,7 +1139,7 @@ def diff(a, b, path=""):
 #### 判据固化在哪
 
 - **`self-conf-skills/gates/clash/check_script_sync.py`** 的 `diff` 函数本体（含记录本坑的 docstring）。
-- 判负样例：`gates.md` §9.2 第 13 条 —— 从 `my_clash_lazy.js` 删掉一条规则
+- 判负样例：`gates.md` §9.2 第 13 条 —— 从 `clash-lazy.js` 删掉一条规则
   ⇒ exit 1，且（修好后）输出含 `rules[…] 长度不同` 之类的定位标记。
 
 ✅ **已核并修（2026-10-07 零信任自查）**：
@@ -1299,7 +1299,7 @@ if dns.get("ipv6") is not False:    errs.append("dns.ipv6 未显式关闭")
 
 #### 现象
 
-改了 `override/my_clash.js` 里的规则，跑门禁**全绿**，但用户拿到的静态
+改了 `override/clash-routing.js` 里的规则，跑门禁**全绿**，但用户拿到的静态
 `profiles/routing.yaml` **还是旧的**。反之亦然。两种形态的行为不一致 ——
 用户遇到「照文档用脚本订阅，效果跟直接导入配置不一样」。
 
@@ -1309,7 +1309,7 @@ if dns.get("ipv6") is not False:    errs.append("dns.ipv6 未显式关闭")
 
 ```
 静态文件   clash/profiles/routing.yaml    —— 下载即用
-覆写脚本   clash/override/my_clash.js     —— 挂到任意订阅上
+覆写脚本   clash/override/clash-routing.js     —— 挂到任意订阅上
 ```
 
 它们是**同一套配置**的两种形态 —— 脚本的输出就应该是静态文件的样子。
@@ -1471,7 +1471,7 @@ Linux CI 上 clash 的两个门禁（`check_structure.py` / `check_script_sync.p
 报「缺文件」，**本地全过**。
 
 ```
-  NG 缺文件: override/my_clash.js 或 profiles/routing.yaml
+  NG 缺文件: override/clash-routing.js 或 profiles/routing.yaml
 ```
 
 #### 根因
@@ -1657,7 +1657,7 @@ if _os.environ.get("SKIP_V7") == "1":
 这是**刻意的差异，不是漂移**。出处写在代码注释里：
 
 ```javascript
-// clash/override/my_clash.js（分流版）
+// clash/override/clash-routing.js（分流版）
 {
   name: "AD",
   type: "select",
@@ -1666,7 +1666,7 @@ if _os.environ.get("SKIP_V7") == "1":
   proxies: ["REJECT", "DIRECT"],
 }
 
-// clash/override/my_clash_lazy.js（懒人版）
+// clash/override/clash-lazy.js（懒人版）
 {
   name: "AD",
   type: "select",
@@ -1696,7 +1696,7 @@ if _os.environ.get("SKIP_V7") == "1":
 
 #### 修法
 
-现状：靠**注释 + 文档**（`my_clash_lazy.js:90-91` 的注释、`profiles/<kern>.md` §8.2 的表格）。
+现状：靠**注释 + 文档**（`clash-lazy.js:90-91` 的注释、`profiles/<kern>.md` §8.2 的表格）。
 这是**本仓目前唯一一条"有意差异"没有机器判据的**。
 
 📌 若要补判据，正确的写法是**按版本分表断言**（不是"AD 必须有几个成员"这种一刀切）：
@@ -1718,7 +1718,7 @@ AD_CALIBER = {
 #### 判据固化在哪
 
 - ⚠️ **无机器判据（无机器判据）。** 目前只有：
-  - `clash/override/my_clash_lazy.js:90-91` 的注释（含姊妹仓 commit `893b406` 出处）；
+  - `clash/override/clash-lazy.js:90-91` 的注释（含姊妹仓 commit `893b406` 出处）；
   - `self-conf-skills/references/profiles/clash.md` §8.2 的「为什么这么写」表格与 §14.3；
   - `check_script_sync.py` **间接**守住「同一版内脚本↔静态不漂移」（`EXPECTED_DIFF` 不含 `AD`，
     所以 `AD` 的成员表是**逐位比对**的 —— 脚本改了静态没改会立刻红）。

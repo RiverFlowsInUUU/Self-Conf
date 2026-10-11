@@ -7,7 +7,7 @@
 #      · 3 个策略组（Proxy / AI / AD）· 10 份规则集 · 13 条规则
 #      一个总出口，只做防泄露 + 广告拦截 + AI 分流，省心优先。
 #
-#    这是 clash/override/my_clash_lazy.js 的 **Stash 等价物**。
+#    这是 clash/override/clash-lazy.js 的 **Stash 等价物**。
 #    想要「按应用 + 按地区」的细分，用同目录的 `routing.stoverride`。
 #
 #  用法

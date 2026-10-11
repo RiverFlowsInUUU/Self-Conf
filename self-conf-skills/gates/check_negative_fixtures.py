@@ -73,8 +73,8 @@ def _build_sandbox(dst):
         "clash/profiles/routing.yaml",
         "clash/profiles/lazy.min.yaml",
         "clash/profiles/routing.min.yaml",
-        "clash/override/my_clash.js",
-        "clash/override/my_clash_lazy.js",
+        "clash/override/clash-routing.js",
+        "clash/override/clash-lazy.js",
         "rules/emby.list", "rules/emby.yaml",
         "rules/apple_system.list", "rules/apple_system.yaml",
         "rules/AI.list", "rules/AI_Domains.yaml",
@@ -201,7 +201,7 @@ def main():
         c3 = _case(
             "check_script_sync",
             lambda: _mutate(
-                os.path.join(clash_sb, "override", "my_clash_lazy.js"),
+                os.path.join(clash_sb, "override", "clash-lazy.js"),
                 '    "RULE-SET,Jinx-CN,DIRECT",\n',
                 ""),
             baselines[2][1],

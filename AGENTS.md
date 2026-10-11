@@ -20,7 +20,7 @@ python self-conf-skills/gates/verify_all.py -v       # 带详细输出
 python self-conf-skills/gates/verify_all.py --index  # 列闸门清单（现抓，勿手抄）
 
 python self-conf-skills/run/make_min.py --apply              # 改完完整版后同步 .min
-python self-conf-skills/run/clash/build_profiles.py          # 改完 my_clash*.js 后重生成 mihomo profile
+python self-conf-skills/run/clash/build_profiles.py          # 改完 clash-*.js 后重生成 mihomo profile
 python self-conf-skills/run/clash/build_rules.py             # 改完 rules/*.list 后重生成 .yaml
 python self-conf-skills/run/build_ir.py                      # 改完任一侧配置后重生成路由意图 IR
 python self-conf-skills/run/routing_evolution.py             # 分流意图 git 演变：按需跑，输出机读 JSON
@@ -67,7 +67,7 @@ python self-conf-skills/run/repo_state.py                    # 一屏现状：�
 |:--|:--|:--|:--|
 | **Surge** | `surge/profiles/*.conf`（**不是**生成物） | [`profiles/surge.md`](./self-conf-skills/references/profiles/surge.md) | `gates/surge/check_surge_dns.py` + 全套 |
 | **Egern** | `egern/profiles/*.yaml`（**不是**生成物） | [`profiles/egern.md`](./self-conf-skills/references/profiles/egern.md) | `gates/egern/check_egern_dns.py` + 全套 |
-| **mihomo** | `clash/override/my_clash*.js` ⚠️ **是**生成物 | [`profiles/clash.md`](./self-conf-skills/references/profiles/clash.md) | `gates/clash/{check_structure,check_script_sync,check_version_header,check_clash_dns}.py` |
+| **mihomo** | `clash/override/clash-*.js` ⚠️ **是**生成物 | [`profiles/clash.md`](./self-conf-skills/references/profiles/clash.md) | `gates/clash/{check_structure,check_script_sync,check_version_header,check_clash_dns}.py` |
 | **Stash** | `stash/override/*.stoverride`（数组**必须** `#!replace`） | [`profiles/stash.md`](./self-conf-skills/references/profiles/stash.md) | `gates/{check_stash_override,check_stash_dns,check_four_way_sync}.py` |
 | 远程规则集内容 | `rules/*.list` | ⚠️ `rules/*.yaml` 是生成的 | `build_rules.py --check` |
 | **版本号** | ⚠️ **12 处头注**（三内核 × 两产品线 × 完整版/`.min`） | clash 的 4 处要**手改 profile**（头注是保留而非生成的） | `check_min_pair.py` |

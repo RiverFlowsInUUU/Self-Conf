@@ -11,7 +11,7 @@
 | 分流版 `routing` | `REJECT` + `DIRECT` | 可放行（用户可能想让某条广告规则直连） |
 | 懒人版 `lazy`   | 仅 `REJECT`      | 「不留放行的口子」—— 目标用户不需要、也不该有这个开关 |
 
-此前这条差异**只有注释与文档**（`clash/override/my_clash_lazy.js` 的注释、
+此前这条差异**只有注释与文档**（`clash/override/clash-lazy.js` 的注释、
 `profiles/<kern>.md` 的表格），**没有任何机器判据** —— 是本仓唯一一条
 「有意差异」没有判据守着的（见 `pitfalls.md` 坑 10）。
 

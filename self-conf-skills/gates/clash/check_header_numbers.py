@@ -7,7 +7,7 @@
     27 条规则」这类数字。它们是**手写的**，改了策略组或规则之后如果不
     同步更新，就会变成过期信息 —— 而门禁一条都不查，全绿。
 
-    本仓实测：my_clash.js 头注长期写着「20 组 / 20 集 / 26 条」，
+    本仓实测：clash-routing.js 头注长期写着「20 组 / 20 集 / 26 条」，
     而脚本实际输出是 22 / 25 / 27。直到人工核对才被发现。
 
     这类漂移必然复发（数字天然会随改动过期），故必须落成判据。
@@ -66,9 +66,9 @@ ROOT = sys.argv[1] if len(sys.argv) > 1 else default_root()
 # ⚠️ 2026-10-10 放宽（此前判据**漏扫**了下列真实漂移）：
 #   原三条正则写作 `(\d+)\s*个策略组` 等 —— 要求「数字 + 单位」**连写**。
 #   但注释里的实际写法常不连写，于是长期漂移而 CI 全绿：
-#     · `my_clash_lazy.js` L176 `分流规则（11 条）`  ⇒ 实际 13
-#     · `my_clash.js`      L49  `定义的 20 份（避免…` ⇒ 实际 25
-#     · `my_clash_lazy.js` L14  `规则数量（11 条 vs 27 条）` ⇒ 实际 13
+#     · `clash-lazy.js` L176 `分流规则（11 条）`  ⇒ 实际 13
+#     · `clash-routing.js`      L49  `定义的 20 份（避免…` ⇒ 实际 25
+#     · `clash-lazy.js` L14  `规则数量（11 条 vs 27 条）` ⇒ 实际 13
 #   第 4 条 CONTEXT 条目（`rules_bare`）专治这类「小节标题里的裸计数」。
 #
 # ⚠️ 放宽的**边界**（本仓栽过 3 次「判据过严」，故取窄）：
@@ -97,12 +97,12 @@ SUBITEM = [
 ]
 
 # 每个脚本对应的规模键
-SCRIPTS = ["my_clash.js", "my_clash_lazy.js"]
+SCRIPTS = ["clash-routing.js", "clash-lazy.js"]
 
 # 要扫描的文件（相对 ROOT）
 SCAN = [
-    "override/my_clash.js",
-    "override/my_clash_lazy.js",
+    "override/clash-routing.js",
+    "override/clash-lazy.js",
     "profiles/routing.yaml",
     "profiles/lazy.yaml",
 ]
@@ -205,15 +205,15 @@ def main():
             stripped = line.strip()
             if not (stripped.startswith(("#", "//", ";", "|")) or stripped.startswith("*")):
                 continue
-            # 产品线判断：文件名优先（my_clash_lazy.js 的行里未必有 "lazy" 字样），
+            # 产品线判断：文件名优先（clash-lazy.js 的行里未必有 "lazy" 字样），
             # 只有 README 这类混排文件才退回按行判断。
             if "lazy" in rel:
                 is_lazy = True
-            elif "my_clash" in rel or "routing" in rel:
+            elif "clash-routing" in rel or "routing" in rel:
                 is_lazy = False
             else:
                 is_lazy = "lazy" in line.lower()
-            key = "my_clash_lazy.js" if is_lazy else "my_clash.js"
+            key = "clash-lazy.js" if is_lazy else "clash-routing.js"
             if static_truth is not None:
                 truth = static_truth
             else:

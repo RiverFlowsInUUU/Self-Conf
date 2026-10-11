@@ -22,7 +22,7 @@
 # ③ 改配置（⚠️ 注意哪侧是生成物，见根 AGENTS.md）
 #    Surge   → surge/profiles/routing.conf   [Rule] 段加 RULE-SET,<url>,<策略>
 #    Egern   → egern/profiles/routing.yaml   rules: 加 rule_set: 条目
-#    mihomo  → clash/override/my_clash.js    rule-providers + rules（改 JS！）
+#    mihomo  → clash/override/clash-routing.js    rule-providers + rules（改 JS！）
 
 # ④ 同步派生
 python self-conf-skills/run/make_min.py --apply         # Surge/Egern 的 .min
@@ -272,7 +272,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
    但将来若两条规则引用同一份集就会失效。
 2. **「20 份 MRS」≠「20 份 MetaCubeX」**。严格拆分是 **MetaCubeX 19 份 + AWAvenue 1 份 = 20 份 MRS**。
    评估上游可用性、写事故报告时 `AWAvenue-Ads` 要**单独算**。
-3. **`my_clash_lazy.js` 头注曾写「5 份 MRS + 5 份 yaml」（**已改为 6 + 4**）是错的**，实际 6 + 4（见
+3. **`clash-lazy.js` 头注曾写「5 份 MRS + 5 份 yaml」（**已改为 6 + 4**）是错的**，实际 6 + 4（见
    [`clash.md`](./profiles/clash.md) §18.4）。
    ⇒ 凡是可由解析算出的数字，别手抄进注释。
 
@@ -407,7 +407,7 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 > 这一页是给“想把一侧的改动移植到另外两侧”的人看的：哪些能直接照搬、哪些照搬就是错的。
 >
 > 本页结论按当前文件逐条核对：`surge/profiles/routing.conf`、`egern/profiles/routing.yaml`、
-> `clash/profiles/routing.yaml` 与 `clash/override/my_clash.js`。计数只算启用项，不算注释：
+> `clash/profiles/routing.yaml` 与 `clash/override/clash-routing.js`。计数只算启用项，不算注释：
 > Surge **23 组 / 26 条规则**，Egern **23 组 / 26 条规则**，mihomo 静态分流版
 > **25 组 / 27 条规则 / 25 份 rule-provider**；mihomo 覆写脚本实际生成
 > **<!-- auto:script-group-count -->22<!-- /auto:script-group-count --> 组 /
@@ -550,7 +550,7 @@ mihomo 的实际值应以本页和 [`profiles/<kern>.md`](./profiles/clash.md) �
 | Surge 解析阶段广告拦截 | 把 `pre-matching,extended-matching` 原样搬到 Egern / mihomo，或只把规则改成 `AD` | 两侧没有同名参数；mihomo 在 fake-IP 路径下甚至可能先返回假 IP，DNS 拒答根本走不到 | Egern 写 `dns.forward.value: reject`；mihomo 同时写 `nameserver-policy: rcode://success` 与同集 `fake-ip-filter`，规则层再指 `AD` |
 | Egern 节点展开 | 把 `flatten: true` 搬到 mihomo | mihomo 无对应键；不会得到“展开 provider 节点”的效果 | 静态配置按来源选 `use` / `include-all` / `include-all-proxies`；覆写脚本先判断输入有没有 provider |
 | 倍率偏好 | 把 Surge `policy-priority` 或 Egern `priorities` 政名后塞给 mihomo | mihomo 不支持节点权重；未知键不能产生 0.15 软偏好 | 用 `url-test` + `filter` 分档，再由 `fallback` 按档回落；脚本只能对执行时可见节点排序。当前静态接线异常见 §2.1 |
-| mihomo TUN | 把静态 profile 的 `tun` 段写进 `my_clash.js` | 覆写脚本会越过客户端的 TUN 管理，可能与 Mihomo Party / Clash Verge 设置冲突 | `tun` 只属于 `profiles/*.yaml`；`override/*.js` 不生成它 |
+| mihomo TUN | 把静态 profile 的 `tun` 段写进 `clash-routing.js` | 覆写脚本会越过客户端的 TUN 管理，可能与 Mihomo Party / Clash Verge 设置冲突 | `tun` 只属于 `profiles/*.yaml`；`override/*.js` 不生成它 |
 | 规则集引用 | 把 Surge 的 `RULE-SET,https://…list,...` 原样搬进 mihomo | mihomo 的规则位需要 provider **名字**，不是下载 URL；同时缺 `format/behavior/path` | 先声明 `rule-providers`，再 `RULE-SET,<name>,<policy>` |
 | `no-resolve` | 把 Surge 的规则尾参数改成 Egern `rule_set.no_resolve: true` | Egern 对 `rule_set` 不执行该字段，防解析形同虚设 | Egern 只在 `geoip/ip_cidr/ip_cidr6/asn` 用 `no_resolve`，远程集靠条目级语义；mihomo 的 `ipcidr` provider 引用可带行尾 `no-resolve` |
 | IPv6 关闭 | 只复制一个 `ipv6: false` 到 mihomo | 只关顶层或只关 DNS 都不完整，AAAA 或真实 IPv6 通路仍可能存在 | mihomo 同时关顶层与 `dns.ipv6`；Surge 关 `ipv6` + `ipv6-vif`；Egern 关顶层 `ipv6` |
@@ -568,7 +568,7 @@ mihomo 的实际值应以本页和 [`profiles/<kern>.md`](./profiles/clash.md) �
 
 当前实配计数：
 
-| | Surge `lazy.conf` | Egern `lazy.yaml` | mihomo `lazy.yaml` / `my_clash_lazy.js` |
+| | Surge `lazy.conf` | Egern `lazy.yaml` | mihomo `lazy.yaml` / `clash-lazy.js` |
 |:--|:------------------|:------------------|:-----------------------------------------|
 | 分组 | 4：`Airport` / `Proxy` / `AI` / `AD` | 4：同左 | 3：`Proxy` / `AI` / `AD`；没有 `Airport` 组 |
 | 规则 | 11 | 11 | 11 |
@@ -666,7 +666,7 @@ python self-conf-skills/run/clash/build_rules.py --check
 2. **刷新周期**：Surge/Egern 规则集当前统一 604800 秒；mihomo provider 是 86400 秒。
 3. **静态与覆写职责**：mihomo 静态 YAML 自带 TUN，覆写 JS 交给客户端；这不是漏项。
 
-最后，`my_clash.js` 头注写“22 组 / 25 份规则集 / 27 条规则”，与脚本实际执行结果一致
+最后，`clash-routing.js` 头注写“22 组 / 25 份规则集 / 27 条规则”，与脚本实际执行结果一致
 **22 / 25 / 27**；静态 `routing.yaml` 的头注数字 **25 / 25 / 27** 与实际一致，但订阅入口与 Smart 接线存在
 §2.1 所述不一致。这些都应在后续修配置或生成器时处理，**不能在移植文档里替真实配置补写不存在的行为**。
 
@@ -931,8 +931,8 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 
 | profile | 规则集份数 | 规则条数 | 策略组 | 生成源 |
 |:--|:--:|:--:|:--:|:--|
-| `clash/profiles/routing.yaml` | **25** | **27** | 25 | `override/my_clash.js` |
-| `clash/profiles/lazy.yaml` | **10** | **11** | 3 | `override/my_clash_lazy.js` |
+| `clash/profiles/routing.yaml` | **25** | **27** | 25 | `override/clash-routing.js` |
+| `clash/profiles/lazy.yaml` | **10** | **11** | 3 | `override/clash-lazy.js` |
 
 两份文件都由 `self-conf-skills/run/clash/build_profiles.py` 生成，头注里的"规模"行
 是脚本自动写的（"25 个策略组 / 25 份规则集 / 27 条规则"、"3 个策略组 / 10 份规则集 / 11 条规则"）。

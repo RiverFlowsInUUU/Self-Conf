@@ -25,7 +25,7 @@
 
 ### 1.1 mihomo 的**脚本**不能直接用
 
-mihomo 的 JS 覆写（`clash/override/my_clash*.js`）由**客户端扩展**提供运行时
+mihomo 的 JS 覆写（`clash/override/clash-*.js`）由**客户端扩展**提供运行时
 （Party / Verge Rev 等暴露 `main(config)` 直接改配置对象）。**Stash 做不到** ——
 它的脚本体系（`script` + `script-providers`，见官方〈JavaScript 脚本〉）
 是**改写 HTTP 请求/响应**的，与「改配置」无关。两者用途不同，覆写不通用。
@@ -176,7 +176,7 @@ dns: #!replace
 
 ## 5 · 倍率三档：Stash 强于脚本之处
 
-`routing.stoverride` 的 `Smart` 用**倍率三档**（`Smart` → `Low Mult.` /
+`stash-routing.stoverride` 的 `Smart` 用**倍率三档**（`Smart` → `Low Mult.` /
 `Auto` / `High Mult.`），与静态模板 `clash/profiles/routing.yaml` **完全一致**。
 
 **为什么脚本做不到、Stash 能做到**：
@@ -209,8 +209,8 @@ dns: #!replace
 ## 6 · 与静态模板的关系
 
 ```
-clash/profiles/routing.yaml   ──（结构基准）──▶  stash/override/routing.stoverride
-clash/profiles/lazy.yaml      ──（结构基准）──▶  stash/override/lazy.stoverride
+clash/profiles/routing.yaml   ──（结构基准）──▶  stash/override/stash-stash-routing.stoverride
+clash/profiles/lazy.yaml      ──（结构基准）──▶  stash/override/stash-stash-lazy.stoverride
 ```
 
 **基准是「静态模板」，不是覆写脚本** —— 因为 Stash 的 `filter` 是运行时求值、

@@ -71,9 +71,13 @@ def clash_root():
 ROOT = clash_root()
 
 # (脚本, 静态完整版, .min 版)
+# ⚠️ 命名口径（2026-10-11 统一）：脚本名 = **`clash-<产品线>.js`**，与它生成的
+#    `clash/profiles/<产品线>.yaml` 同后缀 —— 改名前是 `clash-routing.js`（分流版）与
+#    `clash-lazy.js`（懒人版），`my_` 前缀零信息量，且**两者后缀顺序还不一致**
+#    （分流版无 `_routing` 后缀、懒人版有 `_lazy`），极易看错。
 TARGETS = [
-    ("my_clash.js", "routing.yaml", "routing.min.yaml"),
-    ("my_clash_lazy.js", "lazy.yaml", "lazy.min.yaml"),
+    ("clash-routing.js", "routing.yaml", "routing.min.yaml"),
+    ("clash-lazy.js", "lazy.yaml", "lazy.min.yaml"),
 ]
 
 # 模板专属：脚本侧没有的 Smart 三档子组（机制差异，必须从静态版继承）
@@ -82,10 +86,10 @@ TEMPLATE_ONLY = ("Low Mult.", "Auto", "High Mult.")
 SKIP_DNS_KEYS = {"listen"}
 
 HEADER_ROUTING = """# ============================================================================
-#  routing · 分流版（由 override/my_clash.js 生成）
+#  routing · 分流版（由 override/clash-routing.js 生成）
 # ============================================================================
 #  ⚠️ 本文件由 self-conf-skills/run/clash/build_profiles.py **自动生成**，请勿手工编辑。
-#     改配置请改 override/my_clash.js 后重跑本脚本。
+#     改配置请改 override/clash-routing.js 后重跑本脚本。
 #
 #  规模：%d 个策略组 / %d 份规则集 / %d 条规则
 #
@@ -106,10 +110,10 @@ HEADER_ROUTING = """# ==========================================================
 """
 
 HEADER_LAZY = """# ============================================================================
-#  lazy · 懒人版（由 override/my_clash_lazy.js 生成）
+#  lazy · 懒人版（由 override/clash-lazy.js 生成）
 # ============================================================================
 #  ⚠️ 本文件由 self-conf-skills/run/clash/build_profiles.py **自动生成**，请勿手工编辑。
-#     改配置请改 override/my_clash_lazy.js 后重跑本脚本。
+#     改配置请改 override/clash-lazy.js 后重跑本脚本。
 #
 #  规模：%d 个策略组 / %d 份规则集 / %d 条规则
 #

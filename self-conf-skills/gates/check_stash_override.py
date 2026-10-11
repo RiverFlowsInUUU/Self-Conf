@@ -3,12 +3,12 @@
 """Stash 覆写：结构、引用与正则判别力。
 
 为什么要有这一项
-    本仓的 Stash 覆写（`stash/override/*.stoverride`）是 `clash/override/my_clash*.js`
+    本仓的 Stash 覆写（`stash/override/*.stoverride`）是 `clash/override/clash-*.js`
     的**派生物** —— 同一套组名 / 规则次序 / 防泄露底线，只是换了客户端。
     派生关系天生会漂移：改了 JS 却忘了改 stoverride，两边就悄悄分叉，
     而 Stash 加载失败**不报错**（组空着、规则不生效，面板上只是「看起来少了东西」）。
 
-    本仓已有过一次同类教训：`my_clash.js` 的头注数字长期与实际输出不符，
+    本仓已有过一次同类教训：`clash-routing.js` 的头注数字长期与实际输出不符，
     直到人工核对才发现。派生文件的漂移同理，必须落成判据。
 
 判据（六条）
@@ -66,8 +66,8 @@ BUILTIN_POLICIES = {"DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE", "GL
 #    对齐，用的是「倍率三档」结构（Smart → Low Mult./Auto/High Mult.），
 #    而 mihomo 覆写脚本做不到分档、只有 22 组。两者差的就是那 3 个倍率子组。
 FILES = {
-    "stash/override/routing.stoverride": (25, 25, 27),
-    "stash/override/lazy.stoverride": (3, 10, 13),
+    "stash/override/stash-routing.stoverride": (25, 25, 27),
+    "stash/override/stash-lazy.stoverride": (3, 10, 13),
 }
 
 

@@ -756,7 +756,7 @@
    "paths": {
     "clash": "clash/profiles/lazy.yaml",
     "egern": "egern/profiles/lazy.yaml",
-    "stash": "stash/override/lazy.stoverride",
+    "stash": "stash/override/stash-lazy.stoverride",
     "surge": "surge/profiles/lazy.conf"
    }
   },
@@ -2870,7 +2870,7 @@
    "paths": {
     "clash": "clash/profiles/routing.yaml",
     "egern": "egern/profiles/routing.yaml",
-    "stash": "stash/override/routing.stoverride",
+    "stash": "stash/override/stash-routing.stoverride",
     "surge": "surge/profiles/routing.conf"
    }
   }

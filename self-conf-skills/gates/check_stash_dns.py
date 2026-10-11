@@ -84,7 +84,7 @@ OVERSEAS_DNS = (
     "unfiltered.adguard-dns.com",
 )
 
-FILES = ("stash/override/routing.stoverride", "stash/override/lazy.stoverride")
+FILES = ("stash/override/stash-routing.stoverride", "stash/override/stash-lazy.stoverride")
 
 
 def _endpoints(val):

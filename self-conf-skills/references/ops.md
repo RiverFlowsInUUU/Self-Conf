@@ -305,8 +305,8 @@ clash/
 │   ├── routing.yaml · routing.min.yaml   # 分流版  25 组 / 25 集 / 27 条
 │   └── lazy.yaml    · lazy.min.yaml      # 懒人版   3 组 / 10 集 / 11 条
 └── override/                          # 覆写脚本（**真源**）
-    ├── my_clash.js                    # → 分流版  22 组 / 25 集 / 27 条
-    ├── my_clash_lazy.js               # → 懒人版   3 组 / 10 集 / 11 条
+    ├── clash-routing.js                    # → 分流版  22 组 / 25 集 / 27 条
+    ├── clash-lazy.js               # → 懒人版   3 组 / 10 集 / 11 条
     └── README.md                      # 两形态差别、用法、本地实测
 ```
 
@@ -327,14 +327,14 @@ clash/
 懒人版则**完全同构**：脚本 3 组 / 11 条 / 10 份，与 `lazy.yaml` 逐位相同。
 
 > ℹ️ **过期文字已清理（2026-10-07）**：此前脚本头注与覆写脚本文档里写着旧数字
-> （`my_clash.js`「20 组 / 20 份 / 26 条」、`routing.yaml`「23 / 22 / 24」、`my_clash_lazy.js`「5 MRS + 5 yaml」等），
+> （`clash-routing.js`「20 组 / 20 份 / 26 条」、`routing.yaml`「23 / 22 / 24」、`clash-lazy.js`「5 MRS + 5 yaml」等），
 > 现已全部按实际值更正为 22 组 / 25 份 / 27 条（分流版）与 3 组 / 10 份 / 11 条（懒人版）。
 > **判据以配置文件为准** —— 头注数字由 `check_header_numbers.py` 与脚本实际输出对拍。
 
 #### 5.2 改配置的正确顺序
 
 ```bash
-① 改真源：        clash/override/my_clash.js        （或 my_clash_lazy.js）
+① 改真源：        clash/override/clash-routing.js        （或 clash-lazy.js）
 ② 重生成 profile： python self-conf-skills/run/clash/build_profiles.py
                   # 一次性写好 routing/lazy 的 .yaml 与 .min.yaml 四件
 ③ 若动了规则集内容：python self-conf-skills/run/clash/build_rules.py   # rules/*.list → *.yaml
@@ -513,7 +513,7 @@ mihomo 静态 profile **由脚本生成**（`build_profiles.py`），也带 `#! 
 
 | 要改 | 改哪 | 会不会被覆盖 |
 |:--|:--|:--|
-| mihomo 的**配置内容** | `clash/override/my_clash*.js` | 会 —— 必须改 JS |
+| mihomo 的**配置内容** | `clash/override/clash-*.js` | 会 —— 必须改 JS |
 | mihomo 的**版本号** | `clash/profiles/*.yaml` 第 1 行（**手改**） | **不会** —— 生成器保留它 |
 
 > 本节此前写「改版本号要改脚本」，那是**错的**（脚本里没有这个字符串，

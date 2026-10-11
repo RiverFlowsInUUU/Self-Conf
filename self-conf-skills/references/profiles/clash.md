@@ -39,8 +39,8 @@ self-conf/                                    # 三内核整合仓
 │   │   ├── routing.yaml · routing.min.yaml   # 分流版（带注释 / 纯配置）
 │   │   └── lazy.yaml    · lazy.min.yaml      # 懒人版（带注释 / 纯配置）
 │   ├── override/                             # 覆写脚本（第二种交付形态）
-│   │   ├── my_clash.js                       # → 分流版结构
-│   │   ├── my_clash_lazy.js                  # → 懒人版结构
+│   │   ├── clash-routing.js                       # → 分流版结构
+│   │   ├── clash-lazy.js                  # → 懒人版结构
 │   │   └── README.md                         # 与静态模板的差别、用法、实测
 │   ├── ruleset-sources.md                # 规则集清单与选型（门面层）
 │   ├── （文档并入 self-conf-skills/references/profiles/clash.md）
@@ -92,7 +92,7 @@ self-conf/                                    # 三内核整合仓
 
 脚本与静态模板**不是**逐组相同 —— 差一处，且是有意的（§7）：
 
-| | 静态 `routing.yaml` | 脚本 `my_clash.js` |
+| | 静态 `routing.yaml` | 脚本 `clash-routing.js` |
 |:--|:--|:--|
 | 策略组 | 25 | **22** |
 | 规则 | 27 | 27 |
@@ -105,7 +105,7 @@ self-conf/                                    # 三内核整合仓
 懒人版则**完全同构**：脚本 3 组 / 11 条 / 10 份，与 `lazy.yaml` 逐位相同。
 
 > ✅ 头注数字**已全部更正**（2026-10-07）：`routing.yaml` 为「25 组 / 25 份 / 27 条」、
-> `my_clash.js` 为「22 组 / 25 份 / 27 条」、`my_clash_lazy.js` 为「3 组 / 10 份（6 MRS + 4 yaml）/ 11 条」，
+> `clash-routing.js` 为「22 组 / 25 份 / 27 条」、`clash-lazy.js` 为「3 组 / 10 份（6 MRS + 4 yaml）/ 11 条」，
 > 均由 `check_header_numbers.py` 与脚本实际输出对拍守着 —— 见 §18.4。
 
 #### 2 · 两种形态必须逐位一致
@@ -147,8 +147,8 @@ self-conf/                                    # 三内核整合仓
 
 ```
      ~ 已知差异 Smart: 模板三档 fallback vs 脚本单组 fallback（机制差异，非漂移）
-  OK override/my_clash.js
-  OK override/my_clash_lazy.js
+  OK override/clash-routing.js
+  OK override/clash-lazy.js
 ```
 
 ⚠️ 这条提醒必须**保留可见**。它若被静默吞掉，后来者会把「脚本侧没有三档」当成漏写，
@@ -159,7 +159,7 @@ self-conf/                                    # 三内核整合仓
 | 门禁 | 比对 | 判据 |
 |:-----|:-----|:-----|
 | `check_min_pair.py` | `routing.yaml` ↔ `routing.min.yaml`（`lazy` 同） | YAML 解析成对象后**直接比对象**，任何一处不同即判负 |
-| `check_script_sync.py` | `my_clash.js` ↔ `routing.yaml`（`lazy` 同） | 见 §2.2 |
+| `check_script_sync.py` | `clash-routing.js` ↔ `routing.yaml`（`lazy` 同） | 见 §2.2 |
 
 > `.min` 的定位是「**同一份配置去掉注释**」，不是「裁剪配置」。
 > 本仓踩过：`routing.yaml` 由脚本重新生成后忘了同步重生成 `.min`，两份就不一致，
@@ -436,7 +436,7 @@ Proxy (select)
 | 能看到节点名吗 | 能（provider 已加载） | **不能** —— 脚本在订阅加载时跑，`proxies` 里还没有 provider 的节点 |
 | 结果 | 三档，倍率语义化 | 单组 `fallback`，成员顺序由 `sortedByRate` 按名排出 |
 
-脚本侧的替代方案（`my_clash.js`）：
+脚本侧的替代方案（`clash-routing.js`）：
 
 ```js
 function rateOf(name) {
@@ -1163,7 +1163,7 @@ mihomo 自研的 IP 协议栈（可选 `system` / `gvisor` / `mixed` / `mips`）
 
 **Q：我想用自己的订阅，但不想改配置文件。**
 
-用覆写脚本：`clash/override/my_clash.js`（分流版）或 `my_clash_lazy.js`（懒人版）。
+用覆写脚本：`clash/override/clash-routing.js`（分流版）或 `clash-lazy.js`（懒人版）。
 把它托管到一个 URL，在客户端的「覆写」里导入，再绑到目标订阅上（§1.1）。
 
 **Q：脚本和静态配置的效果一样吗？**
@@ -1227,8 +1227,8 @@ Surge / Egern 侧的 secrets 扫描不认识它，整合时加了白名单（§5
 | 位置 | 写的 | 实际 | 性质 |
 |:--|:--|:--|:--|
 | `routing.yaml` 头注 | ~~23 / 22 / 24~~ → **25 / 25 / 27** | 25 / 25 / 27 | ✅ 已更正 |
-| `my_clash.js` 头注 | ~~20 / 20 / 26~~ → **22 / 25 / 27** | 22 / 25 / 27 | ✅ 已更正 |
-| `my_clash_lazy.js` 头注 | ~~5 MRS + 5 yaml~~ → **6 MRS + 4 yaml** | 6 mrs + 4 yaml | ✅ 已更正 |
+| `clash-routing.js` 头注 | ~~20 / 20 / 26~~ → **22 / 25 / 27** | 22 / 25 / 27 | ✅ 已更正 |
+| `clash-lazy.js` 头注 | ~~5 MRS + 5 yaml~~ → **6 MRS + 4 yaml** | 6 mrs + 4 yaml | ✅ 已更正 |
 | `lazy.yaml` 规则注释 | 「两条 GEOIP **不带** `no-resolve`」 | 两条**都带** | 注释过期 |
 | 分流版 vs 懒人版 | `nameserver-policy` 第三个键 `rule-set:private,cn` vs `geosite:private,cn` | 两版写法不同 | 见 §14.4 |
 | 分流版位 26 | `geoip-cn` **不带** `no-resolve`；懒人版位 10 **带** | 两版不同 | 见 §12.3 |
@@ -1320,7 +1320,7 @@ python self-conf-skills/gates/clash/check_secrets.py        # 占位符纪律
 > 逐段复刻 + 逐键理由。分流版 25 组 / 27 条，是三内核里结构最细的一份，
 > 拿它做教学载体能把每一段的理由讲透。
 > 只想直接拿走用 → 用仓库里的 `clash/profiles/routing.min.yaml`（纯配置）
-> 或 `clash/override/my_clash.js`（挂到自己的订阅）。
+> 或 `clash/override/clash-routing.js`（挂到自己的订阅）。
 >
 > 📌 本文教的加固结构（tun 收口、dns 段分工、广告拦截双条件、IPv6 关闭）
 > **对两份配置都适用** —— 懒人版只是在策略组与规则上更简。
@@ -1735,8 +1735,8 @@ self-conf/
 │   │   ├── lazy.yaml · lazy.min.yaml
 │   │   └── routing.yaml · routing.min.yaml
 │   └── override/
-│       ├── my_clash_lazy.js
-│       └── my_clash.js
+│       ├── clash-lazy.js
+│       └── clash-routing.js
 ├── icons/                         # 三内核共用
 ├── rules/                         # .list 真源 + mihomo .yaml 生成物
 └── self-conf-skills/
@@ -1855,8 +1855,8 @@ Surge / Egern 各有“完整版 + `.min`”两种文件表现；mihomo 在此�
 
 | 产品线 | 静态入口 | 覆写入口 |
 |:-------|:---------|:---------|
-| 懒人版 | `clash/profiles/lazy.yaml` | `clash/override/my_clash_lazy.js` |
-| 分流版 | `clash/profiles/routing.yaml` | `clash/override/my_clash.js` |
+| 懒人版 | `clash/profiles/lazy.yaml` | `clash/override/clash-lazy.js` |
+| 分流版 | `clash/profiles/routing.yaml` | `clash/override/clash-routing.js` |
 
 #### 4.1 静态版与脚本版分别适合谁
 

@@ -5,7 +5,7 @@
 为什么单独要这一项（本仓特有，姊妹仓没有）：
     本仓每份 profile 都有两个交付形态：
       · 静态文件  profiles/routing.yaml  —— 下载即用
-      · 覆写脚本  override/my_clash.js   —— 挂到任意订阅上
+      · 覆写脚本  override/clash-routing.js   —— 挂到任意订阅上
     两者是**同一套配置**的两种形态，脚本的输出就应该是静态文件的样子。
 
     一旦漂移，用户会遇到「照文档用脚本订阅，效果跟直接导入配置不一样」，
@@ -62,9 +62,11 @@ except Exception:
     run_main = None
 
 # (脚本, 对应静态 profile) —— 模板专属、脚本里没有的组名
+# ⚠️ 与 `build_profiles.py` 的 TARGETS 是**同一张映射**（2026-10-11 改名时确认：
+#    两处各写一份，改一处必漏另一处）。改动任一处都要同步。
 PAIRS = [
-    ("override/my_clash.js", "profiles/routing.yaml"),
-    ("override/my_clash_lazy.js", "profiles/lazy.yaml"),
+    ("override/clash-routing.js", "profiles/routing.yaml"),
+    ("override/clash-lazy.js", "profiles/lazy.yaml"),
 ]
 
 # 静态模板专属：Smart 三档子组（脚本侧 Smart 是单组 fallback）

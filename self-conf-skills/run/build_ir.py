@@ -210,7 +210,9 @@ def _kernel_paths(root, product):
         "clash": root / "clash" / "profiles" / ("%s.yaml" % product),
         # ⚠️ Stash 是**覆写文件**（`.stoverride`，在 `override/` 而非 `profiles/`）——
         #    它不是 Release 资产，也没有版本头注。路径不同，别照抄上面三行的形状。
-        "stash": root / "stash" / "override" / ("%s.stoverride" % product),
+        #    命名口径（2026-10-11）：`stash-<产品线>.stoverride`（带侧名前缀），
+        #    与 mihomo 的 `clash-<产品线>.js` 一致；改名前是 `lazy/routing.stoverride`。
+        "stash": root / "stash" / "override" / ("stash-%s.stoverride" % product),
     }
 
 

@@ -667,7 +667,7 @@ def build_gates():
     add('profile 结构', [PY, 'self-conf-skills/gates/check_structure.py'])
     add('smart 权重口径', [PY, 'self-conf-skills/gates/check_priority_weight.py'])
     add('规则集来源文档同步', [PY, 'self-conf-skills/gates/clash/check_ruleset_doc_sync.py'])
-    # Stash 覆写：clash/override/my_clash*.js 的**派生物**（同一套组名 / 规则次序 /
+    # Stash 覆写：clash/override/clash-*.js 的**派生物**（同一套组名 / 规则次序 /
     # 防泄露底线，换的是客户端）。派生关系天生会漂移，而 Stash 加载失败不报错
     # （组空着、规则不生效，面板只「看起来少了东西」）⇒ 必须落成判据。
     # 六条：YAML 可解析 / 数组带 `#!replace`（这条最关键，见该脚本 docstring）/
