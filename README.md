@@ -17,11 +17,11 @@
 
 </div>
 
-> 🤖 **AI agent 请从这里开始** → [`AGENTS.md`](AGENTS.md)：动手前的顺序，和三内核各自的判据。
+> 🤖 **AI agent 请从这里开始** → [`AGENTS.md`](AGENTS.md)：动手顺序，与各侧判据。
 
 一套配置，覆盖 Surge、Egern、mihomo（Clash Meta）三款内核，另附 **Stash 覆写**。
-它们语法不同、机制不同，但在这里**组结构一致、规则次序一致、防泄露底线一致** ——
-你换客户端不用重新学一遍。
+语法不同，机制不同。**组结构、规则次序、防泄露底线，完全一致** ——
+换客户端，不用重新学一遍。
 
 ## 📥 各美其美 · 皆合心意
 
@@ -33,8 +33,8 @@
 | <img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/mihomo-Icon.png" height="20" alt=""> **mihomo**<br><sub>覆写脚本</sub> | [`clash-lazy.min.js`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/clash/override/clash-lazy.min.js) | [`clash-routing.min.js`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/clash/override/clash-routing.min.js) |
 | <img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Stash-Icon.png" height="20" alt=""> **Stash**<br><sub>覆写脚本</sub> | [`stash-lazy.min.stoverride`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/stash/override/stash-lazy.min.stoverride) | [`stash-routing.min.stoverride`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/stash/override/stash-routing.min.stoverride) |
 
-- **覆写脚本**：挂到自己的订阅上即可，不必下载配置 —— mihomo 用两份 `.js`，Stash 用两份 `.stoverride`。
-- ⚠️ **mihomo 的脚本与配置都不能直接给 Stash 用** —— 键名机制不同，`respect-rules` 会被静默忽略 ⇒ DNS 直连境外端点、解析超时。请用上表两份 `.stoverride`。
+- **覆写脚本**：挂上订阅就能用，配置不必下载。mihomo 用两份 `.js`，Stash 用两份 `.stoverride`。
+- ⚠️ **mihomo 的脚本与配置，Stash 都不能用。** 键名机制不同，`respect-rules` 被静默忽略 ⇒ DNS 直连境外端点、解析超时。请用上表两份 `.stoverride`。
 
 ## 🧭 井然有序
 
@@ -50,29 +50,29 @@
 | 🛑 `AD` | ✅ | ✅ |
 | 🇭🇰 `Hong Kong` · 🇨🇳 `Taiwan` · 🇯🇵 `Japan`<br>🇸🇬 `Singapore` · 🇺🇸 `United States`<br>🇦🇶 `Other Regions` | - | ✅ |
 
-分流版：**Surge / Egern 23 组 · 26 条规则**，**mihomo 25 组 · 27 条规则**。
+分流版组数：**Surge / Egern 23 组 · 26 条规则**，**mihomo 25 组 · 27 条规则**。
 
 ## 🌐 隐私至上 · 无 DNS 泄露
 
 | 泄露出口 | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Surge-Icon.png" height="22" alt=""> Surge</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Egern-Icon.png" height="22" alt=""> Egern</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/mihomo-Icon.png" height="22" alt=""> mihomo</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Stash-Icon.png" height="22" alt=""> Stash</div> |
 |:--|:--|:--|:--|:--|
-| 🚫 旁路设备<br><sub>绕过内核的设备直接发 `:53`</sub> | `hijack-dns` 接管明文 `:53`（六个知名解析器） | `hijack_dns` 接管明文 `:53`（全量） | 由客户端 TUN 或透明代理重定向接管 | 由网络引擎接管（无该键） |
-| 🔐 加密通道<br><sub>端点写主机名 ⇒ 冷启动漏一次明文</sub> | 主解析走 DoH，主机名端点经裸 IP 受控引导 | 主解析走 DoH/DoT，四条端点全是 IP 字面量 | 主解析走 DoH，端点一律写 IP 字面量 | 主解析走 DoH，`default-nameserver` 仅填 IP |
+| 🚫 旁路设备<br><sub>绕过内核的设备直接发 `:53`</sub> | `hijack-dns` 接管明文 `:53`（六个知名解析器） | `hijack_dns` 接管明文 `:53`（全量） | 交给客户端 TUN 或透明代理重定向 | 交给网络引擎（无该键） |
+| 🔐 加密通道<br><sub>端点写主机名 ⇒ 冷启动漏一次明文</sub> | 主解析走 DoH，主机名端点经裸 IP 受控引导 | 主解析走 DoH/DoT，四条端点全是 IP 字面量 | 主解析走 DoH，端点一律 IP 字面量 | 主解析走 DoH，`default-nameserver` 仅填 IP |
 | 🛡️ 明文回退<br><sub>加密解析失败 ⇒ 回落明文</sub> | `dns-server` 全裸 IP，绝不写 `system` | `forward` 兜底只指加密组，绝不落明文 | `default-nameserver` 裸 IP（仅引导）+ `proxy-server-nameserver` 专用通道 | 同左（`proxy-server-nameserver` 专用通道） |
 | 🧭 规则克制<br><sub>IP 类规则会触发本地解析</sub> | IP 类规则一律 `no-resolve`；零 IP 的规则集不写 | IP 类规则一律 `no_resolve`；该键对 `rule_set` 不生效 | IP 类规则一律 `no-resolve`；纯域名规则集不写 | 同左（4 个 `ipcidr` 集带 `no-resolve`） |
 | ✂️ 远端解析<br><sub>代理域名被本地解析、本地留答案</sub> | 代理域名交节点解析，本地不留答案 | 代理域名交节点解析（`proxy_nameservers` 专用通道） | `fake-ip` 只回假 IP，真实解析在落地侧 | 同左（默认 Fake IP） |
-| 🔎 IPv6<br><sub>AAAA 泄露，或绕过接管</sub> | `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6` 两处都关 | 按官方〈IPv6 兼容性〉自动选择 ⇒ 不写该键 |
+| 🔎 IPv6<br><sub>AAAA 泄露，或绕过接管</sub> | `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6`，两处都关 | 按官方〈IPv6 兼容性〉自动选择，不写该键 |
 | 🛑 广告拦截<br><sub>顺带：解析阶段就拦掉</sub> | `pre-matching REJECT` | `forward` → `reject` | DNS 层双条件（`rcode://success` 与 `fake-ip-filter` 成对） | 规则层 `AD` 组（无 `rcode` 语法） |
 | 📦 数据库依赖<br><sub>顺带：零 dat，离线可用</sub> | 内置系统集 | 引用共享 `.list` | 零 dat 依赖，用 `.mrs` 远程集 | 零 dat，用 `.list` / `.yaml` 远程集 |
 
-前六行是必需项的“堵漏”清单（出口分类见 [`dns.md`](self-conf-skills/references/dns.md) 的「接到本模板上」），后两行是顺带得到的好处。
-四侧机制不同、写法不同，但**每一个出口都堵了**。
+前六行，必需项的“堵漏”清单（出口分类见 [`dns.md`](self-conf-skills/references/dns.md) 的「接到本模板上」）；后两行，顺带的好处。
+四侧机制不同、写法不同。**每一个出口，都堵了。**
 
-每一条都有判据守着 —— 全套闸门 + CI，不是文档里的一句话。
+每一条都有判据守着 —— 全套闸门 + CI。不止是一句话。
 
 ## 📖 按需查阅
 
-操作手册、逐键语义、审计判据与发版规矩都在 [`AGENTS.md`](AGENTS.md)。
+操作手册、逐键语义、审计判据、发版规矩 —— 都在 [`AGENTS.md`](AGENTS.md)。
 
 ---
 
