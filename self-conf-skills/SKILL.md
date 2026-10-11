@@ -38,18 +38,9 @@ grep -n "include-all" references/profiles/clash.md
 # ② 只读那一节：从命中行往上找最近标题，往下读到下一个同级标题（通常 2~5 KB）
 ```
 
-> **完整路由表（含「我要做 X → 读什么 → 跑什么」）在
-> [`references/INDEX.md`](references/INDEX.md)** —— 本表只列最常用的几条。
-
-| 你要做什么 | 读哪份 |
-|:--|:--|
-| 改某个配置键的语义与边界 | `references/profiles/{surge,egern,clash,stash}.md` |
-| **把某侧做法搬到另一侧**（对齐前必读） | `references/DIFFERENCES.md` |
-| DNS / 防泄露原理与四侧落地 | `references/dns.md` |
-| 规则集选型、权重、跨内核差异 | `references/rulesets.md` |
-| 排查拦截失效 / 分流异常 | `references/pitfalls.md` |
-| 日常操作 / 发版 / 加固清单 | `references/ops.md` |
-| 门禁判据与纪律（改判据前必读） | `references/gates.md` |
+> 📌 **「我要做 X → 读哪份 → 跑什么」的唯一权威表在
+> [`references/INDEX.md`](references/INDEX.md)**（12 项任务 × 该读什么 × 该跑什么 ×
+> 判据抓什么）。本文件**不再复制一份** —— 两处同一张表必漂，这是本仓的反复教训。
 
 **每条配置键的权威解释，是它自己在 profile 里的注释** —— 文档讲的是
 「跨键的机制与取舍」，不是注释的复述。改键之前先读那个键的注释。

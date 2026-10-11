@@ -67,7 +67,9 @@ MAIN = "AGENTS.md"
 #      差异指向 references/DIFFERENCES.md）。见根 AGENTS.md 的「四侧指路标」一节。
 #    ⚠️ 若将来有人想再加嵌套入口，先读 `references/gates.md` 关于本判据的那一节。
 NESTED = []
-# 若嵌套入口被重新引入，会同时被这条断言拦下（见 main() 的 NESTED_BANNED 检查）。
+# 若嵌套入口被重新引入，会被这条断言拦下（见 main() 的 NESTED_BANNED 循环）。
+# ⚠️ 后 5 项从未存在（预防性）；前 2 项**已于 2026-10-11 删除**（取消嵌套入口时合并进
+#    详情层）—— 它们同时登记在 `check_dead_refs.py` 的 DEAD 表里，防止文档再引用。
 NESTED_BANNED = ["clash/AGENTS.md", "stash/AGENTS.md", "surge/AGENTS.md", "egern/AGENTS.md",
                  "rules/AGENTS.md", "icons/AGENTS.md", "releases/AGENTS.md"]
 
@@ -80,10 +82,10 @@ SHADOWS = ["CLAUDE.md", ".cursorrules", ".github/copilot-instructions.md",
 
 MAIN_MAX_LINES = 150
 # ⚠️ 软阈值（2026-10-11 新增）：接近上限时**提醒该拆了**，而不是让人继续压缩。
-#    起因：`stash/AGENTS.md` 与根 `AGENTS.md` 都曾顶到 150/150，只能靠删字续命 ——
+#    起因：两份已删的嵌套入口都曾顶到 150/150，只能靠删字续命 ——
 #    而删字会丢掉「为什么」（本仓最值钱的东西）。正确处置是**分层**：
 #      入口（<150 行，只放结论与索引）  →  详情（`references/*.md`，无行数限制）
-#    本仓已有先例：`clash/AGENTS.md`（50 行）+ `references/profiles/clash.md`（2500+ 行）。
+#    先例：clash 侧的入口曾只有 50 行，而 `references/profiles/clash.md` 有 2500+ 行。
 #    ⇒ 到软阈值时，`check` 提示「把详情移到 references/，入口改指针」。
 MAIN_WARN_LINES = 120
 SIX_AREAS = {

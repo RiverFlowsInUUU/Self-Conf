@@ -63,6 +63,13 @@ DEAD = {
     "cross-kernel-diff": ["改革前", "并入", "原名", "已删"],
     "dns-basics": ["改革前", "并入", "原名", "已删"],
     "no-resolve-pairing": ["改革前", "并入", "原名", "已删"],
+    # ⚠️ 2026-10-11：取消嵌套入口时删掉的两份文件。
+    #    起因（用户提出的第 1 点：「改 MD 会不会影响脚本？」）——审计发现本表**漏登记了它们**，
+    #    于是文档里再出现 `stash/AGENTS.md` 的**不当引用**（当成还活着的东西）时，判据**判绿**。
+    #    实测对照：引用已在表里的 `cross-kernel-diff.md` 会判红，引用这两个文件却放行。
+    #    ⚠️ 教训：**删文件时必须同步登记到本表**，否则「已删引用」这道判据对它是失效的。
+    "clash/AGENTS.md": ["已删", "取消", "合并", "不再", "曾有", "曾顶", "并入", "原"],
+    "stash/AGENTS.md": ["已删", "取消", "合并", "不再", "曾有", "曾顶", "并入", "原"],
 }
 
 # 反引号里的「像文件路径」的 token
@@ -114,7 +121,44 @@ def main():
              if "__pycache__" not in p and os.path.basename(p) != "check_dead_refs.py"]
     scan.append(os.path.join(ROOT, "AGENTS.md"))
 
+    # ⚠️ 判定要点：DEAD 的键有两种形态 ——
+    #    · 路径形（`config_old` / `CHANGELOG.md` / `clash/AGENTS.md`）→ 相对**仓库根**
+    #    · 纯名形（`profile-anatomy` / `dns-basics`）→ 是**旧文档的主体名**，
+    #      其内容已并进别处（如 `profile-anatomy` 并入 `clash.md`）
+    #    故不能只 `os.path.join(ROOT, key)`。
+    #    ⚠️ 含 `/` 的键**只按完整路径判** —— 回退 basename 会与同名的根文件
+    #    （`clash/AGENTS.md` 的 basename 正是 `AGENTS.md`）撞车 ⇒ 假报「仍存在」。
+    def _still_exists(key):
+        key = key.rstrip("/")
+        if not key:
+            return False
+        if "/" in key:
+            return os.path.exists(os.path.join(ROOT, key))
+        if os.path.exists(os.path.join(ROOT, key)):
+            return True
+        for dp, dns, fns in os.walk(ROOT):
+            dns[:] = [d for d in dns if d != ".git"]
+            if key in fns or os.path.basename(dp) == key:
+                return True
+        return False
+
+    # ⭐ 反向检查（2026-10-11 新增）：DEAD 表里的东西**必须真的不存在**。
+    #
+    #    为什么：本表是「已删登记表」——若它登记了一个**仍然存在**的文件（删了又建、
+    #    或当初写错），后果是**灾难性的误报**：文档里所有对它的**合法**引用都会被判
+    #    「指向已删东西」。实测：把 `dns.md` 误登记进 DEAD ⇒ 一次报出 13 处假 NG，
+    #    而真正的病因（登记表写错了）一句都没提。
+    #    ⇒ 登记表必须自检，且**登记错的键要跳过逐行检查**（否则级联噪音淹没真因）。
     bad = []
+    bad_keys = set()
+    for dead in DEAD:
+        if _still_exists(dead):
+            bad_keys.add(dead)
+            bad.append(("(DEAD 表)", 0, dead,
+                        "登记为「已删」，但它**仍然存在** —— 登记表陈旧或写错了。"
+                        "后果：文档里对它的**合法引用会被全部误报**。"
+                        "⇒ 要么删掉该文件，要么从 DEAD 表里移除"))
+
     for f in scan:
         if not os.path.isfile(f):
             continue
@@ -128,6 +172,8 @@ def main():
             ctx = chr(10).join(lines[max(0, i - 3):i + 2])
             # ① 已删机制的裸提及（不看路径形态）
             for dead, allow in DEAD.items():
+                if dead in bad_keys:
+                    continue          # 登记表本身错了 ⇒ 已在上面报过，别再逐行刷
                 if dead in ln:
                     if not any(a in ctx for a in allow):
                         # 文件确实不在 ⇒ 报

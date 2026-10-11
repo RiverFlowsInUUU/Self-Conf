@@ -285,11 +285,10 @@ provider 的 `behavior`，不是 `geoip-` 名字前缀。）
 
 #### 7.1 ⭐ Stash 的 DNS 查询**不经代理** —— 端点必须大陆直连可达
 
-官方〈内置 DNS 服务〉原文（决定性）：
+官方〈内置 DNS 服务〉原文（决定性；**完整引文与事故记录在
+[`profiles/stash.md`](./profiles/stash.md) §4，此处不重复**）：
 
 > 「默认情况下，Stash 发出的 DNS 查询均会**直接出站**，而不经由任何代理规则转发。」
-> 「所有 DNS 请求将会**直接发送到服务器，不经过任何代理**。」
-> （`default-nameserver` 注释）「除 `system` 外，服务器地址必须使用 IP。」
 
 ⇒ **Stash 里每一个 DNS 端点都是「裸直连」发出的**：`nameserver` /
 `nameserver-policy` 的值 / `proxy-server-nameserver` **全部**如此。
