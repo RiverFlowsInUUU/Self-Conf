@@ -103,29 +103,10 @@ clash 的 `.min` 跑 `build_profiles.py` 时也会保留头注、重写正文。
 
 ## 文档怎么读（**不要整篇读**）
 
-`self-conf-skills/references/` 8 篇（合计数百 KB），**但有 880+ 个节**
-（最大的一节也只有 ~5 KB）⇒ 按需 grep 定位到节，一次只读 2~5 KB：
-
-```bash
-# ① grep 拿行号与节标题 ② 只读那一节（从命中行往上找最近标题，往下读到下一个同级标题）
-grep -n "include-all" self-conf-skills/references/profiles/clash.md
-```
-
-**关键词要选得具体** —— 泛词会命中几十处，具体词通常 1~5 处（下表的关键词都实测过）：
-
-| 想问什么 | 去哪份 | 用这些词（都实测过命中数） |
-|:--|:--|:--|
-| mihomo 的组/节点怎么配 | `profiles/clash.md` | `include-all-proxies`(10) · `respect-rules`(7) · `nameserver-policy`(19) |
-| Surge 的键怎么配 | `profiles/surge.md` | `policy-regex-filter`(4) · `extended-matching`(16) · `hijack-dns`(17) |
-| Egern 的段怎么配 | `profiles/egern.md` | `policy_groups`(5) · `proxy_nameservers`(37) |
-| DNS 泄露怎么查 | `dns.md` | `抓包`(1) · `假 IP`(10) · `引导`(11) |
-| 规则集怎么选/多重 | `rulesets.md` | `重量`(4) · `体量`(5) · `刷新周期`(6) |
-| 改完怎么验证 | `ops.md` | `make_min`(7) · `升号`(7) · `动线`(8) |
-| 出问题 | `pitfalls.md` | `假通过`(3) · `广告拦不住`(4) · `拒绝加载`(6) |
-| 门禁本身 | `gates.md` | `自查清单`(1) · `判别力`(15) · `注错`(15) |
-
-⚠️ 若 grep 命中 >20 处 ⇒ 说明**关键词太泛**，换更具体的词（或先 grep 标题：
-`grep -n "^#\{2,4\} " <file>` 看目录）。
+`self-conf-skills/references/` 共 **10 篇 · 900+ 个节**（最大一节也只 ~5 KB）⇒ 按需 grep 定位到节。
+**「想问什么 → 去哪份 → 用哪个词」「我要做 X → 读什么跑什么」两张路由表在
+[`references/INDEX.md`](./self-conf-skills/references/INDEX.md)** —— 本文件只留指针，
+不再塞表（入口文件的 150 行额度留给全局纪律）。
 
 ---
 

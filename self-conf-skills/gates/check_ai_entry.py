@@ -62,6 +62,13 @@ SHADOWS = ["CLAUDE.md", ".cursorrules", ".github/copilot-instructions.md",
            "GEMINI.md", ".gemini/GEMINI.md", "AGENT.md"]
 
 MAIN_MAX_LINES = 150
+# ⚠️ 软阈值（2026-10-11 新增）：接近上限时**提醒该拆了**，而不是让人继续压缩。
+#    起因：`stash/AGENTS.md` 与根 `AGENTS.md` 都曾顶到 150/150，只能靠删字续命 ——
+#    而删字会丢掉「为什么」（本仓最值钱的东西）。正确处置是**分层**：
+#      入口（<150 行，只放结论与索引）  →  详情（`references/*.md`，无行数限制）
+#    本仓已有先例：`clash/AGENTS.md`（50 行）+ `references/profiles/clash.md`（2500+ 行）。
+#    ⇒ 到软阈值时，`check` 提示「把详情移到 references/，入口改指针」。
+MAIN_WARN_LINES = 120
 SIX_AREAS = {
     "命令": ["verify_all", "python"],
     "测试/门禁": ["门禁", "verify_all", "退出码"],
@@ -132,11 +139,20 @@ def main():
         print("入口违规 %d 处" % len(bad))
         return 1
     print("  OK %s（%d 行）· 真源唯一" % (MAIN, n_lines))
+    if n_lines >= MAIN_WARN_LINES:
+        print("     ⚠️ 根文件已 %d 行（软阈值 %d / 硬上限 %d）—— **别再压缩，该分层**："
+              "长表 / 详情移到 `self-conf-skills/references/`，根文件只留结论与索引"
+              % (n_lines, MAIN_WARN_LINES, MAIN_MAX_LINES))
     for nf in NESTED:
         np_ = os.path.join(ROOT, nf.replace("/", os.sep))
         if os.path.isfile(np_):
-            print("  OK 嵌套 %s（%d 行）"
-                  % (nf, len(io.open(np_, encoding="utf-8").read().splitlines())))
+            n_nl = len(io.open(np_, encoding="utf-8").read().splitlines())
+            print("  OK 嵌套 %s（%d 行）" % (nf, n_nl))
+            if n_nl >= MAIN_WARN_LINES:
+                print("     ⚠️ 已 %d 行（软阈值 %d / 硬上限 %d）—— **别再压缩，该分层**："
+                      "详情移到 `self-conf-skills/references/`，本文件只留结论与索引"
+                      "（先例：`clash/AGENTS.md` 50 行 + `references/profiles/clash.md`）"
+                      % (n_nl, MAIN_WARN_LINES, MAIN_MAX_LINES))
     print("  OK 无工具专属入口（%d 类已查）· 任一 AI 读同一份 %s"
           % (len(SHADOWS), MAIN))
     print("-" * 78)

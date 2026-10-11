@@ -102,7 +102,7 @@ python self-conf-skills/gates/verify_all.py
 | 自洽性 | 把 URL 改回旧仓 |
 | Egern / mihomo DNS 双份 | 改 DNS 段键名 |
 | clash 结构 / 分流覆盖 | 改组名 / 改 MATCH |
-| AI 入口唯一性 | 重建 `GEMINI.md` / `CLAUDE.md` / `.cursorrules`（工具专属入口会被优先读取、屏蔽真源）|
+| AI 入口唯一性 | 重建 `GEMINI.md` / `CLAUDE.md` / `.cursorrules`（工具专属入口会被优先读取、屏蔽真源）；或把任一 `AGENTS.md` 撑到 >150 行（硬上限判红，实测 156 行 → exit 1）|
 | 可移植性 P1（生成物平台无关） | 给 `references/intent.json` 的 paths 注入反斜杠 `clash\\profiles\\…` |
 | Release 断言 R6（防漏发版） | 造一个 HEAD 日期无对应 Release 的提交（R6a）；或同一天先发版、之后再提交（R6b） |
 | AD 组口径 | 给懒人版任一内核的 `AD` 加 `DIRECT`（懒人版不该放行）；或删分流版 surge 的 `DIRECT` |
@@ -116,6 +116,36 @@ python self-conf-skills/gates/verify_all.py
 > `clash 结构`、`min-pair 一致`、`clash 脚本/静态对拍`、`.min 漂移`（build_rules --check）
 > 四类注错做进了**常驻 CI** —— 每次 verify_all 都在临时副本上重放这些注错、断言判负，
 > 不再靠人记得跑。其余行仍是**人工实测过、未常驻**。
+
+#### 入口文件的 150 行：**到软阈值该分层，不是该压缩**（2026-10-11 新增）
+
+`check_ai_entry.py` 对 `AGENTS.md` 与嵌套入口有 **150 行硬上限**（研究：过长的
+context file 只增推理成本）。问题在于**怎么应对上限** —— 本仓踩过这个坑：
+
+- `stash/AGENTS.md` 与根 `AGENTS.md` **都曾顶到 150/150**，只能靠**删字**续命。
+- 而删掉的往往是「为什么」（事故记录、实测依据）—— **本仓最值钱的东西**。
+
+⇒ 正确处置是**分层**，不是压缩。本仓早已有先例：
+
+| 层 | 文件 | 体积 | 放什么 |
+|:--|:--|:--|:--|
+| **入口** | `clash/AGENTS.md` · `stash/AGENTS.md` · 根 `AGENTS.md` | < 150 行 | 结论、命令、索引指针 |
+| **详情** | `references/profiles/*.md` · `references/INDEX.md` | 无上限 | 逐键语义、事故记录、实测数据 |
+
+具体做法（2026-10-11 对 `stash/` 与根文件各做了一次）：
+
+1. 新建 `references/profiles/stash.md`（详情层），把逐键差异 / 事故 / 实测全搬过去。
+2. `stash/AGENTS.md` 从 150 行 → **80 行**，只留「你想改什么 → 改哪份 → 跑什么」
+   与三条硬约束的**结论**，细节用 `→ stash.md §N` 指过去。
+3. 根 `AGENTS.md` 的「文档怎么读」整节（含关键词表）外移到
+   `references/INDEX.md`，根文件从 150 → **131 行**。
+
+⭐ 并加了**软阈值提示**（`MAIN_WARN_LINES = 120`）：到 120 行时 `check_ai_entry.py`
+**只提示不判负**，明确写「别再压缩，该分层」。这样下次撞上限时，AI 拿到的是
+「该拆」的指引，而不是「再删点」的默许。
+
+⚠️ 软阈值是**提示**，不是判据 —— 实测：126 行 exit=0 且有提示；
+156 行 exit=1（硬上限照旧判红）。
 
 #### 已发现并修好的假闸门
 
