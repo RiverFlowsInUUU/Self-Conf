@@ -209,8 +209,8 @@ dns: #!replace
 ## 6 · 与静态模板的关系
 
 ```
-clash/profiles/routing.yaml   ──（结构基准）──▶  stash/override/stash-stash-routing.stoverride
-clash/profiles/lazy.yaml      ──（结构基准）──▶  stash/override/stash-stash-lazy.stoverride
+clash/profiles/routing.yaml   ──（结构基准）──▶  stash/override/stash-routing.stoverride
+clash/profiles/lazy.yaml      ──（结构基准）──▶  stash/override/stash-lazy.stoverride
 ```
 
 **基准是「静态模板」，不是覆写脚本** —— 因为 Stash 的 `filter` 是运行时求值、
