@@ -81,7 +81,7 @@ DELIVERABLES = {
         "doc_column": "mihomo",
     },
     # ⚠️ Stash **不是内核**：它是 iOS/macOS 上的 Clash 系客户端。
-    #    它没有完整配置（只发覆写文件）、没有版本头注、不进 Release 资产。
+    #    它没有完整配置（只发覆写脚本）、没有版本头注、不进 Release 资产。
     "stash": {
         "is_kernel": False, "entry": "stash/override/stash-routing.stoverride",
         "exts": (".stoverride",), "in_release": False, "has_version": False,

@@ -84,7 +84,7 @@ def scan_targets(root):
        它写成 `(".conf", ".yaml", ".yml")`，于是 Stash 的配置**完全不进扫描**：
        实测往 `stash/override/stash-routing.stoverride` 注入 `token=AbcDef1234567890`
        与外部仓 URL，本判据**判绿**。这是「加了一侧却漏改扫描面」的典型，
-       也是安全判据上最不该有的洞（覆写文件同样会含订阅地址与节点）。
+       也是安全判据上最不该有的洞（覆写脚本同样会含订阅地址与节点）。
     ⇒ 教训：**按扩展名枚举的扫描面，加新形态时必须同步扩展名表**。
        本仓的形态现为：`.conf`（Surge）· `.yaml`（Egern/mihomo）·
        **`.stoverride`（Stash）** · 以及将来可能的新形态。
