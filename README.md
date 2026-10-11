@@ -33,10 +33,10 @@
 | <img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/mihomo-Icon.png" height="20" alt=""> **mihomo**<br><sub>覆写脚本</sub> | [`my_clash_lazy.js`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/clash/override/my_clash_lazy.js) | [`my_clash.js`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/clash/override/my_clash.js) |
 | <img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Stash-Icon.png" height="20" alt=""> **Stash**<br><sub>覆写文件</sub> | [`lazy.stoverride`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/stash/override/lazy.stoverride) | [`routing.stoverride`](https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/stash/override/routing.stoverride) |
 
-- **懒人版**：一个总出口，只做防泄露 + 广告拦截 + AI 分流。想省心就用它。
-- **分流版**：按应用 + 按地区细分，每个应用可单独指定走哪个地区。想可控就用它。
-- **mihomo 覆写脚本**：不用下载配置 —— 把它挂到你自己的订阅上，订阅会被改造成同样的结构。
-- **Stash 覆写文件**：同理，挂到你的订阅上即可；Stash 读不了 mihomo 的 JS，所以另写了一份等价的覆写。
+- **懒人版**：一个总出口，只做防泄露 + 广告拦截 + AI 分流。
+- **分流版**：按应用 + 按地区细分，每个应用可单独指定出口。
+- **覆写脚本 / 覆写文件**：挂到自己的订阅上即可，不必下载配置。
+- ⚠️ **mihomo 的脚本与配置都不能直接给 Stash 用** —— 键名机制不同，`respect-rules` 会被静默忽略 ⇒ DNS 直连境外端点、解析超时。请用上表两份 `.stoverride`。
 
 ## 🧭 井然有序
 

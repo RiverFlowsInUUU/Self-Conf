@@ -1,9 +1,9 @@
 # stash/ · Stash 覆写
 
-**本目录把本仓的分流意图搬到 Stash —— 不是第四个内核。**
-Stash 是 iOS / macOS 上的 Clash 系**客户端**（内核是 Clash Premium），
-它**不能**运行 mihomo 的 JS 覆写脚本：两者机制完全不同（见下）。
-所以本目录用 Stash 自己的 `.stoverride` 语法，重新表达**同一套分流意图**。
+**本目录把本仓的分流意图搬到 Stash —— 不是第四个内核。** Stash 是 iOS / macOS 上的
+Clash 系**客户端**（内核 Clash Premium），mihomo 的**脚本与配置都不能直接用**：
+JS 覆写跑不了；配置文件也会坏（`respect-rules` 等键被**静默忽略** ⇒ DNS 直连境外
+端点 ⇒ 解析超时）。故用 Stash 自己的 `.stoverride` 语法重写同一套分流意图。
 
 **结构基准是「静态模板」（能力强于脚本）**：Stash 的 `filter` 与静态模板一样是
 **运行时**求值的，能看到全部节点名 ⇒ 能做到脚本做不到的**倍率分档**。
