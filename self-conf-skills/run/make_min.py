@@ -55,6 +55,7 @@
 import argparse
 import io
 import os
+import re
 import sys
 
 # ── 仓库定位与判据复用 ─────────────────────────────────────────
@@ -69,22 +70,35 @@ REPO_ROOT = repo_root()
 
 from check_min_pair import TRAIL, WHOLE, normalize, head_version   # noqa: E402  判据唯一来源
 
+# Stash 侧的行尾剔除：**不能吃掉 `#!` 指令**。
+# `#!replace` 是 Stash 的数组替换指令（stash.md §3 硬约束之首），
+# 而通用 TRAIL 会把 `proxy-groups: #!replace` 剔成 `proxy-groups:`。
+# 规则：`#` 后**紧跟 `!`** ⇒ 不是注释（`#!` 指令家族）；其余 `#`/`;` 仍按注释剔。
+_TRAIL_NO_BANG = re.compile(r"[ \t]+(?!#!)[#;].*$")
+
 NL = chr(10)
 CRLF = chr(13) + NL
 WAIVE_OK = "# audit-waive"            # 必须留在下载文件里的指令行（对拍器按整行注释忽略它）
 
-# 家族 ⇒ 六份形态（完整版在前，精简版在后）
+# 家族 ⇒ 形态对（完整版在前，精简版在后）
 # ⚠️ clash 两族是 2026-10-09 补的，补之前 `clash/profiles/*.min.yaml` **靠手工同步**
 #    + `check_min_pair.py` 对拍兜底 —— 那是 gates.md §16.4 登记的第 2 条已知缺口
 #    （触发条件写的就是「出现第一次手工同步漏改」）。缺口现在消掉，那条登记也该删。
 # ⚠️ 顺序有意义：同一族内完整版必须排在它的 `.min` 前面（下面按对读取）。
+# ⚠️ 2026-10-11 新增 4 对覆写脚本（用户要求：首页只引 `.min` 版，口径与配置文件一致）：
+#    clash 两份 `.js`（side=clash-js，剔整行 //）· stash 两份 `.stoverride`
+#    （side=stash，剔 # 注释但**保住 #! 指令**）。
 PAIRS = {
     "routing": [("surge/profiles/routing.conf", "surge/profiles/routing.min.conf"),
                 ("egern/profiles/routing.yaml", "egern/profiles/routing.min.yaml"),
-                ("clash/profiles/routing.yaml", "clash/profiles/routing.min.yaml")],
+                ("clash/profiles/routing.yaml", "clash/profiles/routing.min.yaml"),
+                ("clash/override/clash-routing.js", "clash/override/clash-routing.min.js"),
+                ("stash/override/stash-routing.stoverride", "stash/override/stash-routing.min.stoverride")],
     "lazy": [("surge/profiles/lazy.conf", "surge/profiles/lazy.min.conf"),
              ("egern/profiles/lazy.yaml", "egern/profiles/lazy.min.yaml"),
-             ("clash/profiles/lazy.yaml", "clash/profiles/lazy.min.yaml")],
+             ("clash/profiles/lazy.yaml", "clash/profiles/lazy.min.yaml"),
+             ("clash/override/clash-lazy.js", "clash/override/clash-lazy.min.js"),
+             ("stash/override/stash-lazy.stoverride", "stash/override/stash-lazy.min.stoverride")],
 }
 
 
@@ -149,6 +163,46 @@ def make_min(full_text, min_text, side):
         while rows and not rows[-1].strip():
             rows.pop()
         return NL.join(rows) + NL, []
+    if side == "stash":
+        # Stash 覆写脚本（2026-10-11 新增）：YAML 形态，`#` 注释。
+        #
+        # ⚠️⚠️ 不能照抄 Egern 的 `normalize` —— Stash 的 **`#!replace` 等指令
+        # 长得像注释但不是注释**（它是 Stash 的数组替换指令，漏掉 ⇒ 订阅自带的
+        # 数组残留在前，脚本静默失效 —— stash.md §3 三硬约束之首）。
+        # 而 check_min_pair 的 TRAIL（行尾 `[ \t]+[#;].*$`）恰会把 `proxy-groups: #!replace`
+        # 剔成 `proxy-groups:`。实测踩过（先写 normalize 再测就翻车）。
+        #
+        # ⇒ 规则：用 `_TRAIL_NO_BANG`（`#!` 开头的不算注释）剔行尾；
+        #    `#`/`;` 整行注释全剔。`#!` 指令行不整行剔（WHOLE 不匹配它 ——
+        #    它在行中不在行首），安全落进正文。
+        out = []
+        for l in full_text.split(NL):
+            l2 = _TRAIL_NO_BANG.sub("", l.rstrip())
+            if WHOLE.match(l2):
+                continue
+            if l2.strip():
+                out.append(l2.rstrip())
+        while out and not out[0].strip():
+            out.pop(0)
+        while out and not out[-1].strip():
+            out.pop()
+        return NL.join(out) + NL, []
+    if side == "clash-js":
+        # mihomo 覆写脚本（2026-10-11 新增）：只剔**整行** `//` 注释。
+        #
+        # ⚠️ 不能剔行尾 `//`：`rcode://success`（值中含 `//`）与
+        #    `https://…`（URL）无法与行尾注释静态区分 —— 误剔 = 脚本坏。
+        #    本仓两份 JS 的正文注释**恰好全部是整行形态**（实测），行尾零损失。
+        rows = []
+        for l in full_text.split(NL):
+            if l.strip().startswith("//"):
+                continue
+            rows.append(l.rstrip())
+        while rows and not rows[0].strip():
+            rows.pop(0)
+        while rows and not rows[-1].strip():
+            rows.pop()
+        return NL.join(rows) + NL, []
     body = body_of(full_text)
     by_anchor = {}
     for comment, anchor in keeps_of(min_text):
@@ -192,6 +246,32 @@ def targets(fam):
     return out
 
 
+def side_of(path):
+    """形态判定 —— run_once 与 selftest(S6) **共用这一个函数**（别再各写一份）。
+
+    ⚠️ 判定顺序：先按**扩展名**（`.js` / `.stoverride`），再回退**相对路径首段**。
+       绝对路径不能直接取首段 —— Windows 下首段是盘符 `C:`（实测踩出：S6 幂等
+       判负，side 变 'C:' 走了 surge 分支）。⇒ 回退时先归一成相对形态：
+       取路径里 `profiles/` 或 `override/` 的前一段作为侧目录。
+    """
+    p = path.replace(os.sep, "/")
+    if p.endswith(".js"):
+        return "clash-js"
+    if p.endswith(".stoverride"):
+        return "stash"
+    # 相对路径（PAIRS 里的写法）：首段即侧目录
+    if not p.startswith("/") and ":" not in p.split("/")[0]:
+        return p.split("/")[0]
+    # 绝对路径：取 profiles/ 或 override/ 前的一段
+    parts = p.split("/")
+    for marker in ("profiles", "override"):
+        if marker in parts:
+            i = parts.index(marker)
+            if i > 0:
+                return parts[i - 1]
+    return parts[0]
+
+
 def run_once(root, fam):
     """⇒ [(家族, 完整路径, 精简路径, 分类, 现文本, 生成文本, 丢位注释)]；生成即自查一次 normalize。"""
     rows = []
@@ -206,12 +286,25 @@ def run_once(root, fam):
         _mtl = mt.split(NL)
         if _mtl and _mtl[0].startswith("#! version="):
             mt = NL.join(_mtl[1:])
-        side = full.split("/")[0]
+        # ⚠️ side 判定**不能只用目录首段**：`clash/override/*.js` 的首段也是 `clash`，
+        #    会误走 clash 的「剔 # 注释」分支 —— JS 用 `//`，一个字符都不会被剔到，
+        #    生成的「精简版」与完整版只差空行 ⇒ 静默产出假 .min。
+        #    ⇒ 目录首段 + 扩展名联合判定（2026-10-11 新增覆写脚本时踩出）。
+        side = side_of(full)
         gen, lost = make_min(ft, mt, side)
-        # 自查：生成的精简版与完整版去注释后必须逐字相同 —— 与 all.sh 第 3 项同一条判据，
-        # 先在内存里过一遍，别写坏了才发现。
-        if normalize(gen) != normalize(ft):
-            raise SystemExit("❌ " + mn + "：生成结果与完整版 normalize 后仍不同 —— 规则漏了情形，别写盘")
+        # 自查：生成的精简版与完整版「按**本形态的注释口径**去注释」后必须逐字相同。
+        # ⚠️ 不能一律用 normalize —— 那是 profile 口径（剔 `#`/`;`），对 JS（`//`）不适用。
+        # ⚠️ JS 口径**只剔整行 `//`**（与 make_min 的 clash-js 分支同一规则）——
+        #    第一版这里写过 `l.split("//")[0]`：`rcode://success` / `https://…` 会被拦腰砍断，
+        #    而 ft 与 gen **对称地**砍 ⇒ 自查恒等、形同虚设（判据自己先瞎了）。
+        if side == "clash-js":
+            def strip(t):
+                return [x for x in (l.rstrip() for l in t.replace("\r\n", "\n").split("\n"))
+                        if x.strip() and not x.strip().startswith("//")]
+        else:
+            strip = normalize
+        if strip(gen) != strip(ft):
+            raise SystemExit("❌ " + mn + "：生成结果与完整版去注释后仍不同 —— 规则漏了情形，别写盘")
         rows.append((f, fp, mp, classify(mt, gen)[0], mt, gen, lost))
     return rows
 
@@ -232,7 +325,8 @@ def selftest(root):
     def kern_of(p):
         return p.split(os.sep)[-3] if os.sep in p else p
 
-    chk("S1 六份都能生成且 normalize 自查通过", len(rows) == 6)
+    # ⚠️ 形态对数**现抓 PAIRS**（2026-10-11 覆写脚本加入后是 10 份，别再手抄死数）
+    chk("S1 %d 份都能生成且按各自形态口径自查通过" % len(rows), len(rows) == sum(len(v) for v in PAIRS.values()))
     chk("S2 Egern 两份是纯函数（与仓内现状逐字节相同）",
         all(c == "same" for f, a, b, c, m, g, l in rows if kern_of(a) == "egern"))
     chk("S2b clash 两份也是纯函数（剔注释不改空行，与仓内现状逐字节相同）",
@@ -250,9 +344,10 @@ def selftest(root):
     chk("S5 锚点被删时不猜位置，改为上报", len(lost) == 2,
         "报出 %d 条（钉在 [Proxy Group] 上的那两条「怎么加节点」）" % len(lost))
     # S6：空白钉死之后再拿生成结果当"现有精简版"重跑一遍 ⇒ 必须逐字节幂等
-    # ⚠️ side 取路径首段，与 run_once 同源 —— 用扩展名判会把 clash 当成 egern（都 .yaml），
-    #    而 clash 恰恰**不许**压空行，传错 side 这条幂等判据就名存实亡。
-    idem = all(make_min(read(fp), gen, kern_of(fp))[0] == gen
+    # ⚠️ side 判定必须与 run_once **同一函数 side_of**（2026-10-11 踩出：
+    #    这里曾用目录首段，`clash/override/*.js` 得 'clash' ⇒ 走「剔 # 注释」分支，
+    #    // 注释一个没剔 ⇒ 重跑把注释全带回来，行数 408 → 544，幂等判负）。
+    idem = all(make_min(read(fp), gen, side_of(fp))[0] == gen
                for f, fp, mp, c, mt, gen, l in rows)
     chk("S6 生成一次后再钉一次 ⇒ 逐字节幂等", idem)
     # S7：clash 与 Egern 规则必须真的分岔 —— 若哪天有人把 clash 也塞进 normalize，

@@ -121,7 +121,7 @@ def main():
     for kern, ext in KERNS.items():
         d = os.path.join(root, kern, "profiles")
         if not os.path.isdir(d):
-            sys.stderr.write("找不到 %s —— 参数应当是仓库根\n" % d)
+            sys.stderr.write("找不到 %s —— 参数应当是仓库根\n" % kern)
             return 2
 
         # ── 对拍：.min ↔ 完整版 ──
@@ -152,13 +152,79 @@ def main():
                 print("     ⇒ .min 可能被手工编辑过。跑 `make_min.py --apply` 重新生成即可。")
                 continue
             bad += 1
-            print("❌ %s/%s ↔ %s 去注释后仍有差异（%d 行 vs %d 行）"
-                  % (kern, ann, name, len(a), len(b)))
+            print("❌ %s/%s ↔ %s：去注释后第 %d 行不同" % (kern, ann, name, i + 1))
             print("   第 %d 行：\n     完整版: %s\n     .min  : %s"
                   % (i + 1, a[i] if i < len(a) else "<无更多行>",
                      b[i] if i < len(b) else "<无更多行>"))
 
-        # ── 头注 ──
+    # ── 覆写脚本的四对（2026-10-11 新增，与 profiles 六份同一纪律）──
+    #
+    #    ⚠️ 为什么单独写而不能塞进上面 profiles 循环：
+    #    · 形态不同 —— JS 的注释是 `//`（且**只有整行**才剔：`rcode://success`、
+    #      `https://…` 与行尾注释无法静态区分，误剔即坏）；stoverride 的
+    #      `#!replace` 是 Stash 指令不是注释（`[ \t]+[#;]` 会把它剔掉 ⇒
+    #      数组替换失效、脚本静默坏 —— stash.md §3 硬约束之首）。
+    #    · 口径必须与 `make_min.py` 的生成分支**逐字一致**，否则「判据说漂了、
+    #      生成器说没漂」互相打架。
+    OVERRIDE_PAIRS = [
+        ("clash/override/clash-lazy.js", "clash/override/clash-lazy.min.js", "js"),
+        ("clash/override/clash-routing.js", "clash/override/clash-routing.min.js", "js"),
+        ("stash/override/stash-lazy.stoverride", "stash/override/stash-lazy.min.stoverride", "st"),
+        ("stash/override/stash-routing.stoverride", "stash/override/stash-routing.min.stoverride", "st"),
+    ]
+
+    def _strip_js(text):
+        out = []
+        for ln in text.replace("\r\n", "\n").split("\n"):
+            s = ln.rstrip()
+            if s.strip().startswith("//"):
+                continue
+            if s.strip():
+                out.append(s)
+        return out
+
+    def _strip_stash(text):
+        # `#` 注释全剔；`#!` 开头的**不是注释**（Stash 指令）。
+        trail = re.compile(r"[ \t]+(?!#!)[#;].*$")
+        whole = re.compile(r"^\s*#(?!!)")
+        out = []
+        for ln in text.replace("\r\n", "\n").split("\n"):
+            s = trail.sub("", ln.rstrip())
+            if whole.match(s) or not s.strip():
+                continue
+            out.append(s.rstrip())
+        return out
+
+    for ann, mn, kind in OVERRIDE_PAIRS:
+        pa, pm = os.path.join(root, *ann.split("/")), os.path.join(root, *mn.split("/"))
+        if not (os.path.isfile(pa) and os.path.isfile(pm)):
+            bad += 1
+            print("❌ 缺覆写脚本形态：%s（注册在 make_min.PAIRS / 本判据 OVERRIDE_PAIRS）"
+                  % (ann if not os.path.isfile(pa) else mn))
+            continue
+        try:
+            fa = open(pa, encoding="utf-8", newline="").read()
+            fm = open(pm, encoding="utf-8", newline="").read()
+        except (OSError, UnicodeDecodeError) as e:
+            sys.stderr.write("读取失败 %s：%s\n" % (mn, e))
+            return 2
+        strip = _strip_js if kind == "js" else _strip_stash
+        a, b = strip(fa), strip(fm)
+        pairs += 1
+        i = first_diff(a, b)
+        if i is None:
+            print("✅ %s ↔ %s（按本形态注释口径 %d 行逐字相同）" % (ann, mn, len(a)))
+        else:
+            bad += 1
+            print("❌ %s ↔ %s：去注释后第 %d 行不同 —— 跑 `make_min.py --apply` 重新生成"
+                  % (ann, mn, i + 1))
+            print("   第 %d 行：\n     完整版: %s\n     .min  : %s"
+                  % (i + 1, a[i] if i < len(a) else "<无更多行>",
+                     b[i] if i < len(b) else "<无更多行>"))
+
+    # ── 头注 ──
+    for kern, ext in KERNS.items():
+        d = os.path.join(root, kern, "profiles")
         vr = head_version(os.path.join(d, "routing." + ext))
         vl = head_version(os.path.join(d, "lazy." + ext))
         heads[kern] = (vr, vl)

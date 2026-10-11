@@ -1058,6 +1058,10 @@ d = diff(a, b)
 
 ⚠️ **mihomo 侧已有 `.min` 生成脚本（2026-10-09 起）。** `make_min.py` 的 `PAIRS`
 表含 **clash 两族**（`clash/profiles/*.yaml`）—— 和 surge / egern 一起，一条命令同步六份。
+**2026-10-11 扩到十份**：覆写脚本也进了生成器（`clash/override/*.min.js` 剔整行
+`//`；`stash/override/*.min.stoverride` 剔 `#` 注释但**保住 `#!` 指令** —— 那是
+Stash 的数组替换指令不是注释，被 TRAIL 剔掉脚本就静默失效）。首页 README 的
+覆写脚本链接从此只引 `.min` 版，与配置文件「完整版/精简版」口径一致。
 clash 走的是「剔掉整行注释、其余原样保留」的**纯函数**分支（**不**压空行，这点与 egern
 不同），因为 `build_profiles.py` 就是这么产出 `.min.yaml` 的，且 clash 侧没有任何必须
 留在下载文件里的语义注释。

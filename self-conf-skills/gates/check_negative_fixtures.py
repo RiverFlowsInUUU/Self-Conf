@@ -75,6 +75,14 @@ def _build_sandbox(dst):
         "clash/profiles/routing.min.yaml",
         "clash/override/clash-routing.js",
         "clash/override/clash-lazy.js",
+        # ⚠️ 2026-10-11：check_min_pair 的对拍面扩到了覆写脚本 4 对 ⇒ 沙箱必须带上，
+        #    否则「缺文件判负」让**基线本身**变红（判别力回归前置失败，实测踩出）。
+        "clash/override/clash-routing.min.js",
+        "clash/override/clash-lazy.min.js",
+        "stash/override/stash-routing.stoverride",
+        "stash/override/stash-lazy.stoverride",
+        "stash/override/stash-routing.min.stoverride",
+        "stash/override/stash-lazy.min.stoverride",
         "rules/emby.list", "rules/emby.yaml",
         "rules/apple_system.list", "rules/apple_system.yaml",
         "rules/AI.list", "rules/AI_Domains.yaml",
@@ -187,6 +195,7 @@ def main():
         passed += c1
 
         # 2 · check_min_pair：.min 里加一行规则（与完整版漂移）
+        #    ⚠️ 标记与判据文案同步（2026-10-11：判负输出改为「去注释后第 N 行不同」）
         c2 = _case(
             "check_min_pair",
             lambda: _mutate(
@@ -194,7 +203,7 @@ def main():
                 "rules:\n",
                 "rules:\n  - DOMAIN-SUFFIX,negfix-probe.example,DIRECT\n"),
             baselines[1][1],
-            "去注释后仍有差异")
+            "去注释后第")
         passed += c2
 
         # 3 · check_script_sync：静态 profile 的规则比脚本少一条
