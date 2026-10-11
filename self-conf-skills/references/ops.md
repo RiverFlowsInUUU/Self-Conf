@@ -577,7 +577,9 @@ mihomo 静态 profile **由脚本生成**（`build_profiles.py`），也带 `#! 
    `stash/override/{routing,lazy}.stoverride`。Stash 读不了 JS，故基准取**静态模板**
    —— 它的 `filter` 与模板一样运行时求值、能看到节点名 ⇒ 能做到脚本做不到的**倍率分档**
    （故 stash 分流版是 25 组，而非脚本的 22 组）。
-   判据 `check_stash_override.py` 只守结构自洽，**语义同步靠人**。
+   ✅ **漏改会被判据抓住**：`check_four_way_sync.py` 对拍四侧意图（F1 断言
+   `clash` 与 `stash` 规则**逐字相同**、F2 断言组逐项相同、F3 断言规则集键序列相同），
+   改了 clash 不改 stash ⇒ 判红。刻意差异走该文件顶部的豁免表。
    三条硬机制（数组必须 `#!replace` / 无 `include-all-proxies` / 无 `exclude-filter`）
    与全部差异见 [`stash/AGENTS.md`](../../stash/AGENTS.md)。
 ⑤ 收尾：`python self-conf-skills/gates/check_secrets.py && python self-conf-skills/gates/check_portability.py && python self-conf-skills/gates/check_min_pair.py && python self-conf-skills/gates/check_links.py .`（push 后 CI 会再跑一遍同组检查）

@@ -67,19 +67,21 @@
       "source": "lan"
      },
      {
-      "detail": "仅出现在 ['clash', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
        "clash",
+       "stash",
        "surge"
       ],
       "source": "xn--ngstr-lra8j.com"
      },
      {
-      "detail": "仅出现在 ['clash', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
        "clash",
+       "stash",
        "surge"
       ],
       "source": "services.googleapis.cn"
@@ -94,59 +96,66 @@
       "source": "direct"
      },
      {
-      "detail": "仅出现在 ['clash', 'egern'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'egern', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
        "clash",
-       "egern"
+       "egern",
+       "stash"
       ],
       "source": "apple-system"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "jinx-cn"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "jinx-ads"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "awavenue-ads"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "geoip-private"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "category-ai-chat-!cn"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "geoip-cn"
      }
@@ -155,25 +164,30 @@
      "ai-domains": {
       "clash": "AI",
       "egern": "AI",
+      "stash": "AI",
       "surge": "AI"
      },
      "apple-system": {
       "clash": "DIRECT",
-      "egern": "DIRECT"
+      "egern": "DIRECT",
+      "stash": "DIRECT"
      },
      "awavenue-ads": {
-      "clash": "AD"
+      "clash": "AD",
+      "stash": "AD"
      },
      "awavenue-ads-rule-surge-rule-set": {
       "egern": "AD",
       "surge": "REJECT"
      },
      "category-ai-chat-!cn": {
-      "clash": "AI"
+      "clash": "AI",
+      "stash": "AI"
      },
      "cn": {
       "clash": "DIRECT",
       "egern": "DIRECT",
+      "stash": "DIRECT",
       "surge": "DIRECT"
      },
      "direct": {
@@ -181,16 +195,20 @@
       "surge": "DIRECT"
      },
      "geoip-cn": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "geoip-private": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "jinx-ads": {
-      "clash": "AD"
+      "clash": "AD",
+      "stash": "AD"
      },
      "jinx-cn": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "lan": {
       "egern": "DIRECT",
@@ -199,10 +217,12 @@
      "private": {
       "clash": "DIRECT",
       "egern": "DIRECT",
+      "stash": "DIRECT",
       "surge": "DIRECT"
      },
      "services.googleapis.cn": {
       "clash": "AI",
+      "stash": "AI",
       "surge": "AI"
      },
      "surge-ads": {
@@ -218,6 +238,7 @@
      },
      "xn--ngstr-lra8j.com": {
       "clash": "AI",
+      "stash": "AI",
       "surge": "AI"
      }
     }
@@ -468,6 +489,126 @@
       }
      ]
     },
+    "stash": {
+     "groups": [
+      {
+       "members": [],
+       "name": "Proxy",
+       "type": "url-test"
+      },
+      {
+       "members": [
+        "Proxy"
+       ],
+       "name": "AI",
+       "type": "select"
+      },
+      {
+       "members": [
+        "REJECT"
+       ],
+       "name": "AD",
+       "type": "select"
+      }
+     ],
+     "rules": [
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "Jinx-CN",
+       "source_norm": "jinx-cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "Jinx-Ads",
+       "source_norm": "jinx-ads",
+       "target": "AD"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "AWAvenue-Ads",
+       "source_norm": "awavenue-ads",
+       "target": "AD"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "apple-system",
+       "source_norm": "apple-system",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [
+        "no-resolve"
+       ],
+       "source": "geoip-private",
+       "source_norm": "geoip-private",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "private",
+       "source_norm": "private",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "category-ai-chat-!cn",
+       "source_norm": "category-ai-chat-!cn",
+       "target": "AI"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "AI_Domains",
+       "source_norm": "ai-domains",
+       "target": "AI"
+      },
+      {
+       "kind": "DOMAIN-SUFFIX",
+       "options": [],
+       "source": "xn--ngstr-lra8j.com",
+       "source_norm": "xn--ngstr-lra8j.com",
+       "target": "AI"
+      },
+      {
+       "kind": "DOMAIN-SUFFIX",
+       "options": [],
+       "source": "services.googleapis.cn",
+       "source_norm": "services.googleapis.cn",
+       "target": "AI"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "cn",
+       "source_norm": "cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [
+        "no-resolve"
+       ],
+       "source": "geoip-cn",
+       "source_norm": "geoip-cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "MATCH",
+       "options": [],
+       "source": null,
+       "source_norm": null,
+       "target": "Proxy"
+      }
+     ]
+    },
     "surge": {
      "groups": [
       {
@@ -615,6 +756,7 @@
    "paths": {
     "clash": "clash/profiles/lazy.yaml",
     "egern": "egern/profiles/lazy.yaml",
+    "stash": "stash/override/lazy.stoverride",
     "surge": "surge/profiles/lazy.conf"
    }
   },
@@ -738,107 +880,120 @@
       "source": "direct"
      },
      {
-      "detail": "仅出现在 ['clash', 'egern'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'egern', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
        "clash",
-       "egern"
+       "egern",
+       "stash"
       ],
       "source": "apple-system"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "jinx-cn"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "jinx-ads"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "awavenue-ads"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "apple-update"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "geoip-private"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "google-gemini"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "category-ai-chat-!cn"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "music.youtube.com"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "apple-cn"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "geoip-google"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "geoip-telegram"
      },
      {
-      "detail": "仅出现在 ['clash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
-       "clash"
+       "clash",
+       "stash"
       ],
       "source": "geoip-cn"
      }
@@ -847,11 +1002,13 @@
      "ai-domains": {
       "clash": "AI",
       "egern": "AI",
+      "stash": "AI",
       "surge": "AI"
      },
      "anthropic": {
       "clash": "Claude",
       "egern": "Claude",
+      "stash": "Claude",
       "surge": "Claude"
      },
      "apple": {
@@ -859,24 +1016,29 @@
       "surge": "DIRECT"
      },
      "apple-cn": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "apple-system": {
       "clash": "DIRECT",
-      "egern": "DIRECT"
+      "egern": "DIRECT",
+      "stash": "DIRECT"
      },
      "apple-update": {
-      "clash": "Apple Update"
+      "clash": "Apple Update",
+      "stash": "Apple Update"
      },
      "awavenue-ads": {
-      "clash": "AD"
+      "clash": "AD",
+      "stash": "AD"
      },
      "awavenue-ads-rule-surge-rule-set": {
       "egern": "AD",
       "surge": "REJECT"
      },
      "category-ai-chat-!cn": {
-      "clash": "AI"
+      "clash": "AI",
+      "stash": "AI"
      },
      "claude": {
       "egern": "Claude",
@@ -885,6 +1047,7 @@
      "cn": {
       "clash": "DIRECT",
       "egern": "DIRECT",
+      "stash": "DIRECT",
       "surge": "DIRECT"
      },
      "direct": {
@@ -894,6 +1057,7 @@
      "emby": {
       "clash": "Emby",
       "egern": "Emby",
+      "stash": "Emby",
       "surge": "Emby"
      },
      "gemini": {
@@ -901,35 +1065,44 @@
       "surge": "Gemini"
      },
      "geoip-cn": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "geoip-google": {
-      "clash": "Google"
+      "clash": "Google",
+      "stash": "Google"
      },
      "geoip-private": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "geoip-telegram": {
-      "clash": "Telegram"
+      "clash": "Telegram",
+      "stash": "Telegram"
      },
      "github": {
       "clash": "Proxy",
       "egern": "Proxy",
+      "stash": "Proxy",
       "surge": "Proxy"
      },
      "google": {
       "clash": "Google",
       "egern": "Google",
+      "stash": "Google",
       "surge": "Google"
      },
      "google-gemini": {
-      "clash": "Gemini"
+      "clash": "Gemini",
+      "stash": "Gemini"
      },
      "jinx-ads": {
-      "clash": "AD"
+      "clash": "AD",
+      "stash": "AD"
      },
      "jinx-cn": {
-      "clash": "DIRECT"
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "lan": {
       "egern": "DIRECT",
@@ -938,24 +1111,29 @@
      "microsoft": {
       "clash": "Microsoft",
       "egern": "Microsoft",
+      "stash": "Microsoft",
       "surge": "Microsoft"
      },
      "music.youtube.com": {
-      "clash": "YouTube Music"
+      "clash": "YouTube Music",
+      "stash": "YouTube Music"
      },
      "openai": {
       "clash": "ChatGPT",
       "egern": "ChatGPT",
+      "stash": "ChatGPT",
       "surge": "ChatGPT"
      },
      "private": {
       "clash": "DIRECT",
       "egern": "DIRECT",
+      "stash": "DIRECT",
       "surge": "DIRECT"
      },
      "spotify": {
       "clash": "Spotify",
       "egern": "Spotify",
+      "stash": "Spotify",
       "surge": "Spotify"
      },
      "surge-ads": {
@@ -976,16 +1154,19 @@
      "telegram": {
       "clash": "Telegram",
       "egern": "Telegram",
+      "stash": "Telegram",
       "surge": "Telegram"
      },
      "twitter": {
       "clash": "Twitter",
       "egern": "Twitter",
+      "stash": "Twitter",
       "surge": "Twitter"
      },
      "youtube": {
       "clash": "YouTube",
       "egern": "YouTube",
+      "stash": "YouTube",
       "surge": "YouTube"
      },
      "youtubemusic": {
@@ -1818,6 +1999,424 @@
       }
      ]
     },
+    "stash": {
+     "groups": [
+      {
+       "members": [
+        "Smart",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States",
+        "Other Regions"
+       ],
+       "name": "Proxy",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Low Mult.",
+        "Auto",
+        "High Mult."
+       ],
+       "name": "Smart",
+       "type": "fallback"
+      },
+      {
+       "members": [],
+       "name": "Low Mult.",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "Auto",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "High Mult.",
+       "type": "url-test"
+      },
+      {
+       "members": [
+        "United States",
+        "Taiwan",
+        "Japan",
+        "Singapore"
+       ],
+       "name": "ChatGPT",
+       "type": "select"
+      },
+      {
+       "members": [
+        "United States",
+        "Taiwan",
+        "Japan",
+        "Singapore"
+       ],
+       "name": "Gemini",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "Claude",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Smart",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "AI",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Smart",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "YouTube",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Smart",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "Emby",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Gemini",
+        "Smart",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "Google",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Smart",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "Telegram",
+       "type": "select"
+      },
+      {
+       "members": [
+        "United States",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore"
+       ],
+       "name": "YouTube Music",
+       "type": "select"
+      },
+      {
+       "members": [
+        "United States",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore"
+       ],
+       "name": "Spotify",
+       "type": "select"
+      },
+      {
+       "members": [
+        "Smart",
+        "Hong Kong",
+        "Taiwan",
+        "Japan",
+        "Singapore",
+        "United States"
+       ],
+       "name": "Twitter",
+       "type": "select"
+      },
+      {
+       "members": [
+        "DIRECT",
+        "Proxy"
+       ],
+       "name": "Microsoft",
+       "type": "select"
+      },
+      {
+       "members": [
+        "DIRECT",
+        "REJECT"
+       ],
+       "name": "Apple Update",
+       "type": "select"
+      },
+      {
+       "members": [
+        "REJECT",
+        "DIRECT"
+       ],
+       "name": "AD",
+       "type": "select"
+      },
+      {
+       "members": [],
+       "name": "Hong Kong",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "Taiwan",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "Japan",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "Singapore",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "United States",
+       "type": "url-test"
+      },
+      {
+       "members": [],
+       "name": "Other Regions",
+       "type": "url-test"
+      }
+     ],
+     "rules": [
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "Jinx-CN",
+       "source_norm": "jinx-cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "Jinx-Ads",
+       "source_norm": "jinx-ads",
+       "target": "AD"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "AWAvenue-Ads",
+       "source_norm": "awavenue-ads",
+       "target": "AD"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "apple-update",
+       "source_norm": "apple-update",
+       "target": "Apple Update"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "apple-system",
+       "source_norm": "apple-system",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [
+        "no-resolve"
+       ],
+       "source": "geoip-private",
+       "source_norm": "geoip-private",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "private",
+       "source_norm": "private",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "openai",
+       "source_norm": "openai",
+       "target": "ChatGPT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "google-gemini",
+       "source_norm": "google-gemini",
+       "target": "Gemini"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "anthropic",
+       "source_norm": "anthropic",
+       "target": "Claude"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "category-ai-chat-!cn",
+       "source_norm": "category-ai-chat-!cn",
+       "target": "AI"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "AI_Domains",
+       "source_norm": "ai-domains",
+       "target": "AI"
+      },
+      {
+       "kind": "DOMAIN-SUFFIX",
+       "options": [],
+       "source": "music.youtube.com",
+       "source_norm": "music.youtube.com",
+       "target": "YouTube Music"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "github",
+       "source_norm": "github",
+       "target": "Proxy"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "youtube",
+       "source_norm": "youtube",
+       "target": "YouTube"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "emby",
+       "source_norm": "emby",
+       "target": "Emby"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "google",
+       "source_norm": "google",
+       "target": "Google"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "spotify",
+       "source_norm": "spotify",
+       "target": "Spotify"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "twitter",
+       "source_norm": "twitter",
+       "target": "Twitter"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "microsoft",
+       "source_norm": "microsoft",
+       "target": "Microsoft"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "apple-cn",
+       "source_norm": "apple-cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "telegram",
+       "source_norm": "telegram",
+       "target": "Telegram"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [
+        "no-resolve"
+       ],
+       "source": "geoip-google",
+       "source_norm": "geoip-google",
+       "target": "Google"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [
+        "no-resolve"
+       ],
+       "source": "geoip-telegram",
+       "source_norm": "geoip-telegram",
+       "target": "Telegram"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [],
+       "source": "cn",
+       "source_norm": "cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "RULE-SET",
+       "options": [
+        "no-resolve"
+       ],
+       "source": "geoip-cn",
+       "source_norm": "geoip-cn",
+       "target": "DIRECT"
+      },
+      {
+       "kind": "MATCH",
+       "options": [],
+       "source": null,
+       "source_norm": null,
+       "target": "Proxy"
+      }
+     ]
+    },
     "surge": {
      "groups": [
       {
@@ -2271,6 +2870,7 @@
    "paths": {
     "clash": "clash/profiles/routing.yaml",
     "egern": "egern/profiles/routing.yaml",
+    "stash": "stash/override/routing.stoverride",
     "surge": "surge/profiles/routing.conf"
    }
   }

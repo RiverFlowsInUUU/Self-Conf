@@ -24,10 +24,13 @@ clash/profiles/lazy.yaml         ──（结构基准）──▶  stash/overri
 ⚠️ **结构基准是「静态模板」，不是覆写脚本** —— 因为 Stash 的 `filter` 是运行时求值、
 能看到节点名，能力上等同静态模板（详见文末「倍率三档」一节）。
 
-⚠️ 但**规则与组名**同源于 `clash/override/my_clash*.js` 与静态模板共用的那套意图：
-改了组/规则/次序，**两边都要同步**。`check_stash_override.py` 只守**结构自洽**
-（引用、正则、规模），它**没法**替你判断「语义是否也同步了」：
-新增一个组、改一条规则的落点，仍需人工对齐。
+⚠️ **规则与组名以静态模板为准，改了必须同步** —— 好消息是**漏改会被抓住**：
+`check_four_way_sync.py` 对拍四侧（surge · egern · clash · stash）意图，
+其中 F1 断言 `clash` 与 `stash` 的规则**逐字相同**、F2 断言组（name/type/proxies）
+**逐项相同**、F3 断言 rule-provider 键序列相同 —— 改了 clash 不改 stash ⇒ **判红**。
+
+⚠️ 但它对拍的是**结构**（规则序列 / 组 / 规则集键），**不是每一条注释**：
+头注里的数字、散文说明改了但没同步，判据看不出。**改结构靠判据，改陈述靠人。**
 
 ---
 
@@ -85,11 +88,19 @@ Stash 只列了 `filter` ⇒ 排除词必须写成 `(?!...)` **合进** `filter`
 ## 本侧专属判据
 
 ```bash
-python self-conf-skills/gates/check_stash_override.py   # 结构 / 引用 / 正则 / 规模
+# 本侧结构 / 引用 / 正则 / 规模（八条注错全部实测能判红）
+python self-conf-skills/gates/check_stash_override.py
+# 四侧意图对拍（含 F1–F3 断言 clash ≡ stash，漏改一处即判红）
+python self-conf-skills/gates/check_four_way_sync.py
 ```
 
-八条注错全部实测能判红（YAML 语法 · `#!replace` · 正则可编译 · 组引用 ·
-规则集引用 · 出口策略 · 孤儿 · behavior·format · 规模）。
+`check_stash_override.py` 覆盖：YAML 语法 · `#!replace` · 正则可编译 · 组引用 ·
+规则集引用 · 出口策略 · 孤儿 · behavior·format · 规模。
+
+`check_four_way_sync.py` 覆盖四侧（surge · egern · clash · stash）：规则逐字相同 ·
+组逐项相同 · 规则集键序列相同 · 组名差集只含登记的刻意项 · 去向一致。
+**豁免表在该文件顶部**（`Airport` 仅 Surge/Egern；倍率三档仅 Clash/Stash；
+两条广告规则的去向差异）—— 新增豁免必须写清为什么刻意。
 
 ---
 

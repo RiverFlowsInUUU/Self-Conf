@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""build_ir.py — 三内核路由意图的统一中间表示（IR）· 给 AI 读的规范化视图。
+"""build_ir.py — 四客户端路由意图的统一中间表示（IR）· 给 AI 读的规范化视图。
 
-⚠️ 本脚本**只读**三内核配置，绝不改它们（AGENTS.md：三内核「对齐」是刻意的，别去修）。
-它把 surge/egern/clash 三份不同格式的规则与策略组抽成一套**规范、可机读**的意图模型，
-落成 self-conf-skills/references/intent.json —— 让任何 AI 一眼看懂「我的流量到底怎么分流」，
-不必再逐个啃三种格式。
+⚠️ 本脚本**只读**各侧配置，绝不改它们（AGENTS.md：各侧「对齐」是刻意的，别去修）。
+它把 surge/egern/clash/stash 四份不同格式的规则与策略组抽成一套**规范、可机读**的
+意图模型，落成 self-conf-skills/references/intent.json —— 让任何 AI 一眼看懂
+「我的流量到底怎么分流」，不必再逐个啃四种格式。
 
-它**不判负任何内核间差异**：Surge 用 smart / mihomo 用 url-test、份数不同、规则名不同
+它**不判负任何侧间差异**：Surge 用 smart / mihomo 用 url-test、份数不同、规则名不同
 —— 这些都是刻意的，IR 只如实呈现并标注，不做「对齐」判断。
+
+⚠️ `stash` 不是第四个「内核」：Stash 是 iOS / macOS 的 Clash 系**客户端**
+   （内核是 Clash Premium），它**跑不了** mihomo 的 JS 覆写。这里把它纳入 IR，
+   是因为它承载的**分流意图**与 clash 侧同构（实测：规则逐字相同、组全同），
+   纳入后跨侧对拍才管得住它（见 gates/check_four_way_sync.py）。
+   它的配置路径是 `stash/override/*.stoverride`（不是 `profiles/*`）。
 
 用法：
     python build_ir.py           # 重新生成 references/intent.json（改完配置后跑）
@@ -35,7 +41,13 @@ except Exception:
 
 SCHEMA = "self-conf.intent/v1"
 PRODUCTS = ("routing", "lazy")
+# 三个**真内核** —— `routing_evolution.py` 按它遍历 git 历史（只分析内核配置的演变）。
 KERNELS = ("surge", "egern", "clash")
+# IR 覆盖的**四侧** = 三内核 + Stash 客户端。
+# ⚠️ 为什么分两个常量：stash 不是内核（见 docstring），按 `KERNELS` 遍历历史的工具
+#    不该把它算进去；但**意图对拍**必须覆盖它 —— 它是分流意图的一份真实拷贝，
+#    漏了它就会出现「改了 clash 忘了改 stash」而无人发现（本仓真实发生过）。
+SIDES = KERNELS + ("stash",)
 
 # 自托管规则集：Surge/Egern 用 raw URL，mihomo 用 provider 名 —— 名字对不上。
 # 这张表把同一份「本仓规则集」在三内核里的 source 归一到同一个 key，供跨内核弱关联。
@@ -196,10 +208,13 @@ def _kernel_paths(root, product):
         "surge": root / "surge" / "profiles" / ("%s.conf" % product),
         "egern": root / "egern" / "profiles" / ("%s.yaml" % product),
         "clash": root / "clash" / "profiles" / ("%s.yaml" % product),
+        # ⚠️ Stash 是**覆写文件**（`.stoverride`，在 `override/` 而非 `profiles/`）——
+        #    它不是 Release 资产，也没有版本头注。路径不同，别照抄上面三行的形状。
+        "stash": root / "stash" / "override" / ("%s.stoverride" % product),
     }
 
 
-def _cross(rules_by_kernel):
+def _cross(rules_by_kernel, sides=KERNELS):
     sources = {}
     for kernel, rules in rules_by_kernel.items():
         for r in rules:
@@ -210,7 +225,7 @@ def _cross(rules_by_kernel):
     notes = []
     for key, per in sources.items():
         present = sorted(per.keys())
-        if len(present) < len(KERNELS):
+        if len(present) < len(sides):
             notes.append({"source": key, "present_in": present, "kind": "partial",
                           "detail": "仅出现在 %s —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐" % present})
         if len(set(per.values())) > 1:
@@ -232,14 +247,16 @@ def build(root):
         entry = {"paths": {k: v.relative_to(root).as_posix() for k, v in paths.items()},
                  "kernels": {}, "cross": {}}
         rules_by_kernel = {}
-        for kernel in KERNELS:
+        for kernel in SIDES:
             p = paths[kernel]
             if not p.exists():
                 entry["kernels"][kernel] = {"error": "缺失 %s" % p.name}
                 continue
             if kernel == "surge":
                 groups, rules = _load_surge_groups(p), _load_surge_rules(p)
-            elif kernel == "clash":
+            elif kernel in ("clash", "stash"):
+                # Stash 与 clash 的 YAML 形态同构（proxy-groups / rules 同名同形）
+                # ⇒ 复用同一加载器。实测两侧规则逐字相同、组名与类型全同。
                 groups, rules = _load_clash_groups(p), _load_clash_rules(p)
             else:
                 groups, rules = _load_egern_groups(p), _load_egern_rules(p)
@@ -248,7 +265,7 @@ def build(root):
                 "rules": rules,
             }
             rules_by_kernel[kernel] = rules
-        entry["cross"] = _cross(rules_by_kernel)
+        entry["cross"] = _cross(rules_by_kernel, SIDES)
         out["products"][product] = entry
     return out
 

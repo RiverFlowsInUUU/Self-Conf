@@ -673,6 +673,12 @@ def build_gates():
     # 六条：YAML 可解析 / 数组带 `#!replace`（这条最关键，见该脚本 docstring）/
     # filter 可编译 / 引用可解析 / 无孤儿 / behavior·format 合法 + 规模与 mihomo 同数。
     add('Stash 覆写结构与引用', [PY, 'self-conf-skills/gates/check_stash_override.py'])
+    # 四侧（surge · egern · clash · stash）分流意图对拍。
+    # 此前四侧之间**没有任何机器对拍** —— stash 是手工派生（Stash 跑不了 mihomo 的 JS），
+    # 漂移形态又是「静默」（加载失败不报错，组空着、规则不生效）。加 stash 那一轮
+    # 就真实发生过「漏改而无判据会叫」。断言 F1–F6 全部取自实测成立的不变量，
+    # 刻意差异走文件顶部豁免表。详见该脚本 docstring。
+    add('四侧分流意图对拍', [PY, 'self-conf-skills/gates/check_four_way_sync.py'])
 
     # ── ④ 自托管清单的裸 IP 检测 ────────────────────────────────
     # 原为每份 .list 各开一道（3 道），但脚本本就支持多文件 ⇒ 合并成一道。

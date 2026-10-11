@@ -79,8 +79,8 @@ self-conf-skills/run/ai_sources/*  ──ai_domains_build.py──▶ rules/AI.l
 ```
 
 ⚠️ **`stash/` 是唯一「没有生成器」的派生**（Stash 不能跑 mihomo 的 JS）⇒ 改了**静态模板**的
-组/规则/次序就**必须手工同步**它；`check_stash_override.py` 只守结构自洽与规模同数，
-**语义同步靠人**。机制差异与坑见 [`stash/AGENTS.md`](./stash/AGENTS.md)。
+组/规则/次序就**必须手工同步**它；**漏改判据会抓**（`check_four_way_sync.py` 对拍四侧），
+但**注释与散文不在判据面上 —— 靠人**。机制与坑见 [`stash/AGENTS.md`](./stash/AGENTS.md)。
 
 ⚠️ **`rules/AI.list` 也是生成物**（由 `ai_sources/` 里 10 个来源合并而成）——
 改它要改 `self-conf-skills/run/ai_sources/` 下的源文件，再跑

@@ -108,6 +108,8 @@ python self-conf-skills/gates/verify_all.py
 | AD 组口径 | 给懒人版任一内核的 `AD` 加 `DIRECT`（懒人版不该放行）；或删分流版 surge 的 `DIRECT` |
 | 豁免用量 | 造一条不会触发的 `# audit-waive: 7 …`（陈旧豁免）|
 | 一天一版 | 同一天把头注从 `v1.0.1` 再升到 `v1.0.2` |
+| Stash 覆写结构与引用 | 去掉 `rules: #!replace`；或把 filter 的括号改得不配对；或删一个组让规则引用悬空 |
+| 四侧分流意图对拍 | 改 `clash/profiles/routing.yaml` 的规则落点而**不改 stash**（F1）；改 stash 组名不改 clash（F2）；改 provider 键或其次序（F3）；改 surge 组名不改 egern（F4）；改 egern 规则落点（F5）；clash 新增一个未登记组（F6）—— **9 条断言全部实测判红、还原复绿** |
 
 > 🔁 **2026-10-09 起部分自动化**：闸门「负样例回归」（`check_negative_fixtures.py`）把上表中
 > `clash 结构`、`min-pair 一致`、`clash 脚本/静态对拍`、`.min 漂移`（build_rules --check）
@@ -136,6 +138,45 @@ python self-conf-skills/gates/verify_all.py
 ⚠️ **8 道里没有一道是真摆设** —— 全是我注错没戳中扫描面。
 典型：改「香港」不在地区组判据扫的 61 个关键词里；改 1 处权重会被其余值"平均"掉。
 **「改了没红」的第一反应应该是「我的注错对不对」，不是「判据失灵」。**
+
+#### 四侧分流意图对拍（`check_four_way_sync.py`，2026-10-11 新增）
+
+**为什么单独有这么一道**：本仓的分流意图同时活在**四份**配置里 ——
+`surge/profiles/*.conf`、`egern/profiles/*.yaml`、`clash/profiles/*.yaml`、
+`stash/override/*.stoverride`。在这道闸门之前，四侧之间**没有任何机器对拍**
+（只有各内核内部的 `.min` 对拍，以及只管版本号 / AD 口径的窄判据）。
+
+⇒ 后果是**真实发生过**的：加 `stash/` 那一轮，作者改了 5 处陈述才靠**肉眼**
+发现漏改；而 `stash/override/*.stoverride` 是**手工派生**（Stash 跑不了 mihomo
+的 JS —— 本仓唯一没有生成器的派生），漂移形态恰好又是**静默**：Stash 加载失败
+不报错，组空着、规则不生效，面板上只「看起来少了东西」。
+
+**六条断言（全部取自实测成立的不变量，不是设计理想）**
+
+| 断言 | 内容 | 实测依据 |
+|:--|:--|:--|
+| F1 | `clash` 与 `stash` 规则**逐字相同** | 27/27、13/13 |
+| F2 | `clash` 与 `stash` 组（name/type/proxies）**逐项相同**且序列相同 | 25 组、3 组 |
+| F3 | `clash` 与 `stash` 的 rule-provider **键集合与序列**相同 | 25 份、10 份 |
+| F4 | `surge` 与 `egern` **组名序列**相同 | 23 组、4 组 |
+| F5 | 四侧**规则集去向**（source→target）一致 | 37 / 18 个 source |
+| F6 | 四侧**组名差集**只能是登记过的刻意项 | 见下豁免表 |
+
+**刻意豁免表**（判据文件顶部，唯一真源）：
+
+| 类别 | 豁免项 | 为什么刻意 |
+|:--|:--|:--|
+| 组名 | `Airport` 仅 Surge/Egern | 那是它们的**订阅槽位组**（`external`/手填）；Clash 系用 `proxy-providers`，没有这个组 |
+| 组名 | `Auto`/`Low Mult.`/`High Mult.` 仅 Clash/Stash | 倍率**三档**结构；Surge/Egern 的 smart 组用 `policy-priority` 表达同一件事 |
+| 去向 | `surge-ads`、`awavenue-ads-rule-surge-rule-set`：`surge=REJECT` vs `egern=AD` | Surge 内置拦截口径直接挂 REJECT；Egern 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截 |
+
+⚠️ **不要为「让闸门变绿」往豁免表里塞条目** —— 豁免表是「刻意差异的登记处」，
+不是「红线的逃生口」。新增豁免必须写清**为什么刻意**，否则它就是漂移。
+
+⚠️ **为什么不合并进 `check_priority_weight.py` 的 S7**：S7 断言的是「**smart 组**
+的组名集合跨内核一致」，只有 Surge/Egern 有 smart 组（Clash 系用 `url-test`）。
+把 stash 塞进 S7 会**必红**。S7 管「权重口径」，本闸门管「意图同构」，
+判据面不同，**不能合并**。
 
 #### 两个附带发现
 
