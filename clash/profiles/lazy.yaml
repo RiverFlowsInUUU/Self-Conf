@@ -1,4 +1,4 @@
-#! version=lazy_v1.0.1
+#! version=lazy_v1.0.2
 # ============================================================================
 #  lazy · 懒人版（由 override/clash-lazy.js 生成）
 # ============================================================================
@@ -127,8 +127,8 @@ rules:
   - RULE-SET,private,DIRECT
   - RULE-SET,category-ai-chat-!cn,AI
   - RULE-SET,AI_Domains,AI
-  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,AI
-  - DOMAIN-SUFFIX,services.googleapis.cn,AI
+  - DOMAIN-SUFFIX,xn--ngstr-lra8j.com,Proxy
+  - DOMAIN-SUFFIX,services.googleapis.cn,Proxy
   - RULE-SET,cn,DIRECT
   - RULE-SET,geoip-cn,DIRECT,no-resolve
   - MATCH,Proxy

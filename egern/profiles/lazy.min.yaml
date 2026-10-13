@@ -1,4 +1,4 @@
-#! version=lazy_v1.0.1
+#! version=lazy_v1.0.2
 ipv6: false
 vif_only: true
 hijack_dns:
@@ -112,10 +112,10 @@ rules:
     update_interval: 604800
 - domain_suffix:
     match: xn--ngstr-lra8j.com
-    policy: AI
+    policy: Proxy
 - domain_suffix:
     match: services.googleapis.cn
-    policy: AI
+    policy: Proxy
 - rule_set:
     name: CN-Domains
     match: https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/ruleset/direct.txt

@@ -221,9 +221,9 @@
       "surge": "DIRECT"
      },
      "services.googleapis.cn": {
-      "clash": "AI",
-      "stash": "AI",
-      "surge": "AI"
+      "clash": "Proxy",
+      "stash": "Proxy",
+      "surge": "Proxy"
      },
      "surge-ads": {
       "egern": "AD",
@@ -237,9 +237,9 @@
       "surge": "DIRECT"
      },
      "xn--ngstr-lra8j.com": {
-      "clash": "AI",
-      "stash": "AI",
-      "surge": "AI"
+      "clash": "Proxy",
+      "stash": "Proxy",
+      "surge": "Proxy"
      }
     }
    },
@@ -330,14 +330,14 @@
        "options": [],
        "source": "xn--ngstr-lra8j.com",
        "source_norm": "xn--ngstr-lra8j.com",
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "DOMAIN-SUFFIX",
        "options": [],
        "source": "services.googleapis.cn",
        "source_norm": "services.googleapis.cn",
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "RULE-SET",
@@ -455,14 +455,14 @@
        "options": [],
        "source": null,
        "source_norm": null,
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "domain_suffix",
        "options": [],
        "source": null,
        "source_norm": null,
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "rule_set",
@@ -575,14 +575,14 @@
        "options": [],
        "source": "xn--ngstr-lra8j.com",
        "source_norm": "xn--ngstr-lra8j.com",
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "DOMAIN-SUFFIX",
        "options": [],
        "source": "services.googleapis.cn",
        "source_norm": "services.googleapis.cn",
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "RULE-SET",
@@ -714,14 +714,14 @@
        "options": [],
        "source": "xn--ngstr-lra8j.com",
        "source_norm": "xn--ngstr-lra8j.com",
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "DOMAIN-SUFFIX",
        "options": [],
        "source": "services.googleapis.cn",
        "source_norm": "services.googleapis.cn",
-       "target": "AI"
+       "target": "Proxy"
       },
       {
        "kind": "RULE-SET",

@@ -1,4 +1,4 @@
-#! version=lazy_v1.0.1
+#! version=lazy_v1.0.2
 # ============================================================================
 # lazy · 懒人版
 #
@@ -246,14 +246,14 @@ rules:
 #     ⚠️ 落点依据：实测「AI 段之前」与「此处」结果完全相同（与前置各集零交集），
 #        按 ③ 段立的准则「顺序对结果无影响时不占用更靠前的语义位置」，故落在应用分流末尾。
 #        **不可**下移到 `CN-Domains` 之后 —— first-match-wins，落到直连集后面就永远轮不到。
-#     ⚠️ 挂 `AI` 组（懒人版只有 Proxy / AI / AD 三个组）：Play 走境外 CDN，
-#        `AI` 组是 select 手动钉死出口的组，出口稳定对 Google 账号风控有利。
+#     ⚠️ 挂 `Proxy` 组（2026-10-13 起，此前为 `AI`）：这两个域属普通代理流量，
+#        归总出口；`Proxy` 在懒人版是 smart 组，出口由面板选择决定。
 - domain_suffix:
     match: xn--ngstr-lra8j.com
-    policy: AI
+    policy: Proxy
 - domain_suffix:
     match: services.googleapis.cn
-    policy: AI
+    policy: Proxy
 
 # ⑥ 直连集合 —— 以下 2 条共同承担「国内流量直连」。
 #    Loyalsoldier direct.txt：国内域名主承重墙（纯域名集、零 IP 条目；条数随上游更新，不写死）。

@@ -209,10 +209,10 @@ function main(config) {
     //     ⚠️ 落点依据：实测「AI 段之前」与「此处」结果完全相同（与前置各集零交集），
     //        按 ③ 段立的口径「顺序对结果无影响时不占用更靠前的语义位置」，故落在应用分流末尾。
     //        **不可**下移到 `cn` / `geoip-cn` 之后 —— first-match-wins，落到直连集后面就永远轮不到。
-    //     ⚠️ 挂 `AI` 组（懒人版只有 Proxy / AI / AD 三个组）：Play 走境外 CDN，
-    //        `AI` 组是 select 手动钉死出口的组，出口稳定对 Google 账号风控有利。
-    "DOMAIN-SUFFIX,xn--ngstr-lra8j.com,AI",
-    "DOMAIN-SUFFIX,services.googleapis.cn,AI",
+    //     ⚠️ 挂 `Proxy` 组（2026-10-13 起，此前为 `AI`）：这两个域属普通代理流量，
+    //        归总出口；`Proxy` 在懒人版是 smart 组，出口由面板选择决定。
+    "DOMAIN-SUFFIX,xn--ngstr-lra8j.com,Proxy",
+    "DOMAIN-SUFFIX,services.googleapis.cn,Proxy",
     // ⑥ 国内：域名集在前、IP 集在后，都直连
     "RULE-SET,cn,DIRECT",
     "RULE-SET,geoip-cn,DIRECT,no-resolve",
