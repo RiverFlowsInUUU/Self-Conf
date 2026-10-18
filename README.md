@@ -63,14 +63,14 @@ mihomo 取 `.js`，Stash 取 `.stoverride`。
 
 | 泄露出口 | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Surge-Icon.png" height="22" alt=""> Surge</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Egern-Icon.png" height="22" alt=""> Egern</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/mihomo-Icon.png" height="22" alt=""> mihomo</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Stash-Icon.png" height="22" alt=""> Stash</div> |
 |:--|:--|:--|:--|:--|
-| 🚫 旁路设备<br><sub>绕过内核的设备直接发 `:53`</sub> | `hijack-dns` 接管明文 `:53`（六个知名解析器） | `hijack_dns` 接管明文 `:53`（全量） | 交给客户端 TUN 或透明代理重定向 | 交给网络引擎（无该键） |
-| 🔐 加密通道<br><sub>端点写主机名 ⇒ 冷启动漏一次明文</sub> | 主解析走 DoH，主机名端点经裸 IP 受控引导 | 主解析走 DoH/DoT，四条端点全是 IP 字面量 | 主解析走 DoH，端点一律 IP 字面量 | 主解析走 DoH，`default-nameserver` 仅填 IP |
-| 🛡️ 明文回退<br><sub>加密解析失败 ⇒ 回落明文</sub> | `dns-server` 全裸 IP，绝不写 `system` | `forward` 兜底只指加密组，绝不落明文 | `default-nameserver` 裸 IP（仅引导）+ `proxy-server-nameserver` 专用通道 | 同左（`proxy-server-nameserver` 专用通道） |
-| 🧭 规则克制<br><sub>IP 类规则会触发本地解析</sub> | IP 类规则一律 `no-resolve`；零 IP 的规则集不写 | IP 类规则一律 `no_resolve`；该键对 `rule_set` 不生效 | IP 类规则一律 `no-resolve`；纯域名规则集不写 | 同左（4 个 `ipcidr` 集带 `no-resolve`） |
-| ✂️ 远端解析<br><sub>代理域名被本地解析、本地留答案</sub> | 代理域名交节点解析，本地不留答案 | 代理域名交节点解析（`proxy_nameservers` 专用通道） | `fake-ip` 只回假 IP，真实解析在落地侧 | 同左（默认 Fake IP） |
-| 🔎 IPv6<br><sub>AAAA 泄露，或绕过接管</sub> | `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6`，两处都关 | 按官方〈IPv6 兼容性〉自动选择，不写该键 |
-| 🛑 广告拦截<br><sub>顺带：解析阶段就拦掉</sub> | `pre-matching REJECT` | `forward` → `reject` | DNS 层双条件（`rcode://success` 与 `fake-ip-filter` 成对） | 规则层 `AD` 组（无 `rcode` 语法） |
-| 📦 数据库依赖<br><sub>顺带：零 dat，离线可用</sub> | 内置系统集 | 引用共享 `.list` | 零 dat 依赖，用 `.mrs` 远程集 | 零 dat，用 `.list` / `.yaml` 远程集 |
+| 🚫 旁路设备<br>| `hijack-dns` 接管明文 `:53`（六个知名解析器） | `hijack_dns` 接管明文 `:53`（全量） | 交给客户端 TUN 或透明代理重定向 | 交给网络引擎（无该键） |
+| 🔐 加密通道<br>| 主解析走 DoH，主机名端点经裸 IP 受控引导 | 主解析走 DoH/DoT，四条端点全是 IP 字面量 | 主解析走 DoH，端点一律 IP 字面量 | 主解析走 DoH，`default-nameserver` 仅填 IP |
+| 🛡️ 明文回退<br>| `dns-server` 全裸 IP，绝不写 `system` | `forward` 兜底只指加密组，绝不落明文 | `default-nameserver` 裸 IP（仅引导）+ `proxy-server-nameserver` 专用通道 | 同左（`proxy-server-nameserver` 专用通道） |
+| 🧭 规则克制<br>| IP 类规则一律 `no-resolve`；零 IP 的规则集不写 | IP 类规则一律 `no_resolve`；该键对 `rule_set` 不生效 | IP 类规则一律 `no-resolve`；纯域名规则集不写 | 同左（4 个 `ipcidr` 集带 `no-resolve`） |
+| ✂️ 远端解析<br>| 代理域名交节点解析，本地不留答案 | 代理域名交节点解析（`proxy_nameservers` 专用通道） | `fake-ip` 只回假 IP，真实解析在落地侧 | 同左（默认 Fake IP） |
+| 🔎 IPv6<br>| `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6`，两处都关 | 按官方〈IPv6 兼容性〉自动选择，不写该键 |
+| 🛑 广告拦截<br>| `pre-matching REJECT` | `forward` → `reject` | DNS 层双条件（`rcode://success` 与 `fake-ip-filter` 成对） | 规则层 `AD` 组（无 `rcode` 语法） |
+| 📦 数据库依赖<br>| 内置系统集 | 引用共享 `.list` | 零 dat 依赖，用 `.mrs` 远程集 | 零 dat，用 `.list` / `.yaml` 远程集 |
 
 前六行，堵漏。后两行，白送。
 出口分类的完整推导，见 [`dns.md`](self-conf-skills/references/dns.md) 的「接到本模板上」。
