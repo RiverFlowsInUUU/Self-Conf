@@ -1,4 +1,4 @@
-#! version=routing_v1.0.1
+#! version=routing_v1.0.2
 # ================================================================ routing（正式版 · 推荐）
 # 结构（与 Surge `routing.conf` 逐行对齐，内容与顺序均对拍）：
 #   ① `dns.forward` 由单条 catch-all 扩为 4 层：
@@ -326,8 +326,15 @@ policy_groups:
     type: smart
     urls:
     - https://sub.example.com/api/v1/client/subscribe?token=REPLACE_WITH_YOUR_TOKEN
-    urls_disabled:
-    - https://sub.example.com/api/v1/client/subscribe?token=REPLACE_WITH_YOUR_TOKEN
+    # ⚠️ 2026-10-18：删掉了原来的 `urls_disabled:` 示例键。
+    #    理由：Egern 官方〈策略组〉文档（egernapp.com/zh-CN/docs/configuration/policy_groups）
+    #    的 `external` 字段清单里**没有** `urls_disabled`（该页 `urls_disabled` 与
+    #    `disabled` 全文均 0 次命中）；官方字段只有 name / type / urls / filter /
+    #    interval / tolerance / timeout / priorities / algorithm / update_interval /
+    #    latency_test_url / block_quic / icon / hidden / prev_hop。
+    #    原示例还把它写成**与 `urls` 完全相同的 URL** —— 若 Egern 将来把它解析成
+    #    「禁用该订阅」，`Airport` 会变空、走代理的流量全断（静默失效）。
+    #    无官方依据的键留着只有风险没有收益，故移除。
     # 订阅刷新间隔（与 Surge 侧 `update-interval=86400` 对齐）。
     # ⚠️ Egern 官方未文档化该键的缺省值 ⇒ 显式写死，避免「刷新行为交给未知」
     #    （仓规见 self-conf-skills/references/pitfalls.md「规则集刷新统一一周」）。

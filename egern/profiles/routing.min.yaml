@@ -1,4 +1,4 @@
-#! version=routing_v1.0.1
+#! version=routing_v1.0.2
 ipv6: false
 vif_only: true
 hijack_dns:
@@ -168,8 +168,6 @@ policy_groups:
     name: Airport
     type: smart
     urls:
-    - https://sub.example.com/api/v1/client/subscribe?token=REPLACE_WITH_YOUR_TOKEN
-    urls_disabled:
     - https://sub.example.com/api/v1/client/subscribe?token=REPLACE_WITH_YOUR_TOKEN
     interval: 86400
     hidden: true

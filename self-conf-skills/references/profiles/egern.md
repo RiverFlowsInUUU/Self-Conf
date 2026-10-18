@@ -79,8 +79,14 @@ Egern 的分流组**按类型做键**，而不是平铺的 `name` 字段。一�
 
 ##### 组清单与要点（现役）
 
-**节点来源**（1 个订阅槽位）：`Airport`（`external` · `type: smart` · `urls` 一条 + 一条 `urls_disabled` 示例 · `hidden: true`）。
+**节点来源**（1 个订阅槽位）：`Airport`（`external` · `type: smart` · `urls` 一条 · `hidden: true`）。
 `routing_v2.1` 及更早为 4 个槽位（多出 `Airport-C` / `Airport-Free`）—— `routing_v2.2` 精简掉，选路能力不变。
+
+> ⚠️ 2026-10-18：原有一条 `urls_disabled` 示例键，已删。Egern 官方〈策略组〉文档的
+> `external` 字段清单里没有这个键（官方只有 `urls` / `filter` / `interval` / `tolerance` /
+> `timeout` / `priorities` / `algorithm` / `update_interval` / `latency_test_url` /
+> `block_quic` / `icon` / `hidden` / `prev_hop`），且原示例的值与 `urls` 完全相同 ——
+> 若被解析成「禁用该订阅」，`Airport` 会变空、走代理的流量全断。无依据的键不留。
 
 **`flatten: true`** —— 把子策略组**展开成全部具体节点**，而不是当成一个「组」单位。
 以 `Smart` 为例（`policies: [Airport]`）：不加时候选是「`Airport` 组」这一个单位（两级选优），

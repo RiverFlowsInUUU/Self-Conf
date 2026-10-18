@@ -1,4 +1,4 @@
-#! version=routing_v1.0.1
+#! version=routing_v1.0.2
 ipv6: false
 proxy-providers:
   Airport:
