@@ -59,25 +59,41 @@ mihomo 取 `.js`，Stash 取 `.stoverride`。
 
 ## 🌐 隐私至上 · 无 DNS 泄露
 
-八类出口。逐一封死。
+八类出口。逐一封死。四侧写法的差异不改结论 —— **出口没有例外**。
 
-| 泄露出口 | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Surge-Icon.png" height="22" alt=""> Surge</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Egern-Icon.png" height="22" alt=""> Egern</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/mihomo-Icon.png" height="22" alt=""> mihomo</div> | <div align="center"><img src="https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/Stash-Icon.png" height="22" alt=""> Stash</div> |
+| | 出口 | 怎么封 |
+|:--:|:--|:--|
+| 🚫 | 旁路设备 | 接管明文 `:53`，绕开你的 DNS 直接发包也没用 |
+| 🔐 | 加密通道 | 主解析全走 DoH / DoT，不落明文 |
+| 🛡️ | 明文回退 | 兜底只指向加密组，**绝不写 `system`** |
+| 🧭 | 规则克制 | IP 类规则一律 `no-resolve`，不为判定触发解析 |
+| ✂️ | 远端解析 | 代理域名交节点解析，本地不留答案 |
+| 🔎 | IPv6 | 显式关闭，不让真实 IPv6 绕过隧道 |
+| 🛑 | 广告拦截 | 解析层就掐断，不必等连接建立 |
+| 📦 | 数据库依赖 | 零 dat，规则集全部远程自更新 |
+
+前六行堵漏，后两行白送。
+
+<details>
+<summary>四侧具体写法（展开看）</summary>
+
+| | Surge | Egern | mihomo | Stash |
 |:--|:--|:--|:--|:--|
-| 🚫 旁路设备<br>| `hijack-dns` 接管明文 `:53`（六个知名解析器） | `hijack_dns` 接管明文 `:53`（全量） | 交给客户端 TUN 或透明代理重定向 | 交给网络引擎（无该键） |
-| 🔐 加密通道<br>| 主解析走 DoH，主机名端点经裸 IP 受控引导 | 主解析走 DoH/DoT，四条端点全是 IP 字面量 | 主解析走 DoH，端点一律 IP 字面量 | 主解析走 DoH，`default-nameserver` 仅填 IP |
-| 🛡️ 明文回退<br>| `dns-server` 全裸 IP，绝不写 `system` | `forward` 兜底只指加密组，绝不落明文 | `default-nameserver` 裸 IP（仅引导）+ `proxy-server-nameserver` 专用通道 | 同左（`proxy-server-nameserver` 专用通道） |
-| 🧭 规则克制<br>| IP 类规则一律 `no-resolve`；零 IP 的规则集不写 | IP 类规则一律 `no_resolve`；该键对 `rule_set` 不生效 | IP 类规则一律 `no-resolve`；纯域名规则集不写 | 同左（4 个 `ipcidr` 集带 `no-resolve`） |
-| ✂️ 远端解析<br>| 代理域名交节点解析，本地不留答案 | 代理域名交节点解析（`proxy_nameservers` 专用通道） | `fake-ip` 只回假 IP，真实解析在落地侧 | 同左（默认 Fake IP） |
-| 🔎 IPv6<br>| `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6`，两处都关 | 按官方〈IPv6 兼容性〉自动选择，不写该键 |
-| 🛑 广告拦截<br>| `pre-matching REJECT` | `forward` → `reject` | DNS 层双条件（`rcode://success` 与 `fake-ip-filter` 成对） | 规则层 `AD` 组（无 `rcode` 语法） |
-| 📦 数据库依赖<br>| 内置系统集 | 引用共享 `.list` | 零 dat 依赖，用 `.mrs` 远程集 | 零 dat，用 `.list` / `.yaml` 远程集 |
+| 旁路 | `hijack-dns`（六个知名解析器） | `hijack_dns`（全量） | 客户端 TUN 重定向 | 网络引擎（无该键） |
+| 加密 | DoH，主机名端点经裸 IP 引导 | DoH / DoT，端点全 IP 字面量 | DoH，端点全 IP 字面量 | DoH，`default-nameserver` 仅填 IP |
+| 回退 | `dns-server` 全裸 IP | `forward` 兜底只指加密组 | `proxy-server-nameserver` 专用通道 | 同 mihomo |
+| 规则 | IP 规则 `no-resolve` | `no_resolve` | IP 规则 `no-resolve` | 同 mihomo |
+| 远端 | 交节点解析 | `proxy_nameservers` 通道 | `fake-ip` | 默认 Fake IP |
+| IPv6 | `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6` 两处 | 官方自动判定¹ |
+| 广告 | `pre-matching REJECT` | `forward` → `reject` | DNS 双条件 | 规则层 `AD` 组 |
+| dat | 内置系统集 | 共享 `.list` | 零 dat，用 `.mrs` | 零 dat，用 `.list` / `.yaml` |
 
-前六行，堵漏。后两行，白送。
-出口分类的完整推导，见 [`dns.md`](self-conf-skills/references/dns.md) 的「接到本模板上」。
+¹ Stash 未显式写 `ipv6` —— 官方按当前网络自动判定，双栈下仍会返回 AAAA。
 
-四侧机制各异，写法各异。**出口没有例外。**
+</details>
 
 而且不止说到位 —— **每一条都有判据守着**。全套闸门，外加 CI。
+逐键推导见 [`dns.md`](self-conf-skills/references/dns.md) §7「四侧语法对照」。
 
 ## 📖 按需查阅
 
