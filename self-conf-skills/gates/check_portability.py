@@ -70,9 +70,26 @@ if any("%" in n for n in WIN_RESERVED):
     raise SystemExit("❌ 前置：WIN_RESERVED 里有未格式化的模板串 %s ⇒ 检查集合推导式是不是漏了 `%% i`"
                      % sorted(n for n in WIN_RESERVED if "%" in n))
 TEXT_EXT = (".md", ".py", ".sh", ".conf", ".yaml", ".yml", ".txt", ".list",
-            ".json", ".js", ".html", ".gitignore", ".gitattributes")
+            ".json", ".js", ".html", ".gitignore", ".gitattributes",
+            # ⚠️ 2026-10-18（外部审查实锤）：`.stoverride` 曾不在本表 ⇒ `is_text()` 返回
+            #    False ⇒ 它被当成**二进制**，E2（CRLF）/ E2b（孤立 CR）/ E3（BOM）三项
+            #    字节层判据**完全不覆盖 Stash**。实测给 `.stoverride` 注入 UTF-8 BOM 后
+            #    `TOTAL: 21 passed, 0 failed` exit 0；给 `.conf` 注入同样 BOM 则判负 exit 1。
+            #    而 Stash 覆写的 `#!replace` 指令行对字节极敏感（BOM 落在文件头可能致其
+            #    拒绝加载），属「静默失效」类。⇒ 新形态必须同步进本表。
+            ".stoverride")
 BINARY_EXT = (".png", ".jpg", ".jpeg", ".gif", ".ico", ".icns", ".mmdb", ".pcap",
               ".p12", ".pfx", ".pem", ".key", ".crt")
+# ⚠️ 自检（与上面 WIN_RESERVED 那条同款 fail-loud）：**已知交付形态不许落进二进制域**。
+#    为什么要有它：`TEXT_EXT` 是白名单，加新形态时漏加**不会报错**，只会静默少判。
+#    2026-10-18 的 `.stoverride` 就是这么漏的（扫描面补了、字节层判据没补）。
+#    这里把「已知形态」与「文本域」绑死：形态既不在 TEXT_EXT 也不在 BINARY_EXT ⇒ 直接炸。
+KNOWN_FORMS = (".conf", ".yaml", ".yml", ".stoverride")
+_orphan = [e for e in KNOWN_FORMS if e not in TEXT_EXT and e not in BINARY_EXT]
+if _orphan:
+    raise SystemExit("❌ 前置：已知交付形态 %s 既不在 TEXT_EXT 也不在 BINARY_EXT ⇒ "
+                     "它会被 `is_text()` 当二进制跳过 E2/E2b/E3。加形态时必须显式归类。"
+                     % _orphan)
 # 这些前缀下的路径必须纯 ASCII：脚本、配置、图标、测试、fixture 都是被程序消费的
 MACHINE_PREFIXES = ("self-conf-skills/", "icons/", "surge/profiles/", "egern/profiles/",
                     "surge/scripts/", "egern/scripts/", "surge/tests/", "egern/tests/")
@@ -341,6 +358,13 @@ for _src, _expect_bad in (
 
 
 def main():
+    # ⚠️ 2026-10-18：原为模块级 `ROOT` 硬编码（按本文件位置上溯），**不理会 argv**。
+    #    后果：本判据无法在沙箱副本上注错验证（注错在副本、判据去扫真仓），
+    #    因此进不了判别力回归 —— `.stoverride` 漏进 TEXT_EXT 这个洞就是这么潜伏的。
+    #    现支持传入仓库根（与 check_four_way_sync / check_secrets 一致）。
+    global ROOT
+    if len(sys.argv) > 1:
+        ROOT = os.path.abspath(sys.argv[1])
     files = tracked_files()
     if files is None:
         print("❌ 前置不达标：这里不是 git 仓库，拿不到 tracked 清单")

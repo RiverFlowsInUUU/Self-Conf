@@ -67,26 +67,6 @@
       "source": "lan"
      },
      {
-      "detail": "仅出现在 ['clash', 'stash', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
-      "kind": "partial",
-      "present_in": [
-       "clash",
-       "stash",
-       "surge"
-      ],
-      "source": "xn--ngstr-lra8j.com"
-     },
-     {
-      "detail": "仅出现在 ['clash', 'stash', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
-      "kind": "partial",
-      "present_in": [
-       "clash",
-       "stash",
-       "surge"
-      ],
-      "source": "services.googleapis.cn"
-     },
-     {
       "detail": "仅出现在 ['egern', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
@@ -222,6 +202,7 @@
      },
      "services.googleapis.cn": {
       "clash": "Proxy",
+      "egern": "Proxy",
       "stash": "Proxy",
       "surge": "Proxy"
      },
@@ -238,6 +219,7 @@
      },
      "xn--ngstr-lra8j.com": {
       "clash": "Proxy",
+      "egern": "Proxy",
       "stash": "Proxy",
       "surge": "Proxy"
      }
@@ -453,15 +435,15 @@
       {
        "kind": "domain_suffix",
        "options": [],
-       "source": null,
-       "source_norm": null,
+       "source": "xn--ngstr-lra8j.com",
+       "source_norm": "xn--ngstr-lra8j.com",
        "target": "Proxy"
       },
       {
        "kind": "domain_suffix",
        "options": [],
-       "source": null,
-       "source_norm": null,
+       "source": "services.googleapis.cn",
+       "source_norm": "services.googleapis.cn",
        "target": "Proxy"
       },
       {

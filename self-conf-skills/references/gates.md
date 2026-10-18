@@ -303,7 +303,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 | F2 | `clash` 与 `stash` 组**逐字段相同**（除 `filter`/`exclude-filter`） | 25 组、3 组 |
 | F3 | rule-provider **键集合与序列**相同 + **逐字段**相同（除 `format`/`url`/`path`/`type`） | 25 份、10 份 |
 | F4 | `surge` 与 `egern` **组名序列**相同 | 23 组、4 组 |
-| F5 | 四侧**规则集去向**（source→target）一致 | 37 / 18 个 source |
+| F5 | 四侧**规则集去向**（source→target）一致，且 source 必须**四侧齐全**（单侧独有的形态另登记） | 齐全 21 · 单侧独有 5 · 并集 26 ／ 齐全 9 · 单侧独有 3 · 并集 12 |
 | F6 | 四侧**组名差集**只能是登记过的刻意项 | 见下豁免表 |
 
 > ⚠️ **这道判据的初版有 4 处漏报，是对抗性自审抓出来的**（2026-10-11）——
@@ -323,13 +323,30 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 > ⇒ **判据的「全绿」不能自己声明，要用对抗性自审去证伪** —— 这是本文件 §2
 > 三条铁律的同构应用：写判据的人最该怀疑自己的扫描面。
 
+> ⚠️ **2026-10-18 又抓出两层洞，比上面那次更隐蔽**（独立审查 + 注错实验）：
+>
+> | 洞 | 为什么会漏 | 现状 |
+> |:--|:--|:--|
+> | **单侧整条规则消失判绿** | 原码 `if key in tgt[s]` 过滤掉「该侧没有这条」⇒ 删掉 egern 的整个 `Jinx-Ads` 块后，剩下三侧去向仍一致 ⇒ 通过 | 已修：断言 source 必须**四侧齐全**，缺侧判负（`SOURCE_EQUIV` 归一命名差异、`SIDE_ONLY` 登记机制性单侧独有） |
+> | **egern 域名规则结构性失明** | `build_ir._load_egern_rules` 只对 `rule_set`/`geoip` 取 `source`，`domain_suffix` 类恒为 `None` ⇒ 被 `_targets()` 直接跳过 | 已修：域名类规则的 `match` 也归一到 `source` |
+>
+> 实测危害：删掉 egern lazy 的 2 条 `domain_suffix`（13→11，YAML 合法）后本判据仍
+> `exit 0`，而那两条正是 `v2026-10-13` 发版的核心变更（`xn--ngstr-lra8j.com` /
+> `services.googleapis.cn`）。
+>
+> 同一轮还修了两处「读数骗人」：① 「N 个 source 已核」取的是**并集**大小，
+> 而真正四侧齐全参与比对的只有 35% / 17% ⇒ 改为分报「四侧齐全 / 单侧独有 / 并集」；
+> ② 豁免判定从全字典相等退化成「只校验登记侧的 `all()`」⇒ clash/stash 可被改成任意值
+> 而判绿（把 `jinx-ads` 改成 `DIRECT` = 关掉广告拦截，仍报"四侧齐全"）。
+> ⇒ 豁免表现在**必须登记全四侧**。
+
 **刻意豁免表**（判据文件顶部，唯一真源）：
 
 | 类别 | 豁免项 | 为什么刻意 |
 |:--|:--|:--|
 | 组名 | `Airport` 仅 Surge/Egern | 那是它们的**订阅槽位组**（`external`/手填）；Clash 系用 `proxy-providers`，没有这个组 |
 | 组名 | `Auto`/`Low Mult.`/`High Mult.` 仅 Clash/Stash | 倍率**三档**结构；Surge/Egern 的 smart 组用 `policy-priority` 表达同一件事 |
-| 去向 | `surge-ads`、`awavenue-ads-rule-surge-rule-set`：`surge=REJECT` vs `egern=AD` | Surge 内置拦截口径直接挂 REJECT；Egern 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截 |
+| 去向 | `jinx-ads`、`awavenue-ads`：`surge=REJECT` vs 其余三侧 `AD` | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截。⚠️ 键名是**等价类归一后**的 canonical 名（`surge-ads`→`jinx-ads`、`awavenue-ads-rule-surge-rule-set`→`awavenue-ads`），且**必须登记全四侧** |
 
 ⚠️ **不要为「让闸门变绿」往豁免表里塞条目** —— 豁免表是「刻意差异的登记处」，
 不是「红线的逃生口」。新增豁免必须写清**为什么刻意**，否则它就是漂移。

@@ -195,7 +195,20 @@ def _load_egern_rules(path):
         kind, body = next(iter(item.items()))
         if not isinstance(body, dict):
             body = {}
-        source = body.get("match") if kind in ("rule_set", "geoip") else None
+        # ⚠️ 2026-10-18（外部审查实锤）：原为 `body.get("match") if kind in
+        #    ("rule_set", "geoip") else None` ⇒ egern 的**域名类规则**
+        #    （`domain` / `domain_suffix` / `domain_keyword` / `domain_regex`）
+        #    `source` 恒为 None ⇒ `source_norm` 为 None ⇒ 被 `_targets()` 直接跳过
+        #    ⇒ **F5 对 egern 的域名直写规则结构性失明**。
+        #    实测：egern lazy 13 条规则里 3 条 source=None（2 条 domain_suffix + MATCH），
+        #    删掉那 2 条域名规则（13→11，YAML 合法）后 `check_four_way_sync` 仍 exit 0，
+        #    而那两条正是 2026-10-13 发版的核心变更（xn--ngstr-lra8j.com /
+        #    services.googleapis.cn）。对照：surge/clash/stash 用 `DOMAIN-SUFFIX,x,Proxy`
+        #    文本形态，能被正常归一 ⇒ 四侧里只有 egern 这一类"看不见"。
+        #    ⇒ 域名类规则的 `match` 同样是 source，必须一并归一。
+        DOMAIN_KINDS = ("rule_set", "geoip", "domain", "domain_suffix",
+                        "domain_keyword", "domain_regex", "domain_wildcard")
+        source = body.get("match") if kind in DOMAIN_KINDS else None
         target = body.get("policy") or body.get("value")
         options = [k for k in ("no_resolve", "disabled") if body.get(k)]
         rules.append({"kind": kind, "source": source, "target": target,

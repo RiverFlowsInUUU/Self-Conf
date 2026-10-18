@@ -6,12 +6,19 @@
 凭据必须是 REPLACE_WITH_*，订阅 URL 的 token/key/sub 参数值必须含 REPLACE_WITH。
 真实值一旦推上公开仓库就不可回收 —— 这是本仓最严重的一类泄露。
 
-扫描面 = 全仓 walk 到的 `*.conf` / `*.yaml` / `*.yml`（跳过 `.` 开头目录与
-node_modules / __pycache__；故意不用 git ls-files —— 未提交的本地工作副本
-正是这道纪律要拦的东西）。注释行不判（说明性文字不是泄露），
+扫描面 = 全仓 walk 到的 `*.conf` / `*.yaml` / `*.yml` / **`*.stoverride`（Stash）**
+（跳过 `.` 开头目录与 node_modules / __pycache__；故意不用 git ls-files —— 未提交的
+本地工作副本正是这道纪律要拦的东西）。注释行不判（说明性文字不是泄露），
 但"禁止的敏感串"与订阅 token 两类连注释一起判（藏在注释里同样是残留）。
 
-用法：`python self-conf-skills/gates/check_secrets.py`（仓库根默认取本文件位置往上两级）
+⚠️ 扫描面**与解析分支是两件事**，两者都必须覆盖同一批形态：
+  · 扫描面 = `scan_targets()` 的扩展名表（+ `KNOWN_FORMS` 断言）
+  · 解析分支 = `YAML_FORM_EXT`（YAML 凭据正则 vs Surge INI 正则）
+  2026-10-11 只补了前者、2026-10-18 才补后者 —— 期间 Stash 的凭据纪律**形同虚设**
+  （注入真实 `password:` / `uuid:` 仍判绿）。两条断言分别守这两件事，别再只补一半。
+
+用法：`python self-conf-skills/gates/check_secrets.py [仓库根]`
+（仓库根默认取本文件位置往上两级；可传参以便在沙箱副本上注错验证）
 退出码：0 全过 · 1 有判负 · 2 前置不达标（扫不到当前版 profile）
 """
 import os
@@ -52,7 +59,25 @@ FORBIDDEN_SUBSTRINGS = [
     "tange365.com",
     "wangxinyu",
 ]
-TOKEN_RE = re.compile(r"(?:token|key|sub)\s*=\s*([A-Za-z0-9_\-]{6,})", re.I)
+# ⚠️ 2026-10-18：TOKEN 判据要**按形态分两条**，不能合成一条。
+#
+#   洞的来历：原实现只有 `\s*=\s*`（等号），而 Stash / mihomo 的 YAML 写的是
+#   `token: xxx`（冒号）⇒ `.stoverride` 里的订阅 token 永远匹配不到。
+#   修的时候我一度合成 `[:=]` 一条正则、并给整条判据加了「必须在 URL 语境」的过滤，
+#   结果**反而开了一个新洞**（独立审查当场抓出）：
+#     Surge 的 `[Proxy]` 行形态是 `NAME = http, host, port, ..., token=xxx`，
+#     这一行**不含 `://`** ⇒ 加了 URLISH 过滤之后，整类 Surge 凭据泄露变成判绿。
+#     实测注错 `PROXY-LEAK = http, 192.0.2.1, 8080, token=RealTokenAbc1234567890`
+#     → 新版 EXIT 0（漏），HEAD 版 EXIT 1（能抓）。这就是「修 A 引入 B」。
+#
+#   ⇒ 正解：两种形态**各自保留最宽的判别**：
+#     · 等号形态 = Surge/INI 的权威写法 ⇒ **全文判、不加任何语境限制**（维持原口径）
+#     · 冒号形态 = YAML 写法 ⇒ 只在**像订阅地址的行**上判，避免误伤普通 YAML 键
+#       （`key: some-value` / `sub: another-value` 实测会被无条件判负）
+TOKEN_EQ_RE = re.compile(r"(?:token|key|sub)\s*=\s*([A-Za-z0-9_\-]{6,})", re.I)
+TOKEN_COLON_RE = re.compile(r"(?:token|key|sub)\s*:\s*([A-Za-z0-9_\-]{6,})", re.I)
+# 冒号形态的行级语境：该行必须像订阅地址/订阅声明，否则可能只是普通 YAML 键
+COLON_CTX = ("://", "subscribe", "policy-path", "urls:", "url:")
 _IPV4 = re.compile(r"\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b")
 KNOWN_IPS = {
     "223.5.5.5", "119.29.29.29", "1.1.1.1", "8.8.8.8", "8.8.4.4",
@@ -64,6 +89,17 @@ YAML_CRED_KEYS = ("password", "username", "uuid", "secret", "obfs-password", "cr
 YAML_CRED_RE = re.compile(r"^\s*(?:-\s+)?(%s)\s*:\s*(.+)$" % "|".join(YAML_CRED_KEYS), re.M)
 YAML_SNI_RE = re.compile(r"^\s*(?:-\s+)?(sni|servername)\s*:\s*(.+)$", re.M)
 PLACEHOLDER_VALS = ("REPLACE_WITH_",)
+
+# ⚠️ 2026-10-18（外部审查实锤）：**按扩展名判「是不是 YAML」曾把 Stash 判成 Surge**。
+#    原写法 `yaml_ = f.endswith((".yaml", ".yml"))` ⇒ `.stoverride` 落到 **Surge INI 分支**，
+#    用 `password\s*=\s*`（等号）去匹配 YAML 的 `password:`（冒号）⇒ 永远匹配不到：
+#    实测把真实节点 + `password: SuperSecretRealPass123` + `uuid: ...` 写进
+#    `stash/override/stash-routing.stoverride`，本判据仍报「22 个 conf/yaml 全过」exit 0；
+#    同一份内容写进 `egern/profiles/lazy.yaml` 则判负 3 处。
+#    ⇒ 这是「修了扫描面、没修判据本体」的半修（2026-10-11 只补了 walk 的扩展名表），
+#      比完全不修更危险 —— 它给出的是「已覆盖」的假信号。
+#    ⇒ 正解：**按形态而不是按扩展名**判定，且形态表与 scan_targets 的扩展名表同源。
+YAML_FORM_EXT = (".yaml", ".yml", ".stoverride")
 
 
 def strip_c(s, yaml_=False):
@@ -106,7 +142,13 @@ def scan_targets(root):
 
 def main():
     fails = []
-    scan = scan_targets(ROOT)
+    # ⚠️ 2026-10-18：原为 `scan_targets(ROOT)` —— **硬编码真实仓库根**，不理会 argv。
+    #    后果：本判据**无法在沙箱副本上被注错验证**（注错发生在副本、判据去扫真仓），
+    #    于是它既进不了 `check_negative_fixtures` 的判别力回归，也就没人能证明它真的会判负。
+    #    这正是「判据声称覆盖、实际无法证伪」的一种。现改为可传根，与其余判据一致。
+    root = sys.argv[1] if len(sys.argv) > 1 else ROOT
+    root = os.path.abspath(root)
+    scan = scan_targets(root)
     live = [x for x in scan if x[0] == "LIVE"]
     if not live:
         print("❌ 全仓 walk 不到任何当前版 profile —— 目录被挪走了，这**不是**\"没有敏感串\"")
@@ -131,8 +173,24 @@ def main():
                          "%s。⇒ 要么扩展名表漏了它，要么该侧配置被挪走/删除。"
                          "**新加一侧时，扩展名表与 KNOWN_FORMS 必须同步**" % (ext, who))
 
+    # ⭐ 解析分支断言（2026-10-18 新增）：**YAML 形态的扩展名必须走 YAML 凭据分支**。
+    #
+    #    为什么要有它：`KNOWN_FORMS` 那条断言只保证「文件进了扫描面」，
+    #    **不保证它进了正确的解析分支**。2026-10-11 补了 `.stoverride` 的扩展名表，
+    #    但 `yaml_` 仍只认 `.yaml/.yml` ⇒ Stash 落进 Surge INI 分支、凭据正则不执行
+    #    ⇒ 实测注入真实 password/uuid 仍 exit 0。这正是「修了扫描面、没修判据本体」。
+    #    ⇒ 把「形态 ∈ 扫描面」与「形态 ∈ YAML 分支」两件事绑死：任一 YAML 形态的
+    #      扩展名若不在 YAML_FORM_EXT 里，这里判负。
+    YAML_FORMS = (".yaml", ".yml", ".stoverride")
+    for ext in YAML_FORMS:
+        if ext not in YAML_FORM_EXT:
+            fails.append("解析分支缺失：`%s` 是 YAML 形态，但不在 `YAML_FORM_EXT` 里 ⇒ "
+                         "它会落进 Surge 的 INI 分支，`password:` / `uuid:` / `secret:` "
+                         "这些 YAML 凭据正则**根本不会执行**（2026-10-18 实锤过的假绿）。"
+                         "**加 YAML 形态时必须同步 YAML_FORM_EXT**" % ext)
+
     for tier, f, path in scan:
-        yaml_ = f.endswith((".yaml", ".yml"))
+        yaml_ = f.endswith(YAML_FORM_EXT)
         tag = "%s %s" % (tier, f)
         try:
             raw_text = open(path, encoding="utf-8").read()
@@ -174,11 +232,29 @@ def main():
                     continue
                 fails.append(f"{tag}: sni 的值不是占位符（`{val}`）")
 
-        for m in TOKEN_RE.finditer(raw_text):
+        # ① 等号形态（Surge / INI 的权威写法）：**全文判、不加语境限制**。
+        #    ⚠️ 这里刻意保持"宽"：`NAME = http, host, port, ..., token=xxx` 这种行
+        #    不含 `://`，一旦加语境过滤就会整类漏掉（2026-10-18 独立审查实测的回归）。
+        for m in TOKEN_EQ_RE.finditer(raw_text):
             val = m.group(1)
             if "REPLACE_WITH" in val.upper():
                 continue
-            fails.append(f"{tag}: 订阅 URL 里出现疑似真实 token（`{val[:8]}…`）—— 必须写成 REPLACE_WITH_YOUR_TOKEN")
+            line_no = raw_text.count("\n", 0, m.start()) + 1
+            fails.append(f"{tag}:{line_no}: 出现疑似真实 token（`{val[:8]}…`）"
+                         f"—— 必须写成 REPLACE_WITH_YOUR_TOKEN")
+
+        # ② 冒号形态（YAML 写法）：只在**像订阅地址的行**上判，避免误伤普通 YAML 键。
+        #    `key: some-value` / `sub: another-value` 这类普通键实测会被无条件判负，
+        #    故要求同一行含 COLON_CTX 之一。
+        for lineno, line in enumerate(raw_text.splitlines(), 1):
+            for m in TOKEN_COLON_RE.finditer(line):
+                val = m.group(1)
+                if "REPLACE_WITH" in val.upper():
+                    continue
+                if not any(k in line for k in COLON_CTX):
+                    continue
+                fails.append(f"{tag}:{lineno}: 订阅地址里出现疑似真实 token"
+                             f"（`{val[:8]}…`）—— 必须写成 REPLACE_WITH_YOUR_TOKEN")
 
         if yaml_:
             in_proxies = False
@@ -232,7 +308,8 @@ def main():
         for f_ in fails:
             print("   · " + f_)
         return 1
-    print("✅ 占位符 / 凭据纪律：%d 个 conf/yaml 全过（当前版 %d · 夹具 %d）"
+    # 文案别再写「conf/yaml」：扫描面已含 `.stoverride`（Stash），共 4 种形态。
+    print("✅ 占位符 / 凭据纪律：%d 个配置文件全过（当前版 %d · 夹具 %d）"
           % (len(scan), len(live), len(scan) - len(live)))
     return 0
 

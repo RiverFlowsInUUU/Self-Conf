@@ -91,9 +91,19 @@ SIDES = ("surge", "egern", "clash", "stash")
 #    统一挂 `AD` 组（可在面板上切换 DIRECT）。两者都达成「广告拦截」，只是
 #    Surge 少一层可切换的组。出处：check_ad_caliber.py 的 docstring 与
 #    references/profiles/surge.md 的 AD 组一节。
+#
+#    ⚠️ 2026-10-18 两次修正（都来自独立审查）：
+#      ① 键名改为 **canonical key**（SOURCE_EQUIV 归一之后的名字）。原来只登记
+#         `surge-ads` / `awavenue-ads-rule-surge-rule-set`（URL basename），而归一之后
+#         这两个键**永不出现** ⇒ 是两条死条目，让「豁免 4 条」的读数虚高。
+#      ② 豁免必须登记**全四侧**的期望去向。原先只写 surge/egern 两侧，判定用
+#         `all(present.get(s)==t for s,t in exempt.items())` 只校验这两侧 ⇒
+#         **clash/stash 可以被改成任意值而判绿**（实测把 clash 的 `jinx-ads` 改成
+#         `DIRECT` = 广告拦截静默关闭，F5 仍报"四侧齐全"）。这比原实现更宽。
+#         ⇒ 现在四侧全写，判定改回"全字典相等"语义。
 TARGET_EXEMPT = {
-    "surge-ads": {"surge": "REJECT", "egern": "AD"},
-    "awavenue-ads-rule-surge-rule-set": {"surge": "REJECT", "egern": "AD"},
+    "jinx-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
+    "awavenue-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
 }
 
 # ② 组名集合的刻意差异。
@@ -107,6 +117,94 @@ GROUP_EXEMPT = {
     "Auto": ("clash", "stash"),
     "Low Mult.": ("clash", "stash"),
     "High Mult.": ("clash", "stash"),
+}
+
+# ③ 跨内核的 source 归一类别。**按"等价强度"分两张表**，不可混用：
+#
+#    ⚠️ 2026-10-18 独立审查指出：初版把两类混在一张 `SOURCE_EQUIV` 里，并在注释
+#    声称「只登记同一上游、同一语义」，实际有一半条目是**不同上游、只是语义相近**
+#    （blackmatrix7 ↔ MetaCubeX ↔ Loyalsoldier 之间互不相同）。这违反了自己定的准入
+#    条件，而且掩盖了「某一侧换了源也无人发现」的风险。
+#    ⇒ 现在拆开：
+#      · SOURCE_EQUIV  = **同一份上游**，只是命名/格式不同 ⇒ 归一后必须四侧齐全
+#      · SEMANTIC_ALIKE = **不同上游**，但表达同一意图、去向也相同 ⇒ 只用于"缺侧"判定
+#        （即：某侧的这类规则换了个上游名字，不算漂移；但两侧同时换了上游**不会**被这里
+#        发现，那是"换源"风险，需人工评审 —— 本判据不声称能守这个）。
+#
+#    ── 表一：同一上游，不同命名/格式 ──────────────────────────────────
+SOURCE_EQUIV = {
+    # 同一条 URL：Jinx/main/surge-direct.list ↔ Jinx/main/mihomo-direct.yaml
+    # （独立审查逐条比对：47 条内容完全相同）
+    "surge-direct": "jinx-cn",
+    # 同一 Jinx ads 上游的两种格式（Surge .list ↔ mihomo .yaml）；
+    # 3885 条语义等价，只是语法不同（DOMAIN-WILDCARD ↔ DOMAIN-REGEX）
+    "surge-ads": "jinx-ads",
+    # 同一 AWAvenue 仓库的两个格式变体（Surge 965 行 / Clash 962 行）
+    "awavenue-ads-rule-surge-rule-set": "awavenue-ads",
+    # `rules/apple_system.list` 头注自述 = Surge 官方内置 SYSTEM 的 2026-09-24 快照
+    # ⇒ Surge 用内置、其余三侧用本仓快照，是同一份内容
+    "system": "apple-system",
+}
+
+#    ── 表二：不同上游，语义相近（去向相同才算对齐）─────────────────────
+SEMANTIC_ALIKE = {
+    # Apple 更新域：blackmatrix7 `SystemOTA.list` ↔ MetaCubeX `geosite/apple-update`
+    "systemota": "apple-update",
+    # 国内直连：Loyalsoldier `direct.txt` ↔ MetaCubeX `geosite/cn.mrs`
+    #
+    # ⚠️ **已知边界（2026-10-18 审查指出，未修但已登记）**：`cn` 这个 canonical 在本表
+    #    与 `SIDE_ONLY` 的共同作用下，实际会合并**三个来源**：
+    #      ① surge/egern 的 `direct`（Loyalsoldier direct.txt，域名维度）
+    #      ② clash/stash 的 `cn`（MetaCubeX geosite/cn.mrs，域名维度）
+    #      ③ egern 的 `geoip → CN`（IP 维度，经 norm_source 归一成 `cn`*）
+    #    而 `ctgt[s][canon]` 是 `set()`，**只比去向集合、不比来源条数** ⇒
+    #    删掉 egern 的任意一条、甚至两条全删，只要还有一条存活且去向相同，就判"齐全"。
+    #    实测：W1（只删 geoip CN）/ W2（只删 direct.txt）/ X1（两条都删）均 EXIT 0。
+    #
+    #    归因：HEAD 版对 W2/X1 **同样漏报**（那时 `direct` 与 `cn` 是两个独立 key，
+    #    漏的是 `direct`）⇒ **不是本表引入的回归**，但归一化确实让掩盖面变宽。
+    #
+    #    ⇒ 若将来要收紧，正解是给 canonical 记「期望来源数」并断言，
+    #      而不是把不同维度的 source 硬合并。当前登记为已知边界，不在此处改。
+    "direct": "cn",
+    # 私有域：Surge 用**内置** `LAN`；Egern 用 blackmatrix7 `Lan/Lan.list`（不是内置）；
+    # Clash/Stash 用 MetaCubeX 域名集 `private`
+    "lan": "private",
+    # Gemini：blackmatrix7 `Gemini.list` ↔ MetaCubeX `geosite/google-gemini`
+    "gemini": "google-gemini",
+    # Apple 直连域：Loyalsoldier `apple.txt` ↔ MetaCubeX `geosite/apple-cn`
+    # ⚠️ 初版注释误写成「blackmatrix7 的 Apple」，全仓并无该集
+    "apple": "apple-cn",
+    # Anthropic：blackmatrix7 的 Anthropic+Claude **两条** ↔ MetaCubeX `anthropic` 一条
+    "claude": "anthropic",
+    # YouTube Music：规则集 `YouTubeMusic` ↔ 直写的 `DOMAIN-SUFFIX,music.youtube.com`
+    "youtubemusic": "music.youtube.com",
+}
+
+# ④ **单侧独有**的规则集：只有某些内核支持这种形态，缺侧是机制决定、不是漂移。
+#
+#    ⚠️ 三张表的语义**不可混用**（混用会让"缺少的规则"被当成"换了个名字"，掩盖真漂移）：
+#      · SOURCE_EQUIV   = 同一份上游，四侧写法不同 ⇒ 归一后**必须四侧齐全**
+#      · SEMANTIC_ALIKE = 不同上游但意图相同 ⇒ 只放宽"缺侧"判定，不声称是同一份规则
+#      · SIDE_ONLY      = 该形态只有这些内核有 ⇒ 不要求其他侧存在；但**登记项本身
+#                         必须仍然存在**（整组删除 = 判负，见下方显式校验）
+#
+#    每个登记项的值是按**产品线**的 dict：`{"routing": (...), "lazy": (...)}`。
+#    某产品线为 `None` = 该产品线本来就没有这条（例如懒人版无 Google/Telegram 分流，
+#    故 `geoip-google` / `geoip-telegram` 在 lazy 下不存在是正常的、不该判负）。
+SIDE_ONLY = {
+    # Clash 系的 IP 归属规则（behavior: ipcidr）。Surge/Egern 用域名集表达同一意图，
+    # 但那是**另一个维度**（域名 vs IP），不能算"同一份规则"。故登记为单侧独有。
+    # ⚠️ `geoip-google` / `geoip-telegram` **只在 routing 版**有 —— 懒人版没有
+    #    Google / Telegram 分流组，这两条自然不存在。故其登记项写成按产品线的
+    #    dict（`{"routing": (...)}`），`None` 表示该产品线不存在这条。
+    "geoip-cn": {"routing": ("clash", "stash"), "lazy": ("clash", "stash")},
+    "geoip-private": {"routing": ("clash", "stash"), "lazy": ("clash", "stash")},
+    "geoip-google": {"routing": ("clash", "stash"), "lazy": None},
+    "geoip-telegram": {"routing": ("clash", "stash"), "lazy": None},
+    # Clash 系额外引的 MetaCubeX AI 全集；Surge/Egern 用自托管 AI.list 覆盖同一批域，
+    # 但条目并不逐条相同 ⇒ 单侧独有，不假装等价。
+    "category-ai-chat-!cn": {"routing": ("clash", "stash"), "lazy": ("clash", "stash")},
 }
 
 FAMS = ("routing", "lazy")
@@ -337,24 +435,107 @@ def main():
             bad.append("F4 %-7s surge 与 egern 组名序列不同：surge=%s egern=%s"
                        % (fam, names_sg, names_eg))
 
-        # ── F5：四侧去向一致（豁免表外）──────────────────────────────────
-        tgt = {s: _targets(data[(fam, s)][1]) for s in SIDES}
-        keys = sorted(set().union(*[set(t) for t in tgt.values()]))
-        mism = []
+        # ── F5：四侧去向一致 + **四侧齐全**（豁免表外）──────────────────
+        #
+        # ⚠️ 2026-10-18（外部审查实锤）：原实现有两个洞。
+        #
+        #   洞一（单侧整条规则消失判绿）：原代码是
+        #       present = {s: tgt[s][key] for s in SIDES if key in tgt[s]}
+        #       if len(set(present.values())) <= 1: continue
+        #   `if key in tgt[s]` 过滤掉了「该侧没有这条规则」的情况 ⇒ 从某一侧删掉整条
+        #   规则后，剩下三侧去向仍一致 ⇒ 通过。实测删掉 egern 的完整 `Jinx-Ads` 块
+        #   （rules 25→24，YAML 合法）后本判据仍 exit 0。
+        #
+        #   洞二（读数系统性夸大覆盖面）：原输出「%d 个 source 已核」取的是**并集**大小，
+        #   而真正四侧齐全参与比对的只有一小部分（实测 routing 37→13、lazy 18→3）。
+        #   读者会按「37 个已核」判断覆盖充分 ⇒ 读数必须改成「齐全 N / 并集 M」。
+        #
+        # ⇒ 修法：① 先把 source 按 SOURCE_EQUIV（同一上游）+ SEMANTIC_ALIKE（不同上游
+        #   但语义相近）归成 canonical key（否则跨内核命名差异会被误判成"缺失"，
+        #   24 条误报）；② 再断言 canonical key 必须**四侧齐全**；
+        #   ③ 输出把「四侧齐全 / 单侧独有 / 并集」分三类报，不混算。
+        raw_tgt = {s: _targets(data[(fam, s)][1]) for s in SIDES}
+
+        def _canon(k):
+            return SEMANTIC_ALIKE.get(SOURCE_EQUIV.get(k, k), SOURCE_EQUIV.get(k, k))
+
+        # canonical -> {side: set(targets)}（同一 canonical 下可能有多条 source）
+        ctgt = {s: {} for s in SIDES}
+        for s in SIDES:
+            for k, v in raw_tgt[s].items():
+                ctgt[s].setdefault(_canon(k), set()).add(v)
+
+        keys = sorted(set().union(*[set(t) for t in ctgt.values()]))
+        mism, missing = [], []
+        side_only_cnt = 0
+
+        def _side_only_for(k, fam_):
+            """该 key 在**本产品线**下登记的单侧独有集合；None = 本产品线不存在这条。"""
+            spec = SIDE_ONLY.get(k)
+            if spec is None:
+                return False, None
+            return True, spec.get(fam_)
+
         for key in keys:
-            present = {s: tgt[s][key] for s in SIDES if key in tgt[s]}
+            holders = [s for s in SIDES if key in ctgt[s]]
+            if len(holders) != len(SIDES):
+                # 单侧独有的形态（IP 维度 / Clash 系专有集）⇒ 不要求四侧齐全
+                registered, only = _side_only_for(key, fam)
+                if registered:
+                    if only is None:
+                        missing.append("%s（本产品线不应存在，实际出现在 %s）"
+                                       % (key, sorted(holders)))
+                    elif tuple(sorted(holders)) != tuple(sorted(only)):
+                        missing.append("%s（实际 %s，登记为 %s —— 登记与实际不符）"
+                                       % (key, sorted(holders), sorted(only)))
+                    else:
+                        side_only_cnt += 1
+                    continue
+                # 缺侧：若该 key 在豁免表里 ⇒ 豁免是"去向不同"，不是"可以整条不存在"，
+                # 故缺侧**不放行**（与下面四侧齐全分支的豁免语义分开）。
+                missing.append("%s（仅 %s）" % (key, holders))
+                continue
+            # 四侧齐全：比去向（去重后应只有一个值）
+            present = {s: tuple(sorted(ctgt[s][key])) for s in SIDES}
             if len(set(present.values())) <= 1:
                 continue
+            # 豁免判定：**必须登记全四侧且逐一相等**（不是只校验登记到的那几侧）。
+            # 2026-10-18 独立审查实测：旧的 all() 写法下，把 clash 的 jinx-ads 改成
+            # DIRECT（= 关掉广告拦截）仍判绿 —— 只因为 clash 没被登记进豁免表。
             exempt = TARGET_EXEMPT.get(key)
-            if exempt and present == exempt:
+            if exempt and set(exempt) == set(SIDES) \
+                    and all(present.get(s) == (t,) for s, t in exempt.items()):
                 continue
             mism.append("%s=%s" % (key, present))
-        if not mism:
-            ok.append("F5 %-7s 四侧规则集去向一致（豁免 %d 条刻意项，%d 个 source 已核）"
-                      % (fam, len(TARGET_EXEMPT), len(keys)))
+
+        # SIDE_ONLY 的登记项**必须仍然存在**：整组删除时 keys 里就没有它了，
+        # 光靠上面的循环永远发现不了（2026-10-18 独立审查实测：两侧都删
+        # `geoip-private` 后 F5 判绿，只体现为"单侧独有 5→4"的读数变化）。
+        # 只对「本产品线应有」的登记项要求存在（`None` = 本产品线本就没有）。
+        for k, spec in SIDE_ONLY.items():
+            should = spec.get(fam)
+            if should is not None and k not in keys:
+                missing.append("%s **整组消失**（本产品线应存在于 %s 单侧独有）"
+                               % (k, sorted(should)))
+
+        # ⚠️ 读分数要**分两类报**，别混：
+        #    「四侧齐全」只数真正在四侧都出现的；SIDE_ONLY 另计。
+        #    上一版把两者加在一起（`or k in SIDE_ONLY`），实测显示 26 而真正齐全只有 21
+        #    —— 这正是本判据号称要修的「读数夸大覆盖面」，却用新方式重现了一遍。
+        full_cnt = sum(1 for k in keys if all(k in ctgt[s] for s in SIDES))
+        if not mism and not missing:
+            ok.append("F5 %-7s 四侧规则集去向一致（四侧齐全 %d · 单侧独有 %d · 并集 %d；"
+                      "豁免 %d 条刻意去向）"
+                      % (fam, full_cnt, side_only_cnt, len(keys), len(TARGET_EXEMPT)))
         else:
-            bad.append("F5 %-7s 四侧去向不一致（且不在豁免表内）：%s"
-                       % (fam, "；".join(mism[:4])))
+            if mism:
+                bad.append("F5 %-7s 四侧去向不一致（且不在豁免表内）：%s"
+                           % (fam, "；".join(mism[:4])))
+            if missing:
+                bad.append("F5 %-7s 规则集**缺侧**（该 source 未在四侧齐全出现，"
+                           "且未登记等价类/豁免）：%s —— 若确属刻意，加进 SOURCE_EQUIV "
+                           "或 TARGET_EXEMPT 并写清理由"
+                           % (fam, "；".join(missing[:6])))
 
         # ── F6：组名集合只差登记过的刻意项 ───────────────────────────────
         gsets = {s: {g["name"] for g in data[(fam, s)][0]} for s in SIDES}

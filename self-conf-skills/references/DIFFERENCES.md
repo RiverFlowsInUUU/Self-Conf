@@ -56,7 +56,7 @@
 |:--|:--|
 | `Airport` 组只在 Surge/Egern | 那是它们的**订阅槽位组**；Clash 系用 `proxy-providers`，没有这个组 |
 | `Auto`/`Low Mult.`/`High Mult.` 只在 Clash/Stash | **倍率三档**结构；Surge/Egern 用 `policy-priority` 权重表达同一件事 |
-| `surge-ads` 等两条规则去向不同（`surge=REJECT` vs `egern=AD`） | Surge 内置拦截口径直接挂 REJECT；Egern 挂 `AD` 组（面板可切 DIRECT） |
+| `jinx-ads` / `awavenue-ads` 两条规则去向不同（`surge=REJECT` vs 其余三侧 `AD`） | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。⚠️ 2026-10-18：键名是**等价类归一后**的 canonical 名，且豁免**必须登记全四侧**（否则未登记的侧可被任意改动而判绿） |
 
 ⚠️ **不要为「让判据变绿」往豁免表里塞条目** —— 它是「刻意差异的登记处」，
 不是「红线的逃生口」。新增豁免必须写清**为什么刻意**。
