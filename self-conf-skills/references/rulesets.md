@@ -1145,7 +1145,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | `AI_Domains` | 272 条里有 **39 条 `DOMAIN`、8 条 `DOMAIN-KEYWORD`、1 条 `URL-REGEX`** —— 关键字与正则在 `domain` 行为下就是一串永远匹配不上的字符 |
 | `apple-system` | 18 条里 12 条 `DOMAIN` 精确匹配（如 `DOMAIN,mesu.apple.com`），`domain` 行为下会退化 |
 | `emby` | 4 条全 `DOMAIN-SUFFIX` —— 理论可转，但纳入生成链路统一用 yaml 更省事 |
-| `Jinx-*` | 上游本身就是 mihomo classical payload |
+| `Jinx-*` | 姊妹仓发布的产物本身就是 mihomo classical payload |
 
 **⇒ 判据：先看 payload 的形态，再定 format。**
 `domain` 集里混进一条 `DOMAIN-SUFFIX,xxx` 这样的完整规则行，
