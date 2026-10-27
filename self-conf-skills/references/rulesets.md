@@ -145,8 +145,8 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 
 | 规则集 | 作用 | Surge 去向 | Egern 去向 | 来源 |
 |:-------|:-----|:-----------|:-----------|:-----|
-| `surge-direct.list` | 白名单（精确域名） | `DIRECT` | `DIRECT` | [Jinx](https://github.com/RiverFlowsInUUU/Jinx) |
-| `surge-ads.list` | 广告拦截主清单 | `REJECT`（`pre-matching`） | `AD` 组 | [Jinx](https://github.com/RiverFlowsInUUU/Jinx) |
+| `surge-direct.list` | 白名单（精确域名） | `DIRECT` | `DIRECT` | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
+| `surge-ads.list` | 广告拦截主清单 | `REJECT`（`pre-matching`） | `AD` 组 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
 | `AWAvenue-Ads-Rule-Surge-RULE-SET.list` | 广告拦截第 2 条 | `REJECT`（`pre-matching`） | `AD` 组 | [TG-Twilight/AWAvenue-Ads-Rule](https://github.com/TG-Twilight/AWAvenue-Ads-Rule) |
 | `SystemOTA.list` | Apple 系统更新（OTA） | `Apple Update` 组 | `Apple Update` 组 | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script)（**仅分流版引用**） |
 | `private.txt` | 特殊 TLD 与路由器域（`.lan` `.local` `miwifi.com`） | `DIRECT`（实测零 IP ⇒ 不写规则级开关） | `DIRECT`（分流版 v3 起补） | [Loyalsoldier/surge-rules](https://github.com/Loyalsoldier/surge-rules) |
@@ -282,7 +282,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 |:--|:--:|:--|:--|
 | **MetaCubeX** `meta-rules-dat`（jsDelivr `@meta` 分支） | **19** | `mrs`（domain ×15 / ipcidr ×4） | 上游每日重建；**移动分支不可钉 commit** |
 | **本仓自托管** `rules/*.yaml` | **3** | `yaml` / `classical` | **本仓自己**（真源 `rules/*.list`，§0.1） |
-| **Jinx**（姊妹仓） | **2** | `yaml` / `classical` | `RiverFlowsInUUU/Jinx` `main` 移动分支 |
+| **Jinx**（RFU-Rules 姊妹仓） | **2** | `yaml` / `classical` | `RiverFlowsInUUU/RFU-Rules` `main` 移动分支 |
 | **AWAvenue** | **1** | `mrs` / `domain` | `TG-Twilight/AWAvenue-Ads-Rule` `main` 移动分支 |
 | **合计** | **25** | | |
 
@@ -1085,7 +1085,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 |:--|:--:|:--|:--|:--|
 | **MetaCubeX** `meta-rules-dat` | **19** | `mrs` | 上游每日重建 | 移动分支 `@meta`（不可钉 commit） |
 | **本仓自托管** `rules/*.yaml` | **3** | `yaml` / classical | **本仓自己** | 无第三方依赖；失效即本仓事故 |
-| **Jinx** `RiverFlowsInUUU/Jinx` | **2** | `yaml` / classical | 姊妹仓 | `main` 移动分支 |
+| **Jinx** `RiverFlowsInUUU/RFU-Rules` | **2** | `yaml` / classical | 姊妹仓 | `main` 移动分支 |
 | **AWAvenue** `TG-Twilight/AWAvenue-Ads-Rule` | **1** | `mrs` | 上游 | `main` 移动分支 |
 | **合计** | **25** | | | |
 
@@ -1345,16 +1345,16 @@ https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/apple_sys
 https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/emby.yaml
 ```
 
-而 Jinx 的 2 份指向姊妹仓：
+而 Jinx 数据的那 2 份指向姊妹仓 `RFU-Rules`：
 
 ```
-https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml
-https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml
+https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml
+https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
 ```
 
 **同样是 RiverFlowsInUUU 名下的仓，为什么一个自托管、一个跨仓引用？**
 
-| | 自托管（`rules/`） | 跨仓引用（Jinx） |
+| | 自托管（`rules/`） | 跨仓引用（`RFU-Rules`） |
 |:--|:--|:--|
 | 消费方 | **三内核共用**（Surge / Egern 吃 `.list`，mihomo 吃 `.yaml`） | 只有 mihomo 侧引用 |
 | 是否要跨格式 | 是（`.list` ⇄ `.yaml`） | 否（上游已是 yaml payload） |

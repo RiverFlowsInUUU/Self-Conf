@@ -376,7 +376,7 @@ function main(config) {
     type: "http",
     behavior: "classical",
     format: "yaml",
-    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml",
+    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml",
     path: "./rule_provider/Jinx-CN.yaml",
     interval: 86400,
   };
@@ -384,7 +384,7 @@ function main(config) {
     type: "http",
     behavior: "classical",
     format: "yaml",
-    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml",
+    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml",
     path: "./rule_provider/Jinx-Ads.yaml",
     interval: 86400,
   };

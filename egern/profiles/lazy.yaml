@@ -1,4 +1,4 @@
-#! version=lazy_v1.0.2
+#! version=lazy_v1.0.3
 # ============================================================================
 # lazy · 懒人版
 #
@@ -70,10 +70,10 @@ dns:
   # ②③ 是终止动作不是转发；proxy_nameservers 配置在，代理 DNS 完全绕过 Forward。
   forward:
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list
+      match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
       value: Domestic-DNS
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list
+      match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
       value: reject
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
@@ -176,13 +176,13 @@ rules:
 # ⚠️ 两层白名单的第二层（系统域 `System`）不在此处，见下方 ③。
 - rule_set:
     name: Jinx-CN
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
 # ② 广告拦截 —— 两条并列（先 Jinx，后 AWAvenue），都指向 AD。
 - rule_set:
     name: Jinx-Ads
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
     policy: AD
     update_interval: 604800
 - rule_set:

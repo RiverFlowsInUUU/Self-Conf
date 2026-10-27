@@ -1,4 +1,4 @@
-#! version=routing_v1.0.2
+#! version=routing_v1.0.3
 # ================================================================ routing（正式版 · 推荐）
 # 结构（与 Surge `routing.conf` 逐行对齐，内容与顺序均对拍）：
 #   ① `dns.forward` 由单条 catch-all 扩为 4 层：
@@ -104,10 +104,10 @@ dns:
   # 「任何一次查询去哪里解析」。
   forward:
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list
+      match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
       value: Domestic-DNS
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list
+      match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
       value: reject
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
@@ -480,12 +480,12 @@ rules:
 # ---- 规则段（与 Surge `routing.conf` 同一基准序）----
 - rule_set:
     name: Jinx-CN
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
 - rule_set:
     name: Jinx-Ads
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
     policy: AD
     update_interval: 604800
 - rule_set:

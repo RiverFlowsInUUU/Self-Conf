@@ -137,12 +137,12 @@ function main(config) {
     interval: 86400,
   };
 
-  // Jinx 白名单 / 广告主清单（自托管 Jinx 仓，命名与分流版一致）
+  // Jinx 白名单 / 广告主清单（自托管 RFU-Rules 仓，命名与分流版一致）
   rp["Jinx-CN"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
-    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml",
+    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml",
     path: "./rule_provider/Jinx-CN.yaml",
     interval: 86400,
   };
@@ -150,7 +150,7 @@ function main(config) {
     type: "http",
     behavior: "classical",
     format: "yaml",
-    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml",
+    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml",
     path: "./rule_provider/Jinx-Ads.yaml",
     interval: 86400,
   };

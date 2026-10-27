@@ -1969,7 +1969,7 @@ PY
 ```bash
 grep -cE '^(IP-CIDR|IP-CIDR6|IP-ASN|GEOIP|ASN)' rules/emby.list rules/apple_system.list rules/AI.list
 
-curl -s https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml \
+curl -s https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml \
   | grep -cE 'IP-CIDR'
 ```
 

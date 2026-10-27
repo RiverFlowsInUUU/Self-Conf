@@ -1,4 +1,4 @@
-#! version=routing_v1.0.2
+#! version=routing_v1.0.3
 ipv6: false
 vif_only: true
 hijack_dns:
@@ -23,10 +23,10 @@ dns:
     - tls://1.12.12.12
   forward:
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list
+      match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
       value: Domestic-DNS
   - proxy_rule_set:
-      match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list
+      match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
       value: reject
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
@@ -257,12 +257,12 @@ policy_groups:
 rules:
 - rule_set:
     name: Jinx-CN
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
 - rule_set:
     name: Jinx-Ads
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
     policy: AD
     update_interval: 604800
 - rule_set:

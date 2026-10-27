@@ -379,14 +379,14 @@
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list",
        "source_norm": "surge-direct",
        "target": "DIRECT"
       },
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
        "target": "AD"
       },
@@ -622,7 +622,7 @@
        "options": [
         "update-interval=604800"
        ],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list",
        "source_norm": "surge-direct",
        "target": "DIRECT"
       },
@@ -633,7 +633,7 @@
         "pre-matching",
         "extended-matching"
        ],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
        "target": "REJECT"
       },
@@ -1798,14 +1798,14 @@
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list",
        "source_norm": "surge-direct",
        "target": "DIRECT"
       },
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
        "target": "AD"
       },
@@ -2609,7 +2609,7 @@
        "options": [
         "update-interval=604800"
        ],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-direct.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list",
        "source_norm": "surge-direct",
        "target": "DIRECT"
       },
@@ -2620,7 +2620,7 @@
         "pre-matching",
         "extended-matching"
        ],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/surge-ads.list",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
        "target": "REJECT"
       },

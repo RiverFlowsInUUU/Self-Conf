@@ -414,17 +414,17 @@ rule-providers: #!replace
     path: ./ruleset/AWAvenue-Ads.yaml
     interval: 86400
 
-  # ── Jinx 白名单 / 广告主清单（自托管 Jinx 仓，命名与 mihomo 侧一致）────
+  # ── Jinx 白名单 / 广告主清单（自托管 RFU-Rules 仓，命名与 mihomo 侧一致）─
   Jinx-CN:
     behavior: classical
     format: yaml
-    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml
     path: ./ruleset/Jinx-CN.yaml
     interval: 86400
   Jinx-Ads:
     behavior: classical
     format: yaml
-    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
     path: ./ruleset/Jinx-Ads.yaml
     interval: 86400
 

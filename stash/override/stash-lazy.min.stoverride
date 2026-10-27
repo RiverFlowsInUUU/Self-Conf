@@ -63,13 +63,13 @@ rule-providers: #!replace
   Jinx-CN:
     behavior: classical
     format: yaml
-    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-direct.yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml
     path: ./ruleset/Jinx-CN.yaml
     interval: 86400
   Jinx-Ads:
     behavior: classical
     format: yaml
-    url: https://raw.githubusercontent.com/RiverFlowsInUUU/Jinx/main/mihomo-ads.yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
     path: ./ruleset/Jinx-Ads.yaml
     interval: 86400
   AI_Domains:
