@@ -689,7 +689,7 @@ rule-providers:
 
 > ⚠️ 死链的后果不是报错，是**静默降级**：rule-provider 拉不到就变成空集，
 > 该走 `AD` 的广告全进了兜底出口，配置看着跑得挺好，其实拦截没了。
-> 本仓踩过：Jinx 上游把 `*-white-guard.*` 改名成 `*-direct.*`，脚本里那条 URL 就此 404，
+> 本仓踩过：姊妹仓（当时仓名还叫 `Jinx`）把 `*-white-guard.*` 改名成 `*-direct.*`，脚本里那条 URL 就此 404，
 > **懒人版一直挂着死链没人察觉** —— 因为当时没有 CI 定期问「这个 URL 还活着吗」。
 > ⇒ `self-conf-skills/gates/clash/check_remote_urls.py` 就是那次之后加的（慢，按需跑）。
 

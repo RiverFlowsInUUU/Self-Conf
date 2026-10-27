@@ -105,7 +105,7 @@ Egern 日志速读：
 | 站点测到的 IP 与节点所在地不符 | mihomo：IPv6 未关（`ipv6` 与 `dns.ipv6` **两处**都要 false），双栈站点走真实 IPv6 绕过 TUN | **mihomo** |
 | 改了脚本但配置没变 | mihomo：`profiles/*.yaml` 由 `build_profiles.py` 生成，改完脚本必须重生成 | **mihomo** |
 | profile 里出现大段重复内容 | mihomo：手工追加写把配置纵向堆了多份（`routing.yaml` 曾堆 7 份 / 3294 行）—— 不要手工改 profile | **mihomo** |
-| 远程规则集静默变空、拦截悄悄失效 | mihomo：上游 404（Jinx 曾把 `*-white-guard.*` 改名 `*-direct.*`）—— 用 `check_remote_urls.py` 查 | **mihomo** |
+| 远程规则集静默变空、拦截悄悄失效 | mihomo：姊妹仓 404（曾把 `*-white-guard.*` 改名 `*-direct.*`）—— 用 `check_remote_urls.py` 查 | **mihomo** |
 | 头注里的组数/规则数是旧值 | mihomo：手写数字会过期，`check_header_numbers.py` 会判负 | **mihomo** |
 | `Smart` 三档没生效 | mihomo：`Smart.proxies` 未接上 `Low Mult./Auto/High Mult.`（子组继承了却没连，比不声明更隐蔽） | **mihomo** |
 

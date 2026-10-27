@@ -311,7 +311,7 @@ mihomo 侧则**本来就必填**，钉一天的理由是新域等待时间更短
 顺带：mihomo 的 provider 都给 `path`（`./rule_provider/<文件名>`），**先落盘再解析** ——
 刷新失败时沿用本地副本，不会因为一次网络抖动丢掉全部规则。
 ⚠️ 代价是**死链静默降级**：拉不到就变空集，该走 `AD` 的广告全进了兜底出口，配置看着跑得挺好
-（本仓踩过 Jinx 上游改名导致 404 的那一遭）⇒ 由 `self-conf-skills/gates/clash/check_remote_urls.py` 定期问（慢，按需跑）。
+（本仓踩过姊妹仓文件名改名导致 404 的那一遭）⇒ 由 `self-conf-skills/gates/clash/check_remote_urls.py` 定期问（慢，按需跑）。
 
 #### 5.4 mihomo 分流版 27 条的顺序（与 Surge / Egern 的 26 条**不是逐位同构**）
 
