@@ -133,10 +133,10 @@ GROUP_EXEMPT = {
 #
 #    ── 表一：同一上游，不同命名/格式 ──────────────────────────────────
 SOURCE_EQUIV = {
-    # 同一条 URL：Jinx/main/surge-direct.list ↔ Jinx/main/mihomo-direct.yaml
+    # 同一条 URL：RFU-Rules/main/surge-direct.list ↔ RFU-Rules/main/mihomo-direct.yaml
     # （独立审查逐条比对：47 条内容完全相同）
     "surge-direct": "jinx-cn",
-    # 同一 Jinx ads 上游的两种格式（Surge .list ↔ mihomo .yaml）；
+    # 姊妹仓 ads 那两件的两种格式（Surge .list ↔ mihomo .yaml，数据同为 Jinx 快照）；
     # 3885 条语义等价，只是语法不同（DOMAIN-WILDCARD ↔ DOMAIN-REGEX）
     "surge-ads": "jinx-ads",
     # 同一 AWAvenue 仓库的两个格式变体（Surge 965 行 / Clash 962 行）

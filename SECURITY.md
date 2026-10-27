@@ -41,9 +41,13 @@ vulnerability），不要公开发 issue：
 
 | 内核 | 当前主要格式与上游 | 主要风险 |
 |:--|:--|:--|
-| Surge | blackmatrix7、Jinx、TG-Twilight、Loyalsoldier、Repcz 的 `.list` / `.txt` | 滚动分支可无预警改变匹配范围、顺序或 IP 条目；文本可审阅，但仍须核对来源、格式与策略归属。 |
-| Egern | blackmatrix7、Jinx、TG-Twilight、Loyalsoldier、Repcz 的 Surge 兼容 `.list` / `.txt` | 同一上游在 Egern 的加载与 DNS 语义可能不同；可下载不等于规则有效，也不等于不会触发额外解析。 |
-| mihomo | 主要使用 MetaCubeX 的 `.mrs`，并使用 Jinx 与 TG-Twilight 的 mihomo 规则集 | `.mrs` 是预编译格式，肉眼审阅能力弱于文本；发布账号、分发 CDN、格式或内容变化都可能静默改变分流与 DNS 行为。 |
+| Surge | blackmatrix7、TG-Twilight、Loyalsoldier、Repcz 的 `.list` / `.txt`；广告两件来自姊妹仓 `RFU-Rules`（数据为 Jinx 3.2.3 冻结快照） | 滚动分支可无预警改变匹配范围、顺序或 IP 条目；文本可审阅，但仍须核对来源、格式与策略归属。 |
+| Egern | blackmatrix7、TG-Twilight、Loyalsoldier、Repcz 的 Surge 兼容 `.list` / `.txt`；广告两件同 Surge，来自姊妹仓 `RFU-Rules` | 同一上游在 Egern 的加载与 DNS 语义可能不同；可下载不等于规则有效，也不等于不会触发额外解析。 |
+| mihomo | 主要使用 MetaCubeX 的 `.mrs`，并使用 TG-Twilight 的 mihomo 规则集；广告两件来自姊妹仓 `RFU-Rules`（`.yaml`，同源快照） | `.mrs` 是预编译格式，肉眼审阅能力弱于文本；发布账号、分发 CDN、格式或内容变化都可能静默改变分流与 DNS 行为。 |
+
+> 姊妹仓与本仓同账号，**不代表审查标准可以放松**：`RFU-Rules` 里的数据仍出自第三方，
+> 只是冻结成快照、由本账号转发。它的旧路径（改名前的 `RiverFlowsInUUU/Jinx`）
+> 已被 `check_selfcontained.py` 判负，避免配置留在一条靠重定向维持的地址上。
 
 新增或替换上游时，必须使用上游项目的规范地址，复核维护状态、许可证、发布链路与规则语义；
 不得仅因 URL 可访问就认定可信。共享自有规则仍以 `rules/*.list` 为唯一真源，不能用远程副本

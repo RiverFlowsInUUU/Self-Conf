@@ -488,8 +488,8 @@ Surge 默认：走代理的域名用 Fake-IP，DIRECT 的用 Real-IP。
 
 | 规则集 | 条数 | 类型 | 上游 |
 |:-------|:----:|:-----|:-----|
-| `surge-direct.list` | — | 纯域名 | Jinx |
-| `surge-ads.list` | — | 纯域名 | Jinx |
+| `surge-direct.list` | — | 纯域名 | 姊妹仓 RFU-Rules（数据 Jinx） |
+| `surge-ads.list` | — | 纯域名 | 姊妹仓 RFU-Rules（数据 Jinx） |
 | `AWAvenue-Ads-Rule-Surge-RULE-SET.list` | — | 纯域名 | TG-Twilight（⚠️ **必须用 RULE-SET 版**） |
 | `AI.list` | — | 域名系（零 IP；含 KEYWORD×2 + URL-REGEX×1） | Repcz/Tool（分支头，活跃维护） |
 | `private.txt` | — | 域名 + 可能含 IP | Loyalsoldier |

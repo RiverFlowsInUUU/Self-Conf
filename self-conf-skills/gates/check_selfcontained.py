@@ -13,8 +13,11 @@
 判据：
     · 扫描配置与脚本里的 http(s) URL
     · 出现原仓仓库名（Self-Configuration / Clash）即判负
+    · 出现姊妹仓**改名前的旧路径**（RiverFlowsInUUU/Jinx）同样判负 ——
+      旧路径一直 200（GitHub 内部重定向），留着不报错，只是在赌一条转发
     · 注释里的说明性文字（提及来源）不在扫描范围 —— 那是记录，不是引用
-    · 上游第三方（MetaCubeX / blackmatrix7 / Jinx / TG-Twilight）放行
+    · 上游第三方（MetaCubeX / blackmatrix7 / TG-Twilight）放行；
+      姊妹仓 RFU-Rules 属本账号名下，本就在放行范围（不在上面那张判负表里）
 
 退出码：0 = 自洽 · 1 = 存在外部依赖
 用法：python self-conf-skills/gates/check_selfcontained.py [仓库根]
@@ -32,8 +35,14 @@ for _stream in (sys.stdout, sys.stderr):
 
 ROOT = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
 
-# 原仓仓库名 —— 出现即判负（整合仓必须自洽）
-FORBIDDEN_REPOS = ("Self-Configuration", "RiverFlowsInUUU/Clash")
+# 判负的仓库名 —— 出现即判负（本仓不得有指向它们的在线引用）
+#   · Self-Configuration / RiverFlowsInUUU/Clash：2026-10 整合前的原仓，已归档
+#   · RiverFlowsInUUU/Jinx：姊妹仓**改名前的旧路径**（2026-10-27 更名为 RFU-Rules）。
+#     GitHub 对旧路径持续返回 200（内部重定向）⇒ 用旧地址**不会报错**，
+#     只是静默依赖一条随时可能失效的转发（旧名一旦被别的仓占用，转发就断，
+#     而规则集拉不到只会**变空**，配置照样"加载成功"）。
+#     「还能用、但已不该用」的 URL，注释守不住，只有判据能守。
+FORBIDDEN_REPOS = ("Self-Configuration", "RiverFlowsInUUU/Clash", "RiverFlowsInUUU/Jinx")
 
 # 排除：说明性文字（注释里提及来源不算引用）
 COMMENT_PREFIX = ("#", "//", ";")

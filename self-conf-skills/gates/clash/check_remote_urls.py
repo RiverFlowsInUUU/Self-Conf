@@ -3,8 +3,8 @@
 """远程资源可达性检查 —— 所有被引用的远程规则集 URL 必须活着。
 
 为什么单独要这一项（本仓的切肤之痛）：
-    Jinx 上游把 `*-white-guard.*` 改名为 `*-direct.*`，本仓脚本里那条
-    `mihomo-white-guard.yaml` 就此 404。分流版改配置时碰巧发现并修了，
+    姊妹仓（当时仓名还叫 `Jinx`）把 `*-white-guard.*` 改名为 `*-direct.*`，
+    本仓脚本里那条 `mihomo-white-guard.yaml` 就此 404。分流版改配置时碰巧发现并修了，
     **懒人版一直挂着死链没人察觉** —— 因为本仓没有 CI，没人定期去问
     「这个 URL 还活着吗」。
 
@@ -14,7 +14,8 @@
 判据：
     · 从 clash 的 override/*.js 与 profiles/*.yaml，以及并列的 surge/ 与 egern/
       （含各自 profiles/）里抽出所有 http(s) 远程规则集 URL —— 三内核共用同一批
-      上游（Jinx / blackmatrix7 / Loyalsoldier），只扫 clash 会漏掉 surge/egern 的死链
+      上游（姊妹仓 RFU-Rules / blackmatrix7 / Loyalsoldier / TG-Twilight），
+      只扫 clash 会漏掉 surge/egern 的死链
     · 逐个 HEAD（失败则退化为 GET Range）探测
     · 非 2xx / 3xx 即判负，并打印 URL 与出处
 
