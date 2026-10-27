@@ -88,7 +88,7 @@ Egern 日志速读：
 
 | 症状 | 高概率根因 | 内核 |
 |:-----|:-----------|:----:|
-| 导入后整份配置拒绝加载 | `pre-matching` 规则策略写了组（必须字面量 REJECT 族） | Surge |
+| 导入后整份配置拒绝加载 | 规则策略写了组 + `pre-matching`（组运行时可能解析成 DIRECT） | Surge |
 | 面板某地区组是空的 | 节点名不含该地区关键词；或手写 `[Proxy]` 节点没被 `include-all-proxies=true` 纳入筛选 | Surge |
 | 规则指向的应用组"能选但没流量" | 组是 `select` 而成员写成了组名单位，或空组（Egern 旧版 `ChatGPT: []` 的坑） | 双侧 |
 | `smart` 组不测速换节点 | 成员是组名而非具体节点 —— 要用 `include-other-group`（Surge）/ `flatten: true`（Egern） | 双侧 |
@@ -292,7 +292,7 @@ python self-conf-skills/run/make_min.py            # 计划模式：四份 .min 
 | ✈️ **分流版的 `Airport` 组** | `policy-path=<订阅 URL>`，token 为占位符。不填则只能靠 `[Proxy]` 的本机节点（地区组按节点名关键词筛选，也能用） |
 | 🌏 **地区组可能为空** | 靠 `policy-regex-filter` 匹配节点名里的地区关键词。没筛到节点时 Surge **不会**拒绝加载，但指向它的规则会断流。导入后到面板确认哪几个组是空的 |
 | 🔁 **改地区关键词要改两处** | `Other Regions` 的负向断言把另外 5 个地区组的关键词抄了一遍。改完立刻跑 `python self-conf-skills/run/surge/audit_region_filters.py surge/profiles/routing.conf` |
-| 🚫 **`pre-matching` 策略不能写组** | 必须是字面量 `REJECT` 族，写成策略组会导致 **Surge 拒绝加载整份配置** |
+| 🚫 **广告拦截不得带 `pre-matching`** | 带上它会整个越过广告白名单 ⇒ 42 条功能域被误杀；该参数本身还要求策略写字面量 `REJECT` 族 |
 
 #### Egern 侧
 
@@ -351,7 +351,9 @@ FAQ 从两侧 [`profiles/<内核>.md`](./profiles/clash.md) · [`profiles/<内�
 不是"所有规则集都要"，只有能匹配 IP 的规则才需要：纯域名规则集任何情况都不触发解析（写它是空操作）；含 IP 条目的规则集不带，就会给每个走到它的域名强制本地解析一次。一句话：`no-resolve` 是"IP 规则的开关"，与域名规则无关。
 
 **Q：为什么广告拦截不指向 `AD` 组？**（Surge）
-`pre-matching` 要求字面量策略（组可能运行时解析成 `DIRECT`，导致拒加载）。拦截走 `REJECT`，`AD` 组是独立手动开关，两层职责分开。想让 `AD` 接管可以，但要一并去掉 `pre-matching`。
+拦截走 `REJECT`，`AD` 组是独立手动开关，两层职责分开 —— 这是**选择**，不是技术必需
+（2026-10-27 撤掉 `pre-matching` 后，指向策略组也允许了）。想让 `AD` 接管：把规则那一行的
+策略从 `REJECT` 改成 `AD` 即可。
 
 **Q：`smart` 组一直换节点，我想固定。**（Surge）
 把该组从 `smart` 换成 `select`，或给成员单独钉一个节点。Egern 侧同理：`fallback` 本来就只按顺序取第一个可用，想固定地区把目标写首位。
@@ -396,7 +398,7 @@ Surge iOS 不支持本地文件配置 —— 把 profile 托管到可访问地�
 | 线格式（wire format） | RFC 8484 的 DoH 交换格式（`?dns=<base64url>`）。判 DoH 端点死活只认它；JSON API 是 Google 风格的可选扩展 |
 | `no-resolve` / `no_resolve` | IP 类规则的"不触发解析"开关。Surge 条目尾后缀写法，Egern 规则级字段；同一开关两种拼写 |
 | 成对交付 | 判据 A（IP 规则全带 no-resolve）与判据 B（兜底前有域名体量足够的国内直连集）必须同时成立 |
-| `pre-matching` / `extended-matching`（Surge） | 规则在 DNS / SYN 阶段提前求值的能力；前者策略必须字面量 REJECT 族 |
+| `pre-matching` / `extended-matching`（Surge） | 规则在 DNS / SYN 阶段提前求值的能力；前者策略必须字面量 REJECT 族，本仓**不使用**（会越过广告白名单） |
 | `hijack-dns` / `hijack_dns` | 把发往 `:53` 的查询收进本地（拦不住走 443 / 853 的 DoH、DoT） |
 | Fake IP / `always-real-ip` / `real_ip_domains` | 接管 DNS 后返回假 IP 省一次握手；例外清单里的主机名拿真实 IP（游戏机 / NTP / APNs） |
 | 直连可达 | 兜底上游组的判据：端点全 IP 字面量，且不经代理就能问到答案（`group_reach`） |
@@ -438,7 +440,7 @@ Surge iOS 不支持本地文件配置 —— 把 profile 托管到可访问地�
 |:-:|:---|:-------|
 | 1 | `no-resolve` 与国内直连集**必须成对** | 只加 `no-resolve` → 国内域名整片走代理 |
 | 2 | 只测 `.cn` 会**假通过** | 配置靠 `DOMAIN-SUFFIX,cn` 兜底，不是真接住国内域名 |
-| 3 | `pre-matching` 指向策略组 → **加载失败** | 组在运行时可能解析成 `DIRECT` |
+| 3 | `pre-matching` 指向策略组 → **加载失败** | 组在运行时可能解析成 `DIRECT`；本仓已不用该参数 |
 | 4 | 审计器把 `GEOIP` 的策略位置取错 → **假 HIGH** | 策略恒在 index 2，不是 index 1 |
 | 5 | 审计器 `RULE-SET` 也取错位置 → 12 个假 HIGH | index 1 是规则集标识，不是策略 |
 | 6 | 审计器按"条数"判 `hijack-dns` → 判据本身错 | `:53` 地址空间无限，永远列不全 |
@@ -523,30 +525,29 @@ www.huawei.com  www.iqiyi.com  www.douyin.com  www.meituan.com
 **已固化**：`audit_routing_coverage.py` 的 17 个国内探针里有 14 个是非 `.cn`，
 脚本注释里写明了这条理由。
 
-#### 3 · `pre-matching` 指向策略组 → 拒绝加载
+#### 3 · `pre-matching` 会越过广告白名单 → 功能域被误杀
 
-**症状**：Surge 报「策略无法解析」/ 直接拒绝加载整份配置。
+**症状**：微信登录转圈、App 收不到推送，而日志里看不出是规则导致。
 
-**根因**：
-
-```
-RULE-SET,<ads.list>,AD,pre-matching      # ❌ AD 是策略组
-```
-
-`pre-matching` 要求策略在**连接层启动之前**就确定，而策略组在运行时
-**可以解析成 `DIRECT`**（被切走 / 成员动态变化），Surge 无法保证"一定拦得住"。
+**根因**：`pre-matching` 把规则抽到**所有其它规则之前**求值，于是整个越过
+上面那条广告白名单。而白名单里那 42 条是功能域
+（微信登录 `apd-pcdnwx*`、极光推送 `jpush.cn` 及其子域、京东 / 知乎 / 美团 等）——
+它们靠"放行行先命中"存活，被提前求值的 REJECT 一律先拦。
+逐条清单见姊妹仓 `RFU-Rules` 的 `OVERLAP.md`（42 条 = 28 同名 + 14 后缀覆盖）。
 
 **修法**：
 
 ```
-RULE-SET,<ads.list>,REJECT,pre-matching,extended-matching    # ✅ 字面量
+RULE-SET,<ads.list>,REJECT,extended-matching    # ✅ 不带 pre-matching
 ```
 
-⇒ 这正是「`AD` 组独立于规则链路」的原因，是**刻意的分层设计**。
+⇒ 代价是广告从 DNS 阶段拒答退回**连接阶段拦截**（多一次连接建立）。
+这是 2026-10-27 定的取舍：省一次连接，换回 42 条功能域。
 
-**职责边界**：拦截动作走字面量 `REJECT`（换取 `pre-matching` 的 DNS 阶段拦截），
-`AD` 组作为独立的手动开关存在。改默认行为改规则那一行；想让 `AD` 接管开关，
-把策略改成 `AD` 并一并去掉 `pre-matching`。
+**顺带**：`pre-matching` 本身还要求策略写字面量 `REJECT` 族
+（策略组运行时可能解析成 `DIRECT`，Surge 会拒绝加载整份配置）。
+本仓已不使用该参数，所以那条限制暂不适用；拦截仍写字面量 `REJECT`
+是**与 `AD` 组分工的选择**，不是技术必需。
 
 #### 4 · 审计器把 `GEOIP` 的策略位置取错 → 假 HIGH
 

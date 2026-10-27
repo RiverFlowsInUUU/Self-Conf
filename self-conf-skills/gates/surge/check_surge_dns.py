@@ -417,34 +417,60 @@ def check_9_rule_order(sections):
 
 
 def check_10_ad_rule_policy(sections):
-    """10 · 广告拦截必须是字面量 REJECT 族策略（pre-matching 的硬要求）。"""
+    """10 · 广告拦截**不得**带 `pre-matching`；策略与兜底参数照旧要求。
+
+    ⚠️ **本条判据在 2026-10-27 反转过方向** —— 记在这里，免得后人"修回去"：
+
+    原判据：「广告拦截必须是字面量 REJECT 族策略」。
+    那条约束的**来源**是 `pre-matching`：它要求策略在连接层启动前就确定，
+    写成策略组会在运行时解析成 DIRECT，Surge 直接拒绝加载整份配置。
+
+    而 `pre-matching` 本身有更严重的副作用：它把规则抽到**所有其它规则之前**
+    求值，于是整个越过广告白名单 —— 白名单里那 42 条是功能域
+    （微信登录 `apd-pcdnwx*`、极光推送 `jpush.cn` 及其子域、京东 / 知乎 / 美团 等），
+    被误杀的表现是"推送收不到、微信登录转圈"，日志里还看不出是规则导致。
+    逐条清单见姊妹仓 `RFU-Rules` 的 `OVERLAP.md`（42 条 = 28 同名 + 14 后缀覆盖）。
+
+    ⇒ 现在规则集里**不再有** `pre-matching`（代价：广告从 DNS 阶段拒答退回
+    连接阶段拦截）。本条判据据此改为：**广告拦截行带上 `pre-matching` 即判负** ——
+    这是本次事故的防线，防止有人"为了省一次连接"把它加回来。
+    """
     rules = parse_rules(sections)
     ad_hits = []
     for lineno, parts in rules:
         t = parts[0].strip().upper()
         if t != "RULE-SET":
             continue
-        opts = [p.strip().lower() for p in parts[3:]]
-        if "pre-matching" not in opts:
+        # 广告拦截规则集：URL 里带 ads 的那两条（本仓的 surge-ads.list 与 AWAvenue）
+        url = parts[1].lower() if len(parts) > 1 else ""
+        if "ads" not in url:
             continue
+        opts = [p.strip().lower() for p in parts[3:]]
         pi = policy_index(parts)
         pol = parts[pi].strip() if pi is not None and len(parts) > pi else ""
         ad_hits.append((lineno, parts[1] if len(parts) > 1 else "?", pol, opts))
 
     if not ad_hits:
-        add(LOW, 10, "没有使用 pre-matching 的规则",
-            "pre-matching 的 REJECT 在 DNS / TCP-SYN 阶段生效，"
-            "是广告密集配置最大的一笔 CPU 与耗电优化")
+        add(MEDIUM, 10, "没有找到广告拦截规则集",
+            "按 URL 含 `ads` 判定；规则集改名后本判据会失效，记得同步这里")
         return
     for lineno, target, pol, opts in ad_hits:
-        if pol.lower().startswith("reject"):
-            add(OK, 10, f"第 {lineno} 行 pre-matching 的策略是字面量 `{pol}`")
+        if "pre-matching" in opts:
+            add(HIGH, 10, f"第 {lineno} 行广告拦截带了 `pre-matching`",
+                "它把规则抽到所有其它规则之前求值 ⇒ 整个越过广告白名单，"
+                "白名单里那 42 条功能域（微信登录 / 极光推送等）会被误杀；"
+                "清单见姊妹仓 RFU-Rules 的 OVERLAP.md")
         else:
-            add(HIGH, 10, f"第 {lineno} 行 pre-matching 的策略是 `{pol}`，不是字面量 REJECT 族",
-                "pre-matching 要求策略本身一定是 REJECT 族；"
-                "写成策略组会因『组在运行时可能解析成 DIRECT』而被 Surge 拒绝加载")
+            add(OK, 10, f"第 {lineno} 行广告拦截没有 `pre-matching`（白名单顺序有效）")
+        if pol.lower().startswith("reject"):
+            add(OK, 10, f"第 {lineno} 行的拦截策略是字面量 `{pol}`",
+                "本仓让它与 `AD` 组分工（AD 组留给人工干预）；这不是技术硬要求")
+        else:
+            add(OK, 10, f"第 {lineno} 行的拦截策略是 `{pol}`",
+                "指向策略组现在**允许**（`pre-matching` 已撤）："
+                "改用 `AD` 组即由面板开关接管拦截")
         if "extended-matching" not in opts:
-            add(LOW, 10, f"第 {lineno} 行的 pre-matching 规则没有 extended-matching",
+            add(LOW, 10, f"第 {lineno} 行的广告拦截没有 extended-matching",
                 "缺少它时，App 直连 IP 的场景下域名规则会失效（TLS SNI / HTTP Host 兜底）")
 
 

@@ -146,8 +146,8 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 | 规则集 | 作用 | Surge 去向 | Egern 去向 | 来源 |
 |:-------|:-----|:-----------|:-----------|:-----|
 | `surge-direct.list` | 白名单（精确域名） | `DIRECT` | `DIRECT` | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
-| `surge-ads.list` | 广告拦截主清单 | `REJECT`（`pre-matching`） | `AD` 组 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
-| `AWAvenue-Ads-Rule-Surge-RULE-SET.list` | 广告拦截第 2 条 | `REJECT`（`pre-matching`） | `AD` 组 | [TG-Twilight/AWAvenue-Ads-Rule](https://github.com/TG-Twilight/AWAvenue-Ads-Rule) |
+| `surge-ads.list` | 广告拦截主清单 | `REJECT`（连接阶段） | `AD` 组 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
+| `AWAvenue-Ads-Rule-Surge-RULE-SET.list` | 广告拦截第 2 条 | `REJECT`（连接阶段） | `AD` 组 | [TG-Twilight/AWAvenue-Ads-Rule](https://github.com/TG-Twilight/AWAvenue-Ads-Rule) |
 | `SystemOTA.list` | Apple 系统更新（OTA） | `Apple Update` 组 | `Apple Update` 组 | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script)（**仅分流版引用**） |
 | `private.txt` | 特殊 TLD 与路由器域（`.lan` `.local` `miwifi.com`） | `DIRECT`（实测零 IP ⇒ 不写规则级开关） | `DIRECT`（分流版 v3 起补） | [Loyalsoldier/surge-rules](https://github.com/Loyalsoldier/surge-rules) |
 | `direct.txt` | 国内域名（纯域名、零 IP；**条数一律现抓**）**主承重墙** | `DIRECT`（同上，不写开关） | `DIRECT` | [Loyalsoldier/surge-rules](https://github.com/Loyalsoldier/surge-rules) |
@@ -434,7 +434,7 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 | 加密与分流 DNS | `encrypted-dns-server` 3 个端点 | `upstreams.Domestic-DNS` + `forward` + `proxy_nameservers` | `direct-nameserver`、`proxy-server-nameserver`、`nameserver`、`fallback`、`nameserver-policy` | Egern 的 `proxy_nameservers` 会绕过 `forward`；mihomo 在 `respect-rules: true` 下需要 `proxy-server-nameserver` |
 | 接管明文 53 | `hijack-dns` 枚举 6 个地址 | `hijack_dns: ['*']` | 仅静态 profile 的 `tun.dns-hijack: [any:53]`；当前只接管 UDP:53 | 覆写脚本不应写 `tun`；客户端自己管理 TUN |
 | IPv6 | `ipv6 = false` + `ipv6-vif = disable` | `ipv6: false` | 顶层 `ipv6: false` + `dns.ipv6: false` | 目标可照搬为“关闭 IPv6”，键不能照搬；mihomo 少关一处都不完整 |
-| 广告拦截 | 两条规则指向字面量 `REJECT`，并带 `pre-matching,extended-matching` | 规则层指向 `AD`；DNS 层 `dns.forward.value: reject` | 规则层指向 `AD`；DNS 层同时要求 `nameserver-policy: rcode://success` 与 `fake-ip-filter` | 三侧都在 DNS 前后设防，但触发链完全不同 |
+| 广告拦截 | 两条规则指向字面量 `REJECT`，并带 `extended-matching`（2026-10-27 起不再用 `pre-matching`） | 规则层指向 `AD`；DNS 层 `dns.forward.value: reject` | 规则层指向 `AD`；DNS 层同时要求 `nameserver-policy: rcode://success` 与 `fake-ip-filter` | 三侧都在 DNS 前后设防，但触发链完全不同 |
 | `no-resolve` | 规则行尾；当前用于 `LAN`、6 条含 IP 的应用集与 `GEOIP,CN` | `no_resolve: true` 只写在 `geoip`；写在 `rule_set` 上不生效 | 规则行尾；当前 4 个 `geoip-*` provider 引用都带 | 可移植的是“IP 规则不要为了匹配而先解析域名”的原则，不是字段落点 |
 | 默认出口 | `FINAL,Proxy,dns-failed` | `default.policy: Proxy` | `MATCH,Proxy` | 只有 Surge 有 `dns-failed` 参数 |
 
@@ -501,7 +501,7 @@ Surge 与 Egern 的 26 条规则逐位同义；mihomo 有 27 条。当前分流�
 | 语义 | Surge | Egern | clash-mihomo |
 |:-----|:------|:------|:-------------|
 | 广告白名单 | ① `surge-direct.list` → `DIRECT` | ① 同源 `.list` → `DIRECT` | ① `Jinx-CN`（yaml/classical）→ `DIRECT` |
-| 两条广告 | ②③ `.list` → 字面量 `REJECT` + pre-matching | ②③ `.list` → `AD` | ②③ `Jinx-Ads` / `AWAvenue-Ads` → `AD` |
+| 两条广告 | ②③ `.list` → 字面量 `REJECT` + extended-matching | ②③ `.list` → `AD` | ②③ `Jinx-Ads` / `AWAvenue-Ads` → `AD` |
 | Apple 更新 | ④ `SystemOTA.list` → `Apple Update` | ④ 同左 | ④ `apple-update.mrs` → `Apple Update` |
 | 系统域 | ⑤ 内置 `SYSTEM` → `DIRECT` | ⑤ `apple_system.list` → `DIRECT` | ⑤ `apple-system.yaml` → `DIRECT` |
 | 内网 | ⑥ 内置 `LAN`；⑦ `private.txt` | ⑥ `Lan.list`；⑦ `private.txt` | ⑥ `geoip-private.mrs`；⑦ `private.mrs` |
@@ -547,7 +547,7 @@ mihomo 的实际值应以本页和 [`profiles/<kern>.md`](./profiles/clash.md) �
 
 | 想移植的改动 | 错误照搬 | 实际后果 | 正确做法 |
 |:-------------|:---------|:---------|:---------|
-| Surge 解析阶段广告拦截 | 把 `pre-matching,extended-matching` 原样搬到 Egern / mihomo，或只把规则改成 `AD` | 两侧没有同名参数；mihomo 在 fake-IP 路径下甚至可能先返回假 IP，DNS 拒答根本走不到 | Egern 写 `dns.forward.value: reject`；mihomo 同时写 `nameserver-policy: rcode://success` 与同集 `fake-ip-filter`，规则层再指 `AD` |
+| Surge 侧广告拦截 | 把 `extended-matching` 原样搬到 Egern / mihomo，或只把规则改成 `AD` | 两侧没有同名参数；mihomo 在 fake-IP 路径下甚至可能先返回假 IP，DNS 拒答根本走不到 | Egern 写 `dns.forward.value: reject`；mihomo 同时写 `nameserver-policy: rcode://success` 与同集 `fake-ip-filter`，规则层再指 `AD` |
 | Egern 节点展开 | 把 `flatten: true` 搬到 mihomo | mihomo 无对应键；不会得到“展开 provider 节点”的效果 | 静态配置按来源选 `use` / `include-all` / `include-all-proxies`；覆写脚本先判断输入有没有 provider |
 | 倍率偏好 | 把 Surge `policy-priority` 或 Egern `priorities` 政名后塞给 mihomo | mihomo 不支持节点权重；未知键不能产生 0.15 软偏好 | 用 `url-test` + `filter` 分档，再由 `fallback` 按档回落；脚本只能对执行时可见节点排序。当前静态接线异常见 §2.1 |
 | mihomo TUN | 把静态 profile 的 `tun` 段写进 `clash-routing.js` | 覆写脚本会越过客户端的 TUN 管理，可能与 Mihomo Party / Clash Verge 设置冲突 | `tun` 只属于 `profiles/*.yaml`；`override/*.js` 不生成它 |
@@ -573,7 +573,7 @@ mihomo 的实际值应以本页和 [`profiles/<kern>.md`](./profiles/clash.md) �
 | 分组 | 4：`Airport` / `Proxy` / `AI` / `AD` | 4：同左 | 3：`Proxy` / `AI` / `AD`；没有 `Airport` 组 |
 | 规则 | 11 | 11 | 11 |
 | 规则集载体 | URL 内联 `.list` | `rule_set.match` 指向 `.list` | 10 份 rule-provider；规则另有最终 `MATCH` |
-| 广告解析阶段 | `pre-matching REJECT` | `dns.forward.value: reject` | `nameserver-policy` + `fake-ip-filter` |
+| 广告拦截时机 | 规则层（连接阶段） | `dns.forward.value: reject`（解析阶段） | `nameserver-policy` + `fake-ip-filter`（解析阶段） |
 | 系统 / 内网 | 内置 `SYSTEM` + `LAN` + `private.txt` | `apple_system.list` + `Lan.list` + `private.txt` | `apple-system.yaml` + `geoip-private.mrs` + `private.mrs` |
 | 默认出口 | `FINAL,Proxy,dns-failed` | `default.policy: Proxy` | `MATCH,Proxy` |
 | TUN | 由 Surge 自身配置模型处理 | 由 Egern 自身配置模型处理 | 静态 YAML 有 `tun`；覆写脚本没有，也不应有 |
@@ -645,7 +645,7 @@ python self-conf-skills/run/clash/build_rules.py --check
 | 只在哪侧 | 项 | 为什么不能移植 |
 |:---------|:---|:---------------|
 | Surge | `[SSID Setting]` 的 `suspend=true` | 是整机网络级暂停；Egern 的 `ssid` 条件规则和 mihomo 路由规则都只是选路，不等于暂停 |
-| Surge | `pre-matching` / `extended-matching` | 是 Surge 的提前求值阶段；另外两侧只能用各自 DNS 拒答链实现目标 |
+| Surge | `extended-matching`（`pre-matching` 已撤） | Surge 只在规则层匹配；另外两侧另有 DNS 拒答链实现解析阶段拦截 |
 | Surge | 内置 `LAN` / `SYSTEM` | Egern/mihomo 没有同一内置集合，只能用远程集或本仓快照补位 |
 | Surge | `FINAL,...,dns-failed` | `dns-failed` 没有另外两侧的同名参数 |
 | Surge | `[Host]` 与 `[URL Rewrite]` 当前两条 302 | 本仓另外两份分流配置没有对应段；若真要移植，应按客户端能力另设计，不能塞进 rules |

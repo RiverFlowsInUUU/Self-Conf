@@ -408,6 +408,13 @@ Node-C = https, cdn-relay.example.com, 443, …, underlying-proxy="落地节点�
 这是全模板最大的一笔 CPU 与耗电优化。省的不只是带宽，是「解析 → 建连 →
 等首字节 → 丢弃」这一整串唤醒。移动端省电的关键从来不是省流量，是少唤醒。
 
+⚠️ **2026-10-27 起本模板不使用它。** 它把规则抽到"所有其它规则之前"求值，
+于是整个越过广告白名单 —— 而白名单里那 42 条是功能域（微信登录 `apd-pcdnwx*`、
+极光推送 `jpush.cn` 及其子域、京东 / 知乎 / 美团 等），被误杀的表现是
+"推送收不到、微信登录转圈"，日志里还看不出是规则导致。
+逐条清单见姊妹仓 `RFU-Rules` 的 `OVERLAP.md`。
+代价：广告退回**连接阶段拦截**（多一次连接建立），换回那 42 条功能域。
+
 #### 8.2 硬约束：策略必须是字面量
 
 `pre-matching` 的规则，策略必须是 **REJECT 族的字面量策略名**。
@@ -420,6 +427,10 @@ Node-C = https, cdn-relay.example.com, 443, …, underlying-proxy="落地节点�
 留给面板上手动切 —— 但要让读者知道：**把 `AD` 切成 `DIRECT` 并不会关闭广告拦截**，
 因为规则根本不经过它。想真正关掉，改规则那一行的策略或注释掉整行。
 
+⚠️ 2026-10-27 更新：规则里已不再带 `pre-matching`，于是"策略必须字面量 REJECT 族"
+这条限制**不再适用** —— 指向策略组现在也允许。拦截仍写字面量 `REJECT`，
+是**与 `AD` 组分工的选择**（见 §13.3），不是技术必需。
+
 #### 8.3 `extended-matching`
 
 额外按 **TLS SNI / HTTP Host** 匹配。专治「App 直连 IP，域名规则失效」——
@@ -428,7 +439,7 @@ Node-C = https, cdn-relay.example.com, 443, …, underlying-proxy="落地节点�
 
 ⚠️ 本项目**没有**在 `AI.list` 那条规则上加它 —— 那条是分流不是拦截，
 加 `extended-matching` 会让它按 SNI 匹配，与「域名规则集」的语义不符。
-`check_surge_dns.py` 的 `check_10` 只对带 `pre-matching` 的规则提示缺
+`check_surge_dns.py` 的 `check_10` 只对**广告拦截规则**（URL 含 `ads`）提示缺
 `extended-matching`，不给非拦截规则报负。
 
 #### 9 · Fake-IP 与 Real-IP（`always-real-ip` 的机制）
@@ -524,9 +535,8 @@ Surge 默认：走代理的域名用 Fake-IP，DIRECT 的用 Real-IP。
 #### 11.4 广告拦截的两条清单与 `-RULE-SET` 版地址
 
 **① 两条并列，不是替换。** 顺序是 `白名单 → Jinx → AWAvenue → 应用分流`，
-与 Egern 的结构一致。两条同策略同参数（`REJECT,pre-matching,extended-matching`）——
-Surge 这边指向**字面量 `REJECT`** 而不是 `AD` 组，理由见 §13.3：
-只有字面量 REJECT 族才能吃到 `pre-matching`（组不行）。
+与 Egern 的结构一致。两条同策略同参数（`REJECT,extended-matching`）——
+Surge 这边指向**字面量 `REJECT`** 而不是 `AD` 组，是与 `AD` 组分工的选择，见 §13.3。
 
 **② 收益按「净新增覆盖」算，不是按总条数。** 实测（2026-09-22）：
 
@@ -678,8 +688,10 @@ AD      = select, REJECT, icon-url=…/AdBlock.png
 
 #### 13.2 不能用组的地方
 
-**① `pre-matching`** —— 见 §8.2。`pre-matching` 的规则策略**必须是字面量 REJECT 族**，
-写成组会加载失败。所以广告拦截写的是 `REJECT` 而不是 `AD`。
+**① 广告拦截不带 `pre-matching`** —— 见〈`pre-matching`〉。它会越过广告白名单（42 条功能域被误杀），
+所以广告拦截写的是 `REJECT` + `extended-matching`，**不加** `pre-matching`。
+（`pre-matching` 本身要求策略写字面量 REJECT 族，写成组会加载失败 ——
+现在不用该参数，这条限制暂不适用。）
 
 **② `smart` 组当父组** —— 官方明确：Smart 策略组**不可以使用其他组作为子策略**，
 也不可以用作 `url-test` / `load-balance` 组的子策略。
@@ -691,17 +703,16 @@ AD      = select, REJECT, icon-url=…/AdBlock.png
 
 `AD` 组**被刻意设计为独立于规则链路**，这是一处明确的分层设计：
 
-- 规则里的广告拦截写的是字面量 `REJECT`，**不经过 `AD` 组** —— 这是为了拿到
-  `pre-matching` 在 DNS 阶段的拦截能力（见 §8.2），代价是拦截动作绕开了 `AD`；
+- 规则里的广告拦截写的是字面量 `REJECT`，**不经过 `AD` 组** —— 这是**分工选择**
+  （拦截动作走内置策略、`AD` 组留给人工干预），代价是拦截动作绕开了 `AD`；
 - `AD` 组因此成为一个**纯粹的手动开关**：面板上随时可切，不牵动规则引擎。
 
 > 📌 **职责划分**：`RULE-SET,…,surge-ads.list` 负责「默认拦截」，
 > `AD` 组负责「人工干预入口」。两者独立存在，`AD` 组不被规则引用是设计结果，
 > 不是配置遗漏。
 
-想让 `AD` 组真正接管拦截开关，把 `[Rule]` 里那条 `RULE-SET,…,surge-ads.list`
-的策略从 `REJECT` 改成 `AD` 即可 —— 但要清楚**改完那行就不能带 `pre-matching` 了**
-（见 §8.2），也就是用「面板可控」换掉「DNS 阶段最大那笔耗电优化」。
+想让 `AD` 组真正接管拦截开关，把 `[Rule]` 里那两条广告 `RULE-SET` 的策略
+从 `REJECT` 改成 `AD` 即可（2026-10-27 起不再有"必须去掉 `pre-matching`"的前提）。
 **这是两条都成立的路线，本模板选了前者，并把开关入口保留下来。**
 
 #### 13.4 `AI` 组独立的理由
@@ -726,8 +737,8 @@ Surge 的组名 / 节点名引用**不区分大小写地可解析**，但 `check
 | # | 规则 | 策略 | 选项 | 为什么排这里 |
 |:-:|:-----|:----:|:-----|:-------------|
 | 1 | `RULE-SET,…,surge-direct.list` | `DIRECT` | — | 广告白名单。**必须**在 REJECT 之前，否则形同虚设。它同时兜住两条黑名单的误杀 |
-| 2 | `RULE-SET,…,surge-ads.list` | `REJECT` | `pre-matching,extended-matching` | 黑名单第 1 条（Jinx）。必须在 `direct.txt` / `GEOIP,CN` **之前** —— 否则国内广告域名被 `direct.txt` 接走 |
-| 3 | `RULE-SET,…,AWAvenue-Ads-Rule-Surge-RULE-SET.list` | `REJECT` | `pre-matching,extended-matching` | 黑名单第 2 条（AWAvenue）。顺序与 Egern 对齐，见 §11.4 |
+| 2 | `RULE-SET,…,surge-ads.list` | `REJECT` | `extended-matching` | 黑名单第 1 条（Jinx）。必须在 `direct.txt` / `GEOIP,CN` **之前** —— 否则国内广告域名被 `direct.txt` 接走 |
+| 3 | `RULE-SET,…,AWAvenue-Ads-Rule-Surge-RULE-SET.list` | `REJECT` | `extended-matching` | 黑名单第 2 条（AWAvenue）。顺序与 Egern 对齐，见 §11.4 |
 | 4 | `RULE-SET,SYSTEM` | `DIRECT` | — | **系统域白名单（位 ④，2026-10-06 起不再置顶）**：Apple 激活 / 推送 / 配对，内置权威集合，**保底**。实测其 18 个域名与两条广告清单零交集 ⇒ 排前后拦截结果相同。⚠️ **懒人版不设 `Apple Update` 组**（仅分流版有），OTA 域名在此接成 `DIRECT` |
 | 5 | `RULE-SET,LAN` | `DIRECT` | `no-resolve` | 含 18 条 IP-CIDR，**必须** `no-resolve`。内网段排在应用之前，与 Egern 同位 |
 | 6 | `RULE-SET,…,private.txt` | `DIRECT` | `update-interval=604800` | 内网域名。实测零 IP ⇒ 按原则**不写** `no-resolve` |
@@ -984,10 +995,9 @@ IP 类规则需要有已解析的地址。放在所有域名规则之后，使�
 
 **Q：为什么广告拦截不指向 `AD` 组？**
 
-见 §8.2 / §13.3。这是刻意的分层：`pre-matching` 要求字面量策略，所以拦截动作
-走 `REJECT`（换取 DNS 阶段拦截能力）；`AD` 组则作为**独立的手动开关**保留，
-职责是「给人工干预留入口」，不与规则链路耦合。想让 `AD` 接管开关可以改，
-但要一并去掉 `pre-matching`。
+见 §8.2 / §13.3。这是刻意的分层：拦截动作走字面量 `REJECT`；`AD` 组则作为
+**独立的手动开关**保留，职责是「给人工干预留入口」，不与规则链路耦合。
+想让 `AD` 接管开关，把规则那一行的策略从 `REJECT` 改成 `AD` 即可。
 
 **Q：`smart` 组一直换节点，我想固定。**
 
@@ -1318,8 +1328,8 @@ AdBlock = reject
 ```
 
 之后可在规则 / 组里用这个名字。
-⚠️ 但 `pre-matching` 的规则**建议直接写字面量内置名** —— 别名的解析链路更长，
-字面量保证能过校验。
+⚠️ 但**拦截规则建议直接写字面量内置名** —— 别名的解析链路更长，
+字面量最稳（`pre-matching` 已撤，这不再是加载校验的硬要求）。
 
 #### 3 · `[Proxy Group]`
 
@@ -1357,28 +1367,29 @@ AD      = select, REJECT, icon-url=…/AdBlock.png
 - `update-interval=3600` —— 只对**订阅型组**有意义，写在 `smart` / `select` 组上是空转
 - `include-all-proxies=0` / `no-alert=0` / `hidden=0` —— 都已是默认值
 
-#### 3.4 ⚠️ 广告拦截**不能**指向策略组
+#### 3.4 ⚠️ 广告拦截**不得**带 `pre-matching`
 
 ```
-RULE-SET,<ads.list>,AD,pre-matching
-RULE-SET,<ads.list>,REJECT,pre-matching,extended-matching
+RULE-SET,<ads.list>,AD,pre-matching                        # ❌ 会越过白名单
+RULE-SET,<ads.list>,REJECT,extended-matching                # ✅ 本模板的写法
 ```
 
-原因：`pre-matching` 要求在连接层启动前就确定策略，而策略组在运行时**可以解析成
-DIRECT**（组被切走 / 成员动态变化），Surge 无法保证"一定拦得住"，于是
-**直接拒绝加载整份配置**。
+原因：`pre-matching` 把规则抽到**所有其它规则之前**求值，于是整个越过广告白名单 ——
+白名单里那 42 条是功能域（微信登录 `apd-pcdnwx*`、极光推送 `jpush.cn` 等），
+被误杀的表现是"推送收不到、微信登录转圈"。清单见姊妹仓 `RFU-Rules` 的 `OVERLAP.md`。
+代价是广告退回连接阶段拦截（多一次连接建立），这是明确的取舍。
 
 ⇒ 这正是 `AD` 组被设计成「独立于拦截链路之外」的原因：拦截动作走字面量
 `REJECT`，`AD` 组作为**面板上独立的手动开关**保留 —— 刻意的分层，不是遗漏。
-**职责边界**：改默认拦截行为要改规则那一行；想让 `AD` 接管开关，把策略改成
-`AD` 并**一并去掉 `pre-matching`**（这是明确的取舍）。
+**职责边界**：改默认拦截行为要改规则那一行；想让 `AD` 接管开关，把策略改成 `AD`
+（不再需要动 `pre-matching`）。
 
 #### 4 · `[Rule]`
 
 ```
 RULE-SET,<surge-direct.list>,DIRECT
 
-RULE-SET,<surge-ads.list>,REJECT,pre-matching,extended-matching
+RULE-SET,<surge-ads.list>,REJECT,extended-matching
 
 RULE-SET,LAN,DIRECT,no-resolve
 RULE-SET,<private.txt>,DIRECT          # 实测零 IP ⇒ 按 4.6 的取舍不写开关
@@ -1418,7 +1429,7 @@ IP 类规则需要有已解析的地址。放在所有域名规则之后，使�
 
 | 选项 | 作用 |
 |:-----|:-----|
-| `pre-matching` | REJECT 提前到 **DNS 查询 / TCP-SYN 阶段**求值，连接层完全不启动。**最大一笔耗电优化** |
+| `pre-matching` | REJECT 提前到 **DNS 查询 / TCP-SYN 阶段**求值，连接层完全不启动。**最大一笔耗电优化** —— 但本模板**不用它**（会越过广告白名单，见〈`pre-matching`〉） |
 | `extended-matching` | 额外按 **TLS SNI / HTTP Host** 匹配。专治「App 直连 IP 导致域名规则失效」 |
 
 ⚠️ `extended-matching` 只加在**拦截**规则上。加在分流规则上会改变它的语义
@@ -1501,7 +1512,7 @@ localhost = server:system
 [ ] FINAL 之前有域名体量足够的国内直连集（数域名条目，不是看名字）
 [ ] 白名单 DIRECT 在第一条 REJECT 之前
 [ ] REJECT 在 direct.txt / GEOIP,CN 之前
-[ ] pre-matching 的策略是字面量 REJECT 族
+[ ] 广告拦截**不带** `pre-matching`，且带 `extended-matching`
 [ ] always-real-ip 的功能类主机名被前置域名规则接住
 [ ] 节点 server 能换 IP 的都换了 IP
 [ ] 所有 underlying-proxy 指向的名字存在
@@ -1577,7 +1588,7 @@ Egern（见分支 B）、Shadowrocket（`dns-server` 语义不同）。
 | 7 | 策略组引用的节点 / 组是否存在 | HIGH |
 | 8 | 规则引用的策略是否可解析（`policy_index` 定位） | HIGH / MEDIUM |
 | 9 | 规则顺序：域名类在 IP 类之前、FINAL 在最后、REJECT 位置 | HIGH / MEDIUM |
-| 10 | 带 `pre-matching` 的规则策略是否为**字面量** REJECT 族 | HIGH |
+| 10 | 广告拦截是否误带 `pre-matching`（带即 HIGH）；缺 `extended-matching` → LOW |
 | 11 | `always-real-ip` 主机名是否被前置域名规则接住 | MEDIUM / LOW |
 | 12 | 所有 IP 类规则是否带 `no-resolve`；FINAL 是否带 `dns-failed` | MEDIUM / LOW |
 
@@ -1619,7 +1630,7 @@ proxy-test-udp = apple.com@1.1.1.1
 
 [Rule]
 RULE-SET,<白名单>,DIRECT
-RULE-SET,<广告黑名单>,REJECT,pre-matching,extended-matching
+RULE-SET,<广告黑名单>,REJECT,extended-matching
 RULE-SET,SYSTEM,DIRECT
 RULE-SET,LAN,DIRECT,no-resolve
 RULE-SET,<private.txt>,DIRECT       ← 实测零 IP ⇒ 不写规则级开关
@@ -1637,8 +1648,8 @@ FINAL,Proxy,dns-failed
    给 IP 规则补 `no-resolve` 会**同时**关掉「解析后判 IP 归属」这条直连路径。
    只交一半 → 国内域名整片落 `FINAL → Proxy`。判据是「数**域名**条目」，
    **不是**看规则集名字（`ChinaMax.list` 名字像国内域名集，实测 IP 类 12472 条、域名类只有 64 条）。
-3. **`pre-matching` 的规则策略必须是字面量 REJECT 族**，不能是策略组。
-   策略组在运行时可能解析成 DIRECT，Surge 会**拒绝加载整份配置**。
+3. **广告拦截不得带 `pre-matching`** —— 它会整个越过广告白名单，42 条功能域被误杀；
+   代价是广告退回连接阶段拦截。
 
 ##### 验收判据（7 条，全过才算可用）
 
@@ -1657,7 +1668,7 @@ FINAL,Proxy,dns-failed
 | 症状 | 根因 | 修法 |
 |---|---|---|
 | 国内网站整片走代理 | IP 规则加了 `no-resolve`，但 `FINAL` 前没有域名类国内直连集 | 加 `direct.txt`，见铁律 2 |
-| 配置加载失败「策略无法解析」 | `pre-matching` 策略写成了策略组；或 `underlying-proxy` 指向不存在的节点 | 改字面量 / 先建被引用的节点 |
+| 配置加载失败「策略无法解析」 | `pre-matching` 策略写成了策略组（组运行时可能解析成 DIRECT）；或 `underlying-proxy` 指向不存在的节点 | 去掉 `pre-matching` / 改字面量 / 先建被引用的节点 |
 | 报「规则引用了未定义的策略 `CN`」 | 审计器把 `GEOIP` 当成"无匹配值"类型，策略取到了 index 1 | `GEOIP` / `IP-GEOIP` / `ASN` 的策略恒在 index 2（`RULE-SET` 同理，index 1 是规则集标识） |
 | 冷启动抓包有明文 `:53` | `encrypted-dns-server` 里有主机名端点；或 `dns-server` 写了 `system` | 端点换 IP 字面量 |
 | 每个新域名首访卡一下 | `GEOIP,CN` 或其他 IP 规则缺 `no-resolve` | 全部加 `no-resolve`（注意同时补铁律 2） |

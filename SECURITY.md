@@ -78,7 +78,7 @@ vulnerability），不要公开发 issue：
 7. 策略组成员无悬空节点或组引用；
 8. 规则策略可解析；
 9. 白名单、广告拦截、域名直连、IP 规则与兜底顺序正确；
-10. 广告规则使用满足 `pre-matching` 要求的字面量 REJECT 族策略；
+10. 广告拦截规则**不带** `pre-matching`（带即判负：它会越过广告白名单），并带 `extended-matching`；
 11. `always-real-ip` 主机在兜底前有域名规则承接；
 12. IP 类规则带 `no-resolve`，不为规则判定额外触发解析。
 

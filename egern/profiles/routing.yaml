@@ -4,8 +4,8 @@
 #   ① `dns.forward` 由单条 catch-all 扩为 4 层：
 #      白名单（direct → Domestic-DNS，抢在拦截前拿到解析）
 #      → Jinx-Ads / AWAvenue 两条广告清单（value: reject —— 官方语义
-#      "refuse the query and return an empty response"，解析阶段直接拒答，
-#      等价 Surge 的 pre-matching REJECT）→ catch-all 兜底。
+#      "refuse the query and return an empty response"，解析阶段直接拒答；
+#      Surge 自 2026-10-27 起已无等价机制 —— 它的广告拦截在连接阶段）→ catch-all 兜底。
 #      防泄露面不变：查询去向仍是 Domestic-DNS 加密组或拒答二选一，
 #      proxy_nameservers 绕过 Forward、bootstrap 依旧闲置。
 #   ② `rules` 补 `private.txt → DIRECT`（与 Surge 同源同策略；Lan.list 保留互补
@@ -93,7 +93,8 @@ dns:
   #      （AWAvenue 命中其中若干条：jpush.cn / appcfg.v.qq.com / apd-pcdnwx* /
   #      tnc3-* 等）必须抢在 reject 之前拿到解析，否则流量层的白名单救不了
   #      一个解析都失败的域名。
-  #   ② 广告拦截：对应 Surge 的 pre-matching REJECT —— 官方 value 字段：
+  #   ② 广告拦截：Egern 侧是**解析阶段**拒答（Surge 自 2026-10-27 起不再有
+  #      解析阶段拒答机制）—— 官方 value 字段：
   #      "The special value reject — refuse the query and return an empty
   #       response"。解析阶段直接拒答，连接根本不会发起。
   #   ③ catch-all 兜底：官方「完整示例」的最后一条正是 domain_wildcard: '*'。
@@ -456,7 +457,7 @@ rules:
 # blackmatrix7 Proxy.list：改成**纯注释** = 不进 rules 数组、不占一位。
 # Egern 虽然有 `disabled: true`，但那条仍然算数组里的一个元素 ⇒ 会比 Surge 多占一位、
 # 把位 ⑲ 错开。Surge 的 `RULE-SET` 根本没有 disabled 字段（只认 no-resolve /
-# extended-matching / update-interval / pre-matching），想不生效只能注释。
+# extended-matching / update-interval），想不生效只能注释。
 # 两边统一用注释写法，`self-conf-skills/references/rulesets.md` 的「匹配顺序（Surge / Egern 基准序）」才成立。
 #   # - rule_set:
 #   #     name: Proxy

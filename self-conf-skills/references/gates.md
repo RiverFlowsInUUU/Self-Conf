@@ -499,7 +499,7 @@ fi
 | 7 | 策略组成员可解析 | **HIGH** / MEDIUM / OK | 空组 → HIGH；未知组类型 → MEDIUM；成员既不在 `[Proxy]` 也不是已知组 / 内置策略 → **HIGH**（Surge 会拒绝加载） |
 | 8 | 规则策略可解析 | **HIGH** / MEDIUM / OK | 用 `policy_index` 定位策略字段；类型未识别或字段不足 → MEDIUM（跳过策略校验）；策略不在已知集合 → **HIGH** |
 | 9 | 规则顺序 | **HIGH** / MEDIUM / OK | 无 `FINAL` → HIGH；`FINAL` 不在最后 → MEDIUM；IP 类排在域名类之前 → **HIGH** |
-| 10 | `pre-matching` 的策略是字面量 | **HIGH** / LOW / OK | 无 `pre-matching` 规则 → LOW；有 `pre-matching` 但策略不是 `reject*` → **HIGH**；缺 `extended-matching` → LOW |
+| 10 | 广告拦截**不得**带 `pre-matching` | **HIGH** / LOW / OK | 广告规则（URL 含 `ads`）带 `pre-matching` → **HIGH**（会越过白名单）；缺 `extended-matching` → LOW；没找到广告规则集 → MEDIUM |
 | 11 | `always-real-ip` 被前置域名规则接住 | MEDIUM / LOW / OK | 本地类主机名（`*.lan` 等）不计数。未接住：若文件里有 `RULE-SET` → LOW（远程内容无法静态判定）；否则 → MEDIUM |
 | 12 | IP 类规则的 `no-resolve` | MEDIUM / LOW / OK | 无 IP 类规则 → OK；任一带缺 → **MEDIUM**（⚠️ 不是泄露补丁：走代理时解析在代理端；缺它只是多一次冗余解析。真正风险是连带——补它必须同时有域名类国内直连集）；`FINAL` 缺 `dns-failed` → LOW |
 
@@ -1980,7 +1980,7 @@ MSYS_NO_PATHCONV=1 gh api --method POST /markdown \
 | 2 | `[Rule]` 的顺序（`direct.txt` 挪到 REJECT 前） | 广告拦截失效 | 人工核对 + `check_surge_dns.py` 第 9 项 |
 | 3 | IP 类规则的 `no-resolve`（删掉） | DNS 泄露 | `check_surge_dns.py` 第 12 项 |
 | 4 | 只改 `.conf` 或只改 `.min.conf` | 两份行为不一致 | `check_min_pair.py` |
-| 5 | `pre-matching` 的策略（改成策略组） | **Surge 拒绝加载** | `check_10` |
+| 5 | 广告拦截加上 `pre-matching`（或把策略改成组） | **整个越过广告白名单** ⇒ 42 条功能域被误杀（写成组还会让 Surge 拒加载） | `check_10` |
 | 6 | `underlying-proxy` 指向的名字 | **Surge 拒绝加载** | `check_7` |
 | 7 | `# audit-waive:` 行（删掉） | 从 2 waived 变 2 high | 无（靠"知道它是有语义的"） |
 

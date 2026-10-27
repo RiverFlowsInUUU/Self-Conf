@@ -64,7 +64,8 @@ dns:
   #   ① 白名单 → Domestic-DNS：广告清单会误杀的那些功能域，必须抢在拒答之前拿到解析，
   #      否则流量层的白名单救不了一个解析都失败的域名。
   #   ②③ 两条广告清单 → reject：官方语义「refuse the query and return an empty
-  #      response」—— 解析阶段直接拒答，连接根本不发起，等价 Surge 的 pre-matching REJECT。
+  #      response」—— 解析阶段直接拒答，连接根本不发起
+  #      （Surge 自 2026-10-27 起已无等价机制 —— 它的广告拦截在连接阶段）。
   #   ④ catch-all 兜底：任何域名都不会「未命中 Forward」⇒ 永不回退 bootstrap。
   # 防泄露面不变：①④ 的去向都是 Domestic-DNS（同一个加密组，无新解析器），
   # ②③ 是终止动作不是转发；proxy_nameservers 配置在，代理 DNS 完全绕过 Forward。

@@ -214,9 +214,11 @@ forward:
   - proxy_rule_set: <AWAvenue…-RULE-SET.list> value: reject
   - domain_wildcard: '*'                      value: Domestic-DNS   # 兜底
 ```
-> **`routing_v3` 起扩为 4 条**（2026-09-23，对齐 Surge 的 `pre-matching` 拦截）：
+> **`routing_v3` 起扩为 4 条**（2026-09-23，为对齐 Surge 当时的解析阶段拦截）：
 > 官方 `value` 字段规定特殊值 **`reject` ——「refuse the query and return an empty response」**，
-> 命中即在**解析阶段**拒答，连接根本不会发起，效果等价 Surge 的 `pre-matching REJECT`。
+> 命中即在**解析阶段**拒答，连接根本不会发起。
+> ⚠️ 2026-10-27 起 Surge 已不再用 `pre-matching`（它会越过广告白名单），
+> **Egern 这一侧仍是解析阶段拒答** —— 两边不再等价，Egern 更强。
 > ⚠️ 顺序是命门：**白名单必须排在两条广告清单之前**（AWAvenue 会命中白名单里 10 条功能域，
 > 如 `jpush.cn` / `apd-pcdnwx*` / `tnc3-*`），否则白名单域名连解析都拿不到。
 > `routing_v1` 里是两条（`domain_regex: '.'` + `domain_wildcard: '*'`）；`routing_v2.1` 删掉了 `domain_regex` ——

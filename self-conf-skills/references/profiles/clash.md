@@ -193,8 +193,8 @@ self-conf/                                    # 三内核整合仓
 | 自动选优组 | `smart`（首字节延迟 + TCP 重传率 + UDP 延迟，按站点记忆） | `smart` | ❌ **没有 `smart` 类型** —— 只有 `select` / `url-test` / `fallback` / `load-balance` |
 | 倍率分档 | `policy-priority` 权重 | `policy-priority` 权重 | ❌ **无权重机制** —— 模板靠 `filter` 分三档（§7） |
 | 兜底 | `FINAL,<组>,dns-failed` | `- default: {policy: <组>}` | **`MATCH,<组>`**（无 `dns-failed` 参数） |
-| 解析阶段拒答 | `REJECT,pre-matching,extended-matching` | `dns.forward` 里 `value: reject` | **`nameserver-policy` 的 `rcode://success`**（§14） |
-| 广告拦截落点 | 规则层，指向**字面量 `REJECT`**（`pre-matching` 要求字面量） | 规则层指向 `AD` 组 | **规则层指向 `AD` 组 + DNS 层 `rcode://success`（双层）** |
+| 解析阶段拒答 | ❌ 已撤（2026-10-27）—— Surge 无解析阶段拒答 | `dns.forward` 里 `value: reject` | **`nameserver-policy` 的 `rcode://success`**（§14） |
+| 广告拦截落点 | 规则层，指向**字面量 `REJECT`**（与 `AD` 组分工） | 规则层指向 `AD` 组 | **规则层指向 `AD` 组 + DNS 层 `rcode://success`（双层）** |
 | 第二种交付形态 | ❌ 无 | ❌ 无 | ✅ **覆写脚本**（§1.1） |
 | IPv6 关闭 | `ipv6 = false` + `ipv6-vif` | `ipv6: false` | **顶层 `ipv6: false` + `dns.ipv6: false`（两处，§4）** |
 
@@ -1027,11 +1027,12 @@ if cn_idx and ads_idx and min(ads_idx) > min(cn_idx):
 | | Surge | Egern | **mihomo** |
 |:--|:--|:--|:--|
 | 广告拦截落点 | 规则层，指向**字面量 `REJECT`** | 规则层，指向 `AD` 组 | 规则层指向 `AD` 组 **+ DNS 层 `rcode://success`** |
-| 解析阶段拒答 | `REJECT,pre-matching,extended-matching` | `dns.forward` 里 `value: reject` | `nameserver-policy: rcode://success` |
-| 能不能指向组 | ❌ `pre-matching` 要求字面量 REJECT 族，**写成组会拒绝加载整份配置** | ✅ | ✅ |
+| 解析阶段拒答 | ❌ 已撤（2026-10-27） | `dns.forward` 里 `value: reject` | `nameserver-policy: rcode://success` |
+| 能不能指向组 | ✅（`pre-matching` 已撤；本仓仍写字面量 REJECT 是分工选择） | ✅ | ✅ |
 
-> ⚠️ 反方向移植才是安全的：mihomo 的「广告指向 `AD` 组」照搬到 Surge 的
-> `pre-matching` 规则上，后果不是效果差一点，而是**整份配置加载失败**。
+> ⚠️ 反方向移植未必安全：mihomo 的「广告指向 `AD` 组」照搬到 Surge 现在**允许**
+> （`pre-matching` 已撤）；但反过来给 Surge 的拦截行加上 `pre-matching`，
+> 后果不是效果差一点，而是**整个越过广告白名单**（42 条功能域被误杀）。
 
 > 📌 `AD` 组的成员：分流版 `REJECT` / `DIRECT`（可放行）；懒人版只有 `REJECT`（单成员，不留口子）。
 > ⚠️ 脚本注释写明**不设 `PASS`** —— `PASS` 语义为「绕过代理直连」，
@@ -1091,7 +1092,8 @@ Surge 的 `always-real-ip` 与 mihomo 的 `fake-ip-filter` 是**同一件事的�
 | 额外能力 | — | ✅ 可挂 `rule-set:` 引用整个规则集（Surge 只能列举） |
 
 ⇒ mihomo 侧把「广告集跳过 fake-ip」也挂进了同一个键，这是 Surge 做不到的
-（Surge 必须靠 `pre-matching` 在规则层拦）。
+（Surge 没有 DNS 层拒答机制；2026-10-27 撤掉 `pre-matching` 后，Surge 的广告拦截
+只在**连接阶段**生效）。
 
 #### 16 · 已知取舍
 

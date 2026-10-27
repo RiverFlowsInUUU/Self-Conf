@@ -85,7 +85,7 @@ mihomo 取 `.js`，Stash 取 `.stoverride`。
 | 规则 | IP 规则 `no-resolve` | `no_resolve` | IP 规则 `no-resolve` | 同 mihomo |
 | 远端 | 交节点解析 | `proxy_nameservers` 通道 | `fake-ip` | 默认 Fake IP |
 | IPv6 | `ipv6 = false` | `ipv6: false` | 顶层 + `dns.ipv6` 两处 | 官方自动判定¹ |
-| 广告 | `pre-matching REJECT` | `forward` → `reject` | DNS 双条件 | 规则层 `AD` 组 |
+| 广告 | 规则层 `REJECT`（连接阶段） | `forward` → `reject` | DNS 双条件 | 规则层 `AD` 组 |
 | dat | 内置系统集 | 共享 `.list` | 零 dat，用 `.mrs` | 零 dat，用 `.list` / `.yaml` |
 
 ¹ Stash 未显式写 `ipv6`。官方按当前网络自动判定，双栈下仍返回 AAAA。

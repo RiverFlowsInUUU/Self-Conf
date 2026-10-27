@@ -630,7 +630,6 @@
        "kind": "RULE-SET",
        "options": [
         "update-interval=604800",
-        "pre-matching",
         "extended-matching"
        ],
        "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
@@ -641,7 +640,6 @@
        "kind": "RULE-SET",
        "options": [
         "update-interval=604800",
-        "pre-matching",
         "extended-matching"
        ],
        "source": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list",
@@ -2617,7 +2615,6 @@
        "kind": "RULE-SET",
        "options": [
         "update-interval=604800",
-        "pre-matching",
         "extended-matching"
        ],
        "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
@@ -2628,7 +2625,6 @@
        "kind": "RULE-SET",
        "options": [
         "update-interval=604800",
-        "pre-matching",
         "extended-matching"
        ],
        "source": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list",

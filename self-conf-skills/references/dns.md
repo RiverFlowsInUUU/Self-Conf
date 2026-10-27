@@ -640,7 +640,7 @@ www.iqiyi.com     www.douyin.com    www.meituan.com   …（共 17 个）
 | 改动 | 顺带破坏了什么 | 补偿判据 |
 |---|---|---|
 | 给 IP 规则加 `no-resolve` | "靠解析判 IP 归属"这条直连路径 | 必须有域名类国内规则集 |
-| 广告拦截改成 `pre-matching` | 策略必须**字面量** REJECT 族（不能用组） | `check_surge_dns.py` 第 10 项 |
+| 广告拦截加上 `pre-matching` | **整个越过广告白名单** ⇒ 42 条功能域被误杀 | `check_surge_dns.py` 第 10 项（带即判负） |
 | 端点全改成 IP 字面量 | 失去"按域名走 CDN 就近解析" | 显式豁免 + 记录取舍 |
 | 移除 `always-real-ip` 的域名规则 | 游戏机 / NTP / STUN 拿假 IP | `check_surge_dns.py` 第 11 项 |
 
