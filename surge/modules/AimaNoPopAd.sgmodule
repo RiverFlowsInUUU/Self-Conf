@@ -1,9 +1,0 @@
-#!name=爱玛出行 去开屏弹窗
-#!desc=改写 app.aimaiot.cn/veh/vehicle/getVehCommonConfig 的响应，把 popAdMode 置 0。仅影响爱玛 App 的启动配置接口；脚本失败时原样放行。
-#!system=ios
-
-[Script]
-aima-no-popad = type=http-response,pattern=^https:\/\/app\.aimaiot\.cn\/veh\/vehicle\/getVehCommonConfig,requires-body=true,max-size=1048576,script-path=https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/surge/scripts/aima-no-popad.js
-
-[MITM]
-hostname = %APPEND% app.aimaiot.cn
