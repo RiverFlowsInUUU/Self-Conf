@@ -558,7 +558,7 @@ rules:
     match: https://raw.githubusercontent.com/Repcz/Tool/X/Surge/Rules/AI.list
     policy: AI
     update_interval: 604800
-# 伴生域/宽后缀整合集（本仓自托管静态快照 · 零 IP · 条数与来源见该文件头部档案）：
+# 伴生域/宽后缀整合集（姊妹仓 RFU-Rules 托管、随周更刷新 · 零 IP · 条数与来源见产物头注）：
 # googleapis.com / googleusercontent.com 整域收编 —— play.googleapis.com 等 GMS 网关
 # 与 ChatGPT 认证/遥测/风控基础设施域不再漏出 AI 组；上行 Repcz 管滚动新 AI 域。
 - rule_set:

@@ -2389,9 +2389,9 @@ uuid: REPLACE_WITH_YOUR_UUID
 
 | 上游 | 本仓用途 | 本地刷新 | 主要风险 | 维护关注点 |
 |:-----|:---------|:---------|:---------|:-----------|
-| **MetaCubeX / meta-rules-dat** | mihomo 的 geosite / geoip `.mrs`；也是 `RFU-Rules/main/surge-ai.list` 的构建来源之一 | mihomo **1 天**；本地 AI 源快照需人工重抓再生成 | `meta` 移动分支持续变化；CDN 缓存有延迟；`.mrs` 不便人工审阅；format / behavior 配错会静默失配 | 核对 domain / ipcidr 类型、抽样反解、观察类别增删；上游标称日构建不等于本仓快照自动更新 |
+| **MetaCubeX / meta-rules-dat** | mihomo 的 geosite / geoip `.mrs`；也是姊妹仓 AI 清单的构建来源之一 | mihomo **1 天**；AI 源快照由姊妹仓周更自动刷新 | `meta` 移动分支持续变化；CDN 缓存有延迟；`.mrs` 不便人工审阅；format / behavior 配错会静默失配 | 核对 domain / ipcidr 类型、抽样反解、观察类别增删；上游标称日构建不等于快照立即更新（姊妹仓按周刷新） |
 | **blackmatrix7 / ios_rule_script** | Surge / Egern 分流应用集、LAN 补位；AI 整合器的多个源快照 | 现役规则集 **1 周**；构建快照人工刷新 | 大仓整体活跃不代表每个分类都活跃；集合可能混入 IP 条目；类别语义可能扩大 | 每次刷新重新数 IP / 域名条目，检查 `no-resolve`；不能只看文件名。历史上 Apple 集曾暴露裸 IP 条目问题 |
-| **RFU-Rules**（原 Jinx，姊妹仓） | 三内核广告白名单与广告主清单；数据是 Jinx 3.2.3 的**冻结快照**，不再跟随上游 | Surge / Egern **1 周**；mihomo **1 天**（内容已冻结，定期刷新只是兜底；真会变的只有姊妹仓重发新版） | 两份清单都处在规则链最前，误收影响大；**仓名 / 文件名改动**会造成死链静默降级 —— 旧路径仍 200 只是 GitHub 内部重定向，不是承诺 | 白名单必须先于广告；双广告出口参数一致；本仓曾因上游 `white-guard` 改名 `direct` 留下 404，2026-10-27 又逢仓名 `Jinx` → `RFU-Rules`（旧路径已进 `check_selfcontained.py` 判负表） |
+| **RFU-Rules**（原 Jinx，姊妹仓） | 三内核广告白名单与广告主清单，另统一托管 AI 分流清单；数据是 Jinx 3.2.3 的**冻结快照**，不再跟随上游 | Surge / Egern **1 周**；mihomo **1 天**（内容已冻结，定期刷新只是兜底；真会变的只有姊妹仓重发新版） | 两份清单都处在规则链最前，误收影响大；**仓名 / 文件名改动**会造成死链静默降级 —— 旧路径仍 200 只是 GitHub 内部重定向，不是承诺 | 白名单必须先于广告；双广告出口参数一致；本仓曾因上游 `white-guard` 改名 `direct` 留下 404，2026-10-27 又逢仓名 `Jinx` → `RFU-Rules`（旧路径已进 `check_selfcontained.py` 判负表） |
 | **TG-Twilight / AWAvenue-Ads-Rule** | 第二条广告清单；mihomo 使用 `.mrs`，另两核使用 Surge list | Surge / Egern **1 周**；mihomo **1 天** | 广告规则误杀、与 Jinx 重叠；`.mrs` 内容不可直接 diff；镜像或产物链异常时影响 DNS 拦截 | 做白名单交集与误杀探针；mihomo 同一广告集必须同时进入 `nameserver-policy` 与 `fake-ip-filter` |
 | **Loyalsoldier** | `private.txt`、`direct.txt`、`apple.txt`；Egern 的 GeoIP / ASN 数据库 | 规则集 **1 周**；数据库刷新周期在当前 profile 中未以同一 `update_interval` 明示，**待确认** | `direct.txt` 是国内直连主承重墙，误收会绕过代理；数据库漂移改变地理判断；release 路径仍是移动内容 | 下载后数内容类型与体量；审计国内探针；规则文件与数据库分开评估，不用“同仓可信”替代验证 |
 | **Repcz / Tool** | Surge / Egern 的滚动 AI 集；也是本仓 AI 静态整合的参考源 | 现役规则集 **1 周**；本地快照人工刷新 | `X` 分支是移动目标；AI 类可能收进共享登录、CDN、遥测域，改变非 AI 流量出口 | 厂商专属集放在通用 AI 前；与自托管伴生域清单做重叠 / 误伤审计；记录抓取时间 |
