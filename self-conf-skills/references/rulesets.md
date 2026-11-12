@@ -1,5 +1,12 @@
 # 规则集 · 选型、权重与跨内核差异
 
+> ⚠️ **2026-11-12 起 AI 清单已迁至姊妹仓 RFU-Rules 统一管辖**（provider 名 `RFU-AI`）。
+> 本仓四侧引用 `RFU-Rules/main/surge-ai.list` / `mihomo-ai.yaml`，不再自带 `rules/AI.list`。
+> 该集随姊妹仓每周上游刷新重建，**条数不再固定**：迁入前快照 272 条，2026-11-12 首次周更后
+> 为 324 条；一律以 `RFU-Rules/main/surge-ai.list` 头注的「合计」行为唯一真源。
+> 下文表格与章节里出现的 **272 条**均指迁入前的静态快照，是当时的实测记录与历史分析，
+> 不代表当前条数。维护 AI 域名请去姊妹仓改 `ai_sources/` 后跑 `regen.sh`。
+
 
 
 ## 🚀 新增一份规则集：完整步骤（**照这个做**）
@@ -96,7 +103,7 @@ python self-conf-skills/gates/verify_all.py
 本仓自托管的 `rules/*.list` 是**唯一真源**，三个内核都吃它 —— 但**吃的不是同一份文件**：
 
 ```text
-RFU-Rules/main/surge-ai.list             （272 条 —— 条数以该文件头注「合计」行为唯一真源）
+RFU-Rules/main/surge-ai.list             （条数随周更变化 —— 以 RFU-Rules 产物头注「合计」行为唯一真源）
 rules/apple_system.list   （18 条）
 rules/emby.list           （4 条）
    │
@@ -622,7 +629,7 @@ mihomo 的实际值应以本页和 [`profiles/<kern>.md`](./profiles/clash.md) �
 
 | 唯一真源 | 条目数 | mihomo 生成物 | 三侧用途 |
 |:---------|------:|:---------------|:---------|
-| `RFU-Rules/main/surge-ai.list` | 272 | `RFU-Rules/main/mihomo-ai.yaml` | Surge/Egern 直接引用 `.list`；mihomo 引用 yaml/classical |
+| `RFU-Rules/main/surge-ai.list` | 随周更 | `RFU-Rules/main/mihomo-ai.yaml` | Surge/Egern 直接引用 `.list`；mihomo 引用 yaml/classical |
 | `rules/apple_system.list` | 18 | `rules/apple_system.yaml` | Egern 补 Surge 内置 `SYSTEM`；mihomo 用 yaml；Surge 直接用内置集 |
 | `rules/emby.list` | 4 | `rules/emby.yaml` | Surge/Egern 直接引用 `.list`；mihomo 引用 yaml/classical |
 
@@ -635,7 +642,7 @@ python self-conf-skills/run/clash/build_rules.py --check
 ```
 
 `build_rules.py` 会去掉空行与注释，把每条 Surge 规则原样包进 mihomo 的 `payload:`；
-当前对拍结果为 4 / 18 / 272 条全部一致。**不要手工编辑 `rules/*.yaml`。**
+当前本仓对拍结果为 emby 4 / apple_system 18 条一致；AI 集已迁出，由 RFU-Rules 的 `verify_ai.py` 独立校验。**不要手工编辑 `rules/*.yaml`。**
 
 这里的“共享”不等于三内核直接读取同一种文件：Surge/Egern 消费 `.list`，mihomo 消费生成的 `.yaml`；
 共享的是同一份内容真源。mihomo 其余 **20 份 `.mrs` + 5 份 YAML** 仍由自己的 `rule-providers` 管理。
@@ -1013,7 +1020,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | # | 名称 | behavior | format | 条目数 | 真源 | 落点 |
 |:-:|:--|:--|:--|:--:|:--|:--|
 | 21 | `emby` | classical | yaml | **4** | `rules/emby.list` | Emby |
-| 22 | `RFU-AI` | classical | yaml | **272** | `RFU-Rules/main/surge-ai.list` | AI |
+| 22 | `RFU-AI` | classical | yaml | 随周更 | `RFU-Rules/main/surge-ai.list` | AI |
 | 23 | `apple-system` | classical | yaml | **18** | `rules/apple_system.list` | DIRECT |
 
 这 3 份的条目数是**确定的** —— 它们是本仓自己维护的静态文件，不随上游变化。
@@ -1062,7 +1069,7 @@ provider 名自 2026-11-12 起为 `RFU-Direct` / `RFU-Ads`，按托管仓与用�
 | 6 | `AWAvenue-Ads` | AWAvenue | domain | mrs | 现抓 | AD |
 | 7 | `RFU-Direct` | Jinx | classical | yaml | 现抓 | DIRECT |
 | 8 | `RFU-Ads` | Jinx | classical | yaml | 现抓 | AD |
-| 9 | `RFU-AI` | 本仓 | classical | yaml | **272** | AI |
+| 9 | `RFU-AI` | RFU-Rules | classical | yaml | 随周更 | AI |
 | 10 | `apple-system` | 本仓 | classical | yaml | **18** | DIRECT |
 
 #### 3.1 与分流版的差集（15 份）
@@ -1217,7 +1224,7 @@ MetaCubeX 的 `category-ai-chat-!cn` 源自 v2ray domain-list 格式，
 
 ```yaml
   - RULE-SET,category-ai-chat-!cn,AI     # MetaCubeX，188 条
-  - RULE-SET,RFU-AI,AI               # 本仓自托管，272 条
+  - RULE-SET,RFU-AI,AI               # 由 RFU-Rules 托管，条数随周更变化
 ```
 
 **两条都指向 `AI` 组。** 既然落点相同，为什么不是二选一？
@@ -1553,7 +1560,7 @@ Surge 侧 [`rulesets.md`](./rulesets.md) §5.3
 1. **25 份不是负担。** 唯一代价是常驻内存，而本仓的量级是 MB 级。
    （对比：Egern 侧单是 `ChinaMax_All_No_Resolve` 一份就是 111,332 条 / 3.42 MB / +22.6 MB。
    本仓 25 份加起来远不到这个量级 —— 因为本仓没有引入任何"国内域名全量表"。）
-2. **不要为了"轻"而砍规则集。** 砍掉 `RFU-AI` 省下 272 条（约 40 KB），
+2. **不要为了"轻"而砍规则集。** 砍掉 `RFU-AI` 省下一份随周更变化的 AI 清单，
    代价是 §7.4 的出口不一致。**这是一笔极坏的交换**。
 3. ⚠️ **真正会变重的是"引入国内域名全量表"**。本仓目前用 `cn`（MetaCubeX 域名集）
    接国内域名，没有引入 ChinaMax 那种十万条目级的表。
@@ -1585,7 +1592,7 @@ Surge 侧 [`rulesets.md`](./rulesets.md) §5.3
 但 §7.2 实测显示前者漏 94 条 —— 合并（取并集）才是正确动作，
 而取并集要跑生成器，不是手抄。
 
-**Q：为什么 AI 要用两份集？只用 `RFU-AI`（272 条）不行吗？**
+**Q：为什么 AI 要用两份集？只用 `RFU-AI` 不行吗？**
 
 §7.5 显示反方向只漏 4 条。所以**理论上**只用 `RFU-AI` 覆盖度更高。
 保留 `category-ai-chat-!cn` 的理由是**它滚动更新**：
@@ -1642,7 +1649,7 @@ Surge 侧取一周是因为那里有具体理由，**本仓没有**，所以保�
 
 1. **份数以解析结果为准**：数 `rule-providers` 的键，不要 `grep -c 'RULE-SET'`，
    也不要信手写的头注（§1.1）。
-2. **条目数区别对待**：自托管 3 份（4 / 272 / 18）可以写死；
+2. **条目数区别对待**：自托管 2 份（4 / 18）可以写死；AI 集已迁出且条数随周更变化；
    远程集一律写"现抓"或带日期的实测值，**不写死**。
 3. **跨格式比对先归一化**：`.list`（Surge `TYPE,value`）与 MetaCubeX
    （v2ray `+.` / `full:` / `keyword:`）必须归一化到 `(type,value)` 后再求交/差，

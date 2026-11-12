@@ -1263,7 +1263,7 @@ for method in ("HEAD", "GET"):
 
 此前三个内核**各存一份相同内容**的规则集，
 一份 `.list`（Surge / Egern 原生）、一份 `.yaml`（mihomo payload）。内容逐条相同
-（emby 4 / apple_system 18 / AI 272），只是格式不同 —— **双份维护，改一处忘一处就漂移**。
+（emby 4 / apple_system 18，以及迁入前的 AI 272），只是格式不同 —— **双份维护，改一处忘一处就漂移**。
 
 合并后：`.list` 是**唯一真源**，`.yaml` 由脚本生成。**单一真源，物理上不可能漂移。**
 

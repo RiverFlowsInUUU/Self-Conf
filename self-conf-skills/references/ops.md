@@ -383,7 +383,7 @@ clash/
 
 | 唯一真源 | 条数 | 生成物 | 谁消费 |
 |:---------|----:|:-------|:-------|
-| `RFU-Rules/main/surge-ai.list` | **272** | `RFU-Rules/main/mihomo-ai.yaml` | Surge / Egern 直接引 `.list`；mihomo 引 `.yaml`（classical） |
+| `RFU-Rules/main/surge-ai.list` | 随周更 | `RFU-Rules/main/mihomo-ai.yaml` | Surge / Egern 直接引 `.list`；mihomo 引 `.yaml`（classical） |
 | `rules/apple_system.list` | **18** | `rules/apple_system.yaml` | Egern 补 Surge 内置 `SYSTEM`；mihomo 用 `.yaml` |
 | `rules/emby.list` | **4** | `rules/emby.yaml` | 同 AI |
 

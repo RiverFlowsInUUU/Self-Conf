@@ -742,7 +742,7 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 ```
 
 > ❌ **不许手工编辑 `rules/*.yaml`** —— 它们是生成物，改了会被下次生成覆盖。
-> 此前各内核各存一份（emby 4 / apple_system 18 / AI 272 条，逐条相同），双份维护
+> 此前各内核各存一份（emby 4 / apple_system 18，以及迁入前的 AI 272 条，逐条相同），双份维护
 > ⇒ 单一真源后**物理上不可能漂移**。这是三仓合并最直接的收益之一。
 
 三份都是**纯域名集、零 IP 条目** ⇒ 引用方**不写**规则级 `no-resolve`（§12）。

@@ -55,7 +55,7 @@ SIDES = KERNELS + ("stash",)
 _SELF_HOSTED = {
     "rfu-rules/main/surge-ai.list": "rfu-ai",   # RFU-Rules 的 surge-ai.list <-> mihomo provider RFU-AI
     # ⚠️ 后缀匹配：Repcz 的 .../Surge/Rules/AI.list 也以 surge/rules/ai.list 结尾。
-    #    迁移前它跟本仓 AI.list 一起归一到 ai-domains，四侧对拍才齐全；迁到 RFU-Rules
+    #    迁移前它跟本仓 AI.list 一起归一到同一个 canonical，四侧对拍才齐全；迁到 RFU-Rules
     #    后若漏掉这条，Repcz 会独立成 `ai` 只在 surge/egern 出现 ⇒ F5 判「缺侧」。
     "surge/rules/ai.list": "rfu-ai",
     "rules/emby.list": "emby",
