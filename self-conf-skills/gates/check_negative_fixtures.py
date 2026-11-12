@@ -200,7 +200,7 @@ def main():
             "check_structure",
             lambda: _mutate(
                 os.path.join(clash_sb, "profiles", "lazy.yaml"),
-                "  - RULE-SET,Jinx-CN,DIRECT\n",
+                "  - RULE-SET,RFU-Direct,DIRECT\n",
                 "  - RULE-SET,ghost-set,DIRECT\n"),
             baselines[0][1],
             "规则引用了未定义的规则集: ghost-set")
@@ -223,7 +223,7 @@ def main():
             "check_script_sync",
             lambda: _mutate(
                 os.path.join(clash_sb, "override", "clash-lazy.js"),
-                '    "RULE-SET,Jinx-CN,DIRECT",\n',
+                '    "RULE-SET,RFU-Direct,DIRECT",\n',
                 ""),
             baselines[2][1],
             "长度不同")
@@ -354,10 +354,10 @@ def main():
             "四侧同步·clash 广告改 DIRECT",
             lambda: _mutate(
                 os.path.join(sb, "clash", "profiles", "routing.yaml"),
-                "  - RULE-SET,Jinx-Ads,AD\n",
-                "  - RULE-SET,Jinx-Ads,DIRECT\n"),
+                "  - RULE-SET,RFU-Ads,AD\n",
+                "  - RULE-SET,RFU-Ads,DIRECT\n"),
             [PY, os.path.join(GATES, "check_four_way_sync.py"), sb],
-            "jinx-ads")
+            "rfu-ads")
         passed += c12
 
         # ⚠️ 用例总数从用例本身派生，别写魔数：原先写死 `6`，加用例时必须同步改两处

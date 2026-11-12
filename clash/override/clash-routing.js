@@ -372,20 +372,20 @@ function main(config) {
     path: "./rule_provider/AWAvenue-Ads-Rule-Clash.mrs",
     interval: 86400,
   };
-  rp["Jinx-CN"] = {
+  rp["RFU-Direct"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
     url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml",
-    path: "./rule_provider/Jinx-CN.yaml",
+    path: "./rule_provider/RFU-Direct.yaml",
     interval: 86400,
   };
-  rp["Jinx-Ads"] = {
+  rp["RFU-Ads"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
     url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml",
-    path: "./rule_provider/Jinx-Ads.yaml",
+    path: "./rule_provider/RFU-Ads.yaml",
     interval: 86400,
   };
 
@@ -421,8 +421,8 @@ function main(config) {
 
   // ── 3. 分流规则 ────────────────────────────────────────────────────────
   config.rules = [
-    "RULE-SET,Jinx-CN,DIRECT",
-    "RULE-SET,Jinx-Ads,AD",
+    "RULE-SET,RFU-Direct,DIRECT",
+    "RULE-SET,RFU-Ads,AD",
     "RULE-SET,AWAvenue-Ads,AD",
     "RULE-SET,apple-update,Apple Update",
     "RULE-SET,apple-system,DIRECT",
@@ -506,7 +506,7 @@ function main(config) {
 
     "nameserver-policy": {
       "rule-set:AWAvenue-Ads": "rcode://success",
-      "rule-set:Jinx-Ads": "rcode://success",
+      "rule-set:RFU-Ads": "rcode://success",
       // 官方示例是单名（rule-set:cn）。逗号多值无依据，拆成两条。
       "rule-set:private": [
         "https://doh.18bit.cn/dns-query",
@@ -535,7 +535,7 @@ function main(config) {
       "+.pool.ntp.org",
       "+.market.xiaomi.com",
       "rule-set:AWAvenue-Ads",
-      "rule-set:Jinx-Ads",
+      "rule-set:RFU-Ads",
     ],
   };
 

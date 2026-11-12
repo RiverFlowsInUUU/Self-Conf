@@ -654,7 +654,7 @@ rule-providers:
 |:--|:-:|:--|
 | `mrs` + `domain` | **16** | `apple-update` · `spotify` · `private` · `anthropic` · `category-ai-chat-!cn` · `github` · `youtube` · `google` · `microsoft` · `apple-cn` · `telegram` · `twitter` · `cn` · `openai` · `google-gemini` · `AWAvenue-Ads` |
 | `mrs` + `ipcidr` | **4** | `geoip-private` · `geoip-google` · `geoip-telegram` · `geoip-cn` |
-| `yaml` + `classical` | **5** | `Jinx-CN` · `Jinx-Ads` · `emby` · `AI_Domains` · `apple-system` |
+| `yaml` + `classical` | **5** | `RFU-Direct` · `RFU-Ads` · `emby` · `AI_Domains` · `apple-system` |
 
 懒人版 10 份：
 
@@ -662,7 +662,7 @@ rule-providers:
 |:--|:-:|:--|
 | `mrs` + `domain` | **4** | `private` · `cn` · `category-ai-chat-!cn` · `AWAvenue-Ads` |
 | `mrs` + `ipcidr` | **2** | `geoip-private` · `geoip-cn` |
-| `yaml` + `classical` | **4** | `Jinx-CN` · `Jinx-Ads` · `AI_Domains` · `apple-system` |
+| `yaml` + `classical` | **4** | `RFU-Direct` · `RFU-Ads` · `AI_Domains` · `apple-system` |
 
 > ⚠️ `lazy.yaml` 头注写的是「5 份 MRS + 5 份 yaml」，实际是 **6 mrs + 4 yaml**（§18.4）。
 
@@ -770,8 +770,8 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 
 | # | 规则 | 策略 |
 |:-:|:-----|:----:|
-| 1 | `RULE-SET,Jinx-CN` | `DIRECT` |
-| 2 | `RULE-SET,Jinx-Ads` | `AD` |
+| 1 | `RULE-SET,RFU-Direct` | `DIRECT` |
+| 2 | `RULE-SET,RFU-Ads` | `AD` |
 | 3 | `RULE-SET,AWAvenue-Ads` | `AD` |
 | 4 | `RULE-SET,apple-update` | `Apple Update` |
 | 5 | `RULE-SET,apple-system` | `DIRECT` |
@@ -802,8 +802,8 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 
 | # | 规则 | 策略 |
 |:-:|:-----|:----:|
-| 1 | `RULE-SET,Jinx-CN` | `DIRECT` |
-| 2 | `RULE-SET,Jinx-Ads` | `AD` |
+| 1 | `RULE-SET,RFU-Direct` | `DIRECT` |
+| 2 | `RULE-SET,RFU-Ads` | `AD` |
 | 3 | `RULE-SET,AWAvenue-Ads` | `AD` |
 | 4 | `RULE-SET,geoip-private` | `DIRECT,no-resolve` |
 | 5 | `RULE-SET,private` | `DIRECT` |
@@ -816,7 +816,7 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 
 #### 11.3 五条排序约束
 
-1. **白名单（位 1）必须排在两条广告规则之前** —— `AWAvenue-Ads` 与 `Jinx-Ads`
+1. **白名单（位 1）必须排在两条广告规则之前** —— `AWAvenue-Ads` 与 `RFU-Ads`
    存在重叠域名，顺序颠倒会把白名单里的功能域误杀。
 2. **两条广告规则并列、同一出口 `AD`** —— 一起切才一致。
 3. **AI 厂商专属规则（位 8–10）必须排在通用 AI 兜底（位 11）之前** ——
@@ -959,7 +959,7 @@ fallback-filter:
 ```
 广告域名查询
     ↓
-① dns.fake-ip-filter: "rule-set:AWAvenue-Ads" / "rule-set:Jinx-Ads"
+① dns.fake-ip-filter: "rule-set:AWAvenue-Ads" / "rule-set:RFU-Ads"
    → 跳过 fake-ip（否则 withFakeIP 对 A/AAAA 直接返回假 IP，请求永远到不了 ②）
     ↓
 ② dns.nameserver-policy: "rule-set:xxx": rcode://success
@@ -1049,7 +1049,7 @@ if cn_idx and ads_idx and min(ads_idx) > min(cn_idx):
 | 🎮 游戏机 | `+.srv.nintendo.net` · `+.stun.playstation.net` · `+.xboxlive.com` | 联网检测与 NAT 类型判定失败 |
 | 🕐 NTP / STUN | `stun.*` · `time.*.com` · `ntp.*.com` · `+.pool.ntp.org` | 时间同步走假 IP 直接失败 |
 | 🧩 其他 | `localhost.ptlogin2.qq.com` · `+.market.xiaomi.com` | 登录与应用商店的本地连通性检测 |
-| 🚫 广告 | `rule-set:AWAvenue-Ads` · `rule-set:Jinx-Ads` | **必须与 `nameserver-policy` 一一对应**（§14.2） |
+| 🚫 广告 | `rule-set:AWAvenue-Ads` · `rule-set:RFU-Ads` | **必须与 `nameserver-policy` 一一对应**（§14.2） |
 
 #### 15.2 三种通配符的语义（v1.19.31 实测）
 
@@ -1073,7 +1073,7 @@ if cn_idx and ads_idx and min(ads_idx) > min(cn_idx):
 | 集 | behavior | 可用 |
 |:--|:---------|:--:|
 | `AWAvenue-Ads` | `domain` | ✅ |
-| `Jinx-Ads` | `classical` | ✅（classical 时**仅生效其中的域名类规则**） |
+| `RFU-Ads` | `classical` | ✅（classical 时**仅生效其中的域名类规则**） |
 | `geoip-cn` 之类 | `ipcidr` | ❌ 放进 `fake-ip-filter` 无意义 |
 
 #### 15.4 命中的代价
@@ -1525,7 +1525,7 @@ nameserver:
 ```yaml
 nameserver-policy:
   "rule-set:AWAvenue-Ads": rcode://success
-  "rule-set:Jinx-Ads": rcode://success
+  "rule-set:RFU-Ads": rcode://success
   "rule-set:private":
     - https://doh.18bit.cn/dns-query
     - https://dns.alidns.com/dns-query
@@ -1568,7 +1568,7 @@ fake-ip-filter:
   - "+.pool.ntp.org"
   - "+.market.xiaomi.com"
   - "rule-set:AWAvenue-Ads"    # 广告（必须列，见 §8）
-  - "rule-set:Jinx-Ads"
+  - "rule-set:RFU-Ads"
 ```
 
 通配语义：`+.` 含本域与任意层子域；`*` / `*.` 只匹配一层。
@@ -2398,8 +2398,8 @@ WeChat 换到上游活跃维护的 `.mrs`（原因见 §0.3）。
 
 | 规则集 | 格式 | 行为 | 去向 | 用在哪 | 来源 |
 |:-------|:-----|:-----|:-----|:--:|:-----|
-| `Jinx-CN` | YAML | `classical` | `DIRECT` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-direct.yaml`（上游 2026-10-04 由 `*-white-guard.*` 改名而来，旧名已 404） |
-| `Jinx-Ads` | YAML | `classical` | `AD` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-ads.yaml` |
+| `RFU-Direct` | YAML | `classical` | `DIRECT` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-direct.yaml`（上游 2026-10-04 由 `*-white-guard.*` 改名而来，旧名已 404） |
+| `RFU-Ads` | YAML | `classical` | `AD` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-ads.yaml` |
 | `AWAvenue-Ads` | `.mrs` | `domain` | `AD` | 两份 | [TG-Twilight/AWAvenue-Ads-Rule](https://github.com/TG-Twilight/AWAvenue-Ads-Rule) · `Filters/AWAvenue-Ads-Rule-Clash.mrs` |
 | `AI-Domains` | text | `classical` | `AI` | 仅懒人版 | [self-conf](https://github.com/RiverFlowsInUUU/self-conf) · `rules/AI.list` |
 | `apple-system` | text | `classical` | `DIRECT` | 仅懒人版 | [self-conf](https://github.com/RiverFlowsInUUU/self-conf) · `rules/apple_system.list` |
@@ -2458,7 +2458,7 @@ Apple 则由 `GEOSITE,apple`（1792 条）做**全量直连**（懒人版只要�
 | # | 规则 | 层级 | 去向 |
 |:-:|:-----|:-----|:-----|
 | ① | `RULE-SET,jinx-white-guard` | 白名单 | `DIRECT` |
-| ② | `RULE-SET,jinx-ads` | 广告拦截 | `AD` |
+| ② | `RULE-SET,rfu-ads` | 广告拦截 | `AD` |
 | ③ | `RULE-SET,AWAvenue-Ads` | 广告拦截 | `AD` |
 | ④ | `GEOIP,private` | 内网 | `DIRECT` |
 | ⑤ | `GEOSITE,private` | 内网 | `DIRECT` |
@@ -2488,7 +2488,7 @@ Apple 则由 `GEOSITE,apple`（1792 条）做**全量直连**（懒人版只要�
 
 #### 3 · 排序约束
 
-1. **白名单必须排在两条广告规则之前** —— `AWAvenue-Ads` 与 `jinx-ads` 存在重叠域名，顺序颠倒会把白名单里的功能域误杀。
+1. **白名单必须排在两条广告规则之前** —— `AWAvenue-Ads` 与 `rfu-ads` 存在重叠域名，顺序颠倒会把白名单里的功能域误杀。
 2. **两条广告规则并列、同出口** —— 都指向 `AD` 组，一起切才一致（两份配置的 `AD` 组都只有一个 `REJECT` 子策略）。
 3. **内网判定（`private`）排在 AI 与国内之前** —— 私有网段与私有域名不应落到任何代理出口。
 4. **应用分流必须在国内直连之前** —— 否则「ChatGPT 但域名恰好被国内清单收录」会被直连接走；越具体的越靠前。

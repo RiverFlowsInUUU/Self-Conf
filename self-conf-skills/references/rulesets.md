@@ -323,8 +323,8 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 
 | 位 | 规则 | 位 | 规则 |
 |:-:|:-----|:-:|:-----|
-| ① | `RULE-SET,Jinx-CN,DIRECT`（白名单） | ⑮ | `RULE-SET,youtube,YouTube` |
-| ② | `RULE-SET,Jinx-Ads,AD` | ⑯ | `RULE-SET,emby,Emby`（本仓自托管） |
+| ① | `RULE-SET,RFU-Direct,DIRECT`（白名单） | ⑮ | `RULE-SET,youtube,YouTube` |
+| ② | `RULE-SET,RFU-Ads,AD` | ⑯ | `RULE-SET,emby,Emby`（本仓自托管） |
 | ③ | `RULE-SET,AWAvenue-Ads,AD` | ⑰ | `RULE-SET,google,Google` |
 | ④ | `RULE-SET,apple-update,Apple Update` | ⑱ | `RULE-SET,spotify,Spotify` |
 | ⑤ | `RULE-SET,apple-system,DIRECT`（本仓自托管） | ⑲ | `RULE-SET,twitter,Twitter` |
@@ -338,7 +338,7 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 | ⑬ | `DOMAIN-SUFFIX,music.youtube.com,YouTube Music`（**唯一内联**） | ㉗ | `MATCH,Proxy` |
 | ⑭ | `RULE-SET,github,Proxy`（无同名组） | | |
 
-**懒人版 11 条**：`Jinx-CN` → `Jinx-Ads` → `AWAvenue-Ads` → `apple-system` →
+**懒人版 11 条**：`RFU-Direct` → `RFU-Ads` → `AWAvenue-Ads` → `apple-system` →
 `geoip-private`(no-resolve) → `private` → `category-ai-chat-!cn` → `AI_Domains` →
 `cn` → `geoip-cn`(no-resolve) → `MATCH,Proxy`。
 
@@ -500,8 +500,8 @@ Surge 与 Egern 的 26 条规则逐位同义；mihomo 有 27 条。当前分流�
 
 | 语义 | Surge | Egern | clash-mihomo |
 |:-----|:------|:------|:-------------|
-| 广告白名单 | ① `surge-direct.list` → `DIRECT` | ① 同源 `.list` → `DIRECT` | ① `Jinx-CN`（yaml/classical）→ `DIRECT` |
-| 两条广告 | ②③ `.list` → 字面量 `REJECT` + extended-matching | ②③ `.list` → `AD` | ②③ `Jinx-Ads` / `AWAvenue-Ads` → `AD` |
+| 广告白名单 | ① `surge-direct.list` → `DIRECT` | ① 同源 `.list` → `DIRECT` | ① `RFU-Direct`（yaml/classical）→ `DIRECT` |
+| 两条广告 | ②③ `.list` → 字面量 `REJECT` + extended-matching | ②③ `.list` → `AD` | ②③ `RFU-Ads` / `AWAvenue-Ads` → `AD` |
 | Apple 更新 | ④ `SystemOTA.list` → `Apple Update` | ④ 同左 | ④ `apple-update.mrs` → `Apple Update` |
 | 系统域 | ⑤ 内置 `SYSTEM` → `DIRECT` | ⑤ `apple_system.list` → `DIRECT` | ⑤ `apple-system.yaml` → `DIRECT` |
 | 内网 | ⑥ 内置 `LAN`；⑦ `private.txt` | ⑥ `Lan.list`；⑦ `private.txt` | ⑥ `geoip-private.mrs`；⑦ `private.mrs` |
@@ -1021,13 +1021,15 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 #### 2.3 Jinx（2 份）
 
 数据来自 Jinx 3.2.3 的冻结快照，托管在姊妹仓 [`RFU-Rules`](https://github.com/RiverFlowsInUUU/RFU-Rules)
-（2026-10-27 前名 `RiverFlowsInUUU/Jinx`）。文件名与 provider 名沿用 `Jinx-*`，
-标记的是**数据来源**，与仓名无关。
+（2026-10-27 前名 `RiverFlowsInUUU/Jinx`）。远端文件名沿用 `*-direct` / `*-ads`；
+provider 名自 2026-11-12 起为 `RFU-Direct` / `RFU-Ads`，按托管仓与用途命名，
+不再拿来源名当标识符 —— 数据出处（Jinx 3.2.3 冻结快照）只保留在说明里。
+改名后旧的本地缓存文件会成为孤儿，客户端按新 `path` 自动重下。
 
 | # | 名称 | behavior | format | 条目数 | 落点 |
 |:-:|:--|:--|:--|:--|:--|
-| 24 | `Jinx-CN` | classical | yaml | 现抓 | DIRECT |
-| 25 | `Jinx-Ads` | classical | yaml | 现抓 | AD |
+| 24 | `RFU-Direct` | classical | yaml | 现抓 | DIRECT |
+| 25 | `RFU-Ads` | classical | yaml | 现抓 | AD |
 
 三类合计 **20 + 3 + 2 = 25 份**，与 `rule-providers` 的键数一致。
 
@@ -1058,8 +1060,8 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | 4 | `geoip-private` | MetaCubeX | ipcidr | mrs | 现抓 | DIRECT `no-resolve` |
 | 5 | `geoip-cn` | MetaCubeX | ipcidr | mrs | 现抓 | DIRECT `no-resolve` |
 | 6 | `AWAvenue-Ads` | AWAvenue | domain | mrs | 现抓 | AD |
-| 7 | `Jinx-CN` | Jinx | classical | yaml | 现抓 | DIRECT |
-| 8 | `Jinx-Ads` | Jinx | classical | yaml | 现抓 | AD |
+| 7 | `RFU-Direct` | Jinx | classical | yaml | 现抓 | DIRECT |
+| 8 | `RFU-Ads` | Jinx | classical | yaml | 现抓 | AD |
 | 9 | `AI_Domains` | 本仓 | classical | yaml | **272** | AI |
 | 10 | `apple-system` | 本仓 | classical | yaml | **18** | DIRECT |
 
@@ -1111,7 +1113,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 
 - `cn.mrs` 突然变空 → MetaCubeX 上游问题 → 只能等或换源；
 - `AI_Domains.yaml` 404 → **本仓问题**（文件被删、仓改名、分支改名）→ 立刻可修；
-- `Jinx-CN.yaml` 变空 → 姊妹仓问题 → 需要跨仓协调。
+- `RFU-Direct.yaml` 变空 → 姊妹仓问题 → 需要跨仓协调。
 
 ⇒ 判据：**自托管的 3 份是唯一"出事能自己修"的**。这也是 §8 的取舍基础。
 
@@ -1137,7 +1139,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 （`TYPE,value`），匹配时按整条规则求值。这类内容只能放在
 `format: yaml`（或 `text`）里。
 
-本仓 5 份 classical 集（`Jinx-CN` `Jinx-Ads` `emby` `AI_Domains` `apple-system`）
+本仓 5 份 classical 集（`RFU-Direct` `RFU-Ads` `emby` `AI_Domains` `apple-system`）
 之所以必须是 yaml，**不是偏好，是内容决定的**：
 
 | 集 | 为什么不能是 `domain` 集 |
@@ -1145,7 +1147,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | `AI_Domains` | 272 条里有 **39 条 `DOMAIN`、8 条 `DOMAIN-KEYWORD`、1 条 `URL-REGEX`** —— 关键字与正则在 `domain` 行为下就是一串永远匹配不上的字符 |
 | `apple-system` | 18 条里 12 条 `DOMAIN` 精确匹配（如 `DOMAIN,mesu.apple.com`），`domain` 行为下会退化 |
 | `emby` | 4 条全 `DOMAIN-SUFFIX` —— 理论可转，但纳入生成链路统一用 yaml 更省事 |
-| `Jinx-*` | 姊妹仓发布的产物本身就是 mihomo classical payload |
+| `RFU-Direct` / `RFU-Ads` | 姊妹仓发布的产物本身就是 mihomo classical payload |
 
 **⇒ 判据：先看 payload 的形态，再定 format。**
 `domain` 集里混进一条 `DOMAIN-SUFFIX,xxx` 这样的完整规则行，
@@ -1562,7 +1564,7 @@ Surge 侧 [`rulesets.md`](./rulesets.md) §5.3
 | | Surge 侧 | mihomo 侧 |
 |:--|:--|:--|
 | 主要风险 | 缺 `no-resolve` 的 **IP** 条目制造出口 ③ | 覆盖度不足导致的**出口不一致**（§7.4） |
-| 承重墙 | `direct.txt`（十几万条域名） | `cn` + `Jinx-CN` + `geoip-cn` |
+| 承重墙 | `direct.txt`（十几万条域名） | `cn` + `RFU-Direct` + `geoip-cn` |
 | 条数纪律 | 一律不写死 | 自托管 3 份写死，远程集不写死 |
 
 ⚠️ 差异的根源是**规则集构成不同**：Surge 侧的痛点是 IP 条目，

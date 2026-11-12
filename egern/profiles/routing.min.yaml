@@ -1,4 +1,4 @@
-#! version=routing_v1.0.3
+#! version=routing_v1.0.4
 ipv6: false
 vif_only: true
 hijack_dns:
@@ -256,12 +256,12 @@ policy_groups:
     icon: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/icons/WorldMap.png
 rules:
 - rule_set:
-    name: Jinx-CN
+    name: RFU-Direct
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
 - rule_set:
-    name: Jinx-Ads
+    name: RFU-Ads
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
     policy: AD
     update_interval: 604800

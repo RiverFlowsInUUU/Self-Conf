@@ -327,7 +327,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 >
 > | 洞 | 为什么会漏 | 现状 |
 > |:--|:--|:--|
-> | **单侧整条规则消失判绿** | 原码 `if key in tgt[s]` 过滤掉「该侧没有这条」⇒ 删掉 egern 的整个 `Jinx-Ads` 块后，剩下三侧去向仍一致 ⇒ 通过 | 已修：断言 source 必须**四侧齐全**，缺侧判负（`SOURCE_EQUIV` 归一命名差异、`SIDE_ONLY` 登记机制性单侧独有） |
+> | **单侧整条规则消失判绿** | 原码 `if key in tgt[s]` 过滤掉「该侧没有这条」⇒ 删掉 egern 的整个 `RFU-Ads` 块后，剩下三侧去向仍一致 ⇒ 通过 | 已修：断言 source 必须**四侧齐全**，缺侧判负（`SOURCE_EQUIV` 归一命名差异、`SIDE_ONLY` 登记机制性单侧独有） |
 > | **egern 域名规则结构性失明** | `build_ir._load_egern_rules` 只对 `rule_set`/`geoip` 取 `source`，`domain_suffix` 类恒为 `None` ⇒ 被 `_targets()` 直接跳过 | 已修：域名类规则的 `match` 也归一到 `source` |
 >
 > 实测危害：删掉 egern lazy 的 2 条 `domain_suffix`（13→11，YAML 合法）后本判据仍
@@ -337,7 +337,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 > 同一轮还修了两处「读数骗人」：① 「N 个 source 已核」取的是**并集**大小，
 > 而真正四侧齐全参与比对的只有 35% / 17% ⇒ 改为分报「四侧齐全 / 单侧独有 / 并集」；
 > ② 豁免判定从全字典相等退化成「只校验登记侧的 `all()`」⇒ clash/stash 可被改成任意值
-> 而判绿（把 `jinx-ads` 改成 `DIRECT` = 关掉广告拦截，仍报"四侧齐全"）。
+> 而判绿（把 `rfu-ads` 改成 `DIRECT` = 关掉广告拦截，仍报"四侧齐全"）。
 > ⇒ 豁免表现在**必须登记全四侧**。
 
 **刻意豁免表**（判据文件顶部，唯一真源）：
@@ -346,7 +346,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 |:--|:--|:--|
 | 组名 | `Airport` 仅 Surge/Egern | 那是它们的**订阅槽位组**（`external`/手填）；Clash 系用 `proxy-providers`，没有这个组 |
 | 组名 | `Auto`/`Low Mult.`/`High Mult.` 仅 Clash/Stash | 倍率**三档**结构；Surge/Egern 的 smart 组用 `policy-priority` 表达同一件事 |
-| 去向 | `jinx-ads`、`awavenue-ads`：`surge=REJECT` vs 其余三侧 `AD` | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截。⚠️ 键名是**等价类归一后**的 canonical 名（`surge-ads`→`jinx-ads`、`awavenue-ads-rule-surge-rule-set`→`awavenue-ads`），且**必须登记全四侧** |
+| 去向 | `rfu-ads`、`awavenue-ads`：`surge=REJECT` vs 其余三侧 `AD` | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截。⚠️ 键名是**等价类归一后**的 canonical 名（`surge-ads`→`rfu-ads`、`awavenue-ads-rule-surge-rule-set`→`awavenue-ads`），且**必须登记全四侧** |
 
 ⚠️ **不要为「让闸门变绿」往豁免表里塞条目** —— 豁免表是「刻意差异的登记处」，
 不是「红线的逃生口」。新增豁免必须写清**为什么刻意**，否则它就是漂移。
@@ -988,14 +988,14 @@ for r in c.get("rules") or []:
 ```yaml
 nameserver-policy:
   rule-set:AWAvenue-Ads: rcode://success
-  rule-set:Jinx-Ads: rcode://success
+  rule-set:RFU-Ads: rcode://success
   rule-set:private,cn:
     - https://doh.18bit.cn/dns-query
     - https://dns.alidns.com/dns-query
 fake-ip-filter:
   - '*.lan' … （15 条域名类）
   - rule-set:AWAvenue-Ads
-  - rule-set:Jinx-Ads
+  - rule-set:RFU-Ads
 ```
 
 ⚠️ `lazy.yaml` 用的是 `geosite:private,cn`（带 `geosite:` 前缀），`routing.yaml` 用的是
@@ -1386,7 +1386,7 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 
 | # | 注入 | 期望 | 实际（⚠️ 见 §6.2）|
 |:-:|:-----|:-----|:------------------|
-| 13 | 从 `override/clash-lazy.js` 的规则数组里删掉一条 `RULE-SET,Jinx-CN,DIRECT` | exit 1 + 报出 rules 差异 | **exit 1，但输出是 `NameError` traceback**，无差异明细 |
+| 13 | 从 `override/clash-lazy.js` 的规则数组里删掉一条 `RULE-SET,RFU-Direct,DIRECT` | exit 1 + 报出 rules 差异 | **exit 1，但输出是 `NameError` traceback**，无差异明细 |
 
 > ✅ 已实测：基线 `clash-routing.js` / `clash-lazy.js` 双双 `OK`（exit 0）；
 > 删掉一条规则后 exit 1 —— **闸门会红，不会假绿**，但诊断信息缺失（§6.2）。

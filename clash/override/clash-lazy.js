@@ -137,21 +137,21 @@ function main(config) {
     interval: 86400,
   };
 
-  // Jinx 白名单 / 广告主清单（自托管 RFU-Rules 仓，命名与分流版一致）
-  rp["Jinx-CN"] = {
+  // 直连白名单 / 广告主清单（自托管 RFU-Rules 仓，命名与分流版一致）
+  rp["RFU-Direct"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
     url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml",
-    path: "./rule_provider/Jinx-CN.yaml",
+    path: "./rule_provider/RFU-Direct.yaml",
     interval: 86400,
   };
-  rp["Jinx-Ads"] = {
+  rp["RFU-Ads"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
     url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml",
-    path: "./rule_provider/Jinx-Ads.yaml",
+    path: "./rule_provider/RFU-Ads.yaml",
     interval: 86400,
   };
 
@@ -179,9 +179,9 @@ function main(config) {
   //   ⑤ AI 分流 ×2  ⑥ 国内域名 + 国内 IP  ⑦ 兜底
   config.rules = [
     // ① 白名单 —— 抢在广告规则之前放行
-    "RULE-SET,Jinx-CN,DIRECT",
+    "RULE-SET,RFU-Direct,DIRECT",
     // ② 广告拦截 —— 两条并列清单，同一出口 AD
-    "RULE-SET,Jinx-Ads,AD",
+    "RULE-SET,RFU-Ads,AD",
     "RULE-SET,AWAvenue-Ads,AD",
     // ③ Apple 系统服务（激活 / 推送 / 定位 / 配对）—— 排在内网之前，
     //    与分流版（apple-update → apple-system → 内网）及姊妹仓
@@ -261,7 +261,7 @@ function main(config) {
       // 广告两项**必须排在** rule-set:private / rule-set:cn 之前 —— 否则先命中 cn 就拿不到空回答；
       // 且必须同时在 fake-ip-filter 里列一遍（见下），否则拦截不生效。
       "rule-set:AWAvenue-Ads": "rcode://success",
-      "rule-set:Jinx-Ads": "rcode://success",
+      "rule-set:RFU-Ads": "rcode://success",
       // 官方示例是单名（geosite:xxx）。逗号多值无依据，拆成两条；
       // 同时统一用 rule-set: 前缀（与分流版一致，本仓规则集都是 rule-provider）。
       "rule-set:private": [
@@ -292,7 +292,7 @@ function main(config) {
       "+.market.xiaomi.com",
       // 广告清单：与 nameserver-policy 中的广告项一一对应
       "rule-set:AWAvenue-Ads",
-      "rule-set:Jinx-Ads",
+      "rule-set:RFU-Ads",
     ],
   };
 

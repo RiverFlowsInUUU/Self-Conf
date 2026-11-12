@@ -908,7 +908,7 @@ Surge 的 filter 不支持引用变量（filter 是字面正则），所以这�
 ```
 rule-provider 拉取失败
    → 该 provider 变成空集（不是报错，不是加载失败）
-   → RULE-SET,Jinx-Ads,AD 永远不命中
+   → RULE-SET,RFU-Ads,AD 永远不命中
    → 广告域名落到 MATCH,Proxy
    → 面板一切正常、配置"能跑"、没人报障
    ⇒ 拦截功能消失，且没有任何人收到通知
@@ -1172,7 +1172,7 @@ mihomo 的双层广告拦截是**两个必要条件**，它们是同一件事的
 ```
 广告域名查询
     ↓
-① dns.fake-ip-filter: "rule-set:AWAvenue-Ads" / "rule-set:Jinx-Ads"
+① dns.fake-ip-filter: "rule-set:AWAvenue-Ads" / "rule-set:RFU-Ads"
    → 跳过 fake-ip（否则 withFakeIP 对 A/AAAA 直接返回假 IP，请求永远到不了 ②）
     ↓
 ② dns.nameserver-policy: "rule-set:xxx": rcode://success
@@ -2011,7 +2011,7 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 | 9 | `check_structure` | 两处列**不同的**集 | `广告集两处不一致` ← 证明是「相等」不是「非空」 |
 | 10 | `check_structure` | **删掉 `ipv6` 键** | 仍判负 ← 证明 `is not False`（缺失 ≠ 通过）|
 | 11–12 | `check_min_pair` | `.min` 插一条规则 / 只改 `dns.prefer-h3` | `rules 长度不同: 11 vs 12` / `.dns.prefer-h3 值不同` |
-| 13 | `check_script_sync` | 从脚本删一条 `RULE-SET,Jinx-CN,DIRECT` | `rules[…]` 定位标记 |
+| 13 | `check_script_sync` | 从脚本删一条 `RULE-SET,RFU-Direct,DIRECT` | `rules[…]` 定位标记 |
 | 14 | `build_rules --check` | 往 `rules/AI.list` 追加一行 | `NG rules/AI_Domains.yaml 已过期` |
 | 15 | `check_remote_urls` | URL 改成 `mihomo-white-guard.yaml`（**当年真实死链**）| `死链 N 个` |
 

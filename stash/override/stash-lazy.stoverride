@@ -123,18 +123,18 @@ rule-providers: #!replace
     path: ./ruleset/AWAvenue-Ads.yaml
     interval: 86400
 
-  # ── Jinx 白名单 / 广告主清单（自托管 RFU-Rules 仓）───────────────────────
-  Jinx-CN:
+  # ── 直连白名单 / 广告主清单（自托管 RFU-Rules 仓）───────────────────────
+  RFU-Direct:
     behavior: classical
     format: yaml
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml
-    path: ./ruleset/Jinx-CN.yaml
+    path: ./ruleset/RFU-Direct.yaml
     interval: 86400
-  Jinx-Ads:
+  RFU-Ads:
     behavior: classical
     format: yaml
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
-    path: ./ruleset/Jinx-Ads.yaml
+    path: ./ruleset/RFU-Ads.yaml
     interval: 86400
 
   # ── 本仓自托管清单（上游无对应集）───────────────────────────────────────
@@ -161,9 +161,9 @@ rule-providers: #!replace
 #
 rules: #!replace
   # ① 白名单 —— 抢在广告规则之前放行
-  - RULE-SET,Jinx-CN,DIRECT
+  - RULE-SET,RFU-Direct,DIRECT
   # ② 广告拦截 —— 两条并列清单，同一出口 AD
-  - RULE-SET,Jinx-Ads,AD
+  - RULE-SET,RFU-Ads,AD
   - RULE-SET,AWAvenue-Ads,AD
   # ③ Apple 系统服务（激活 / 推送 / 定位 / 配对）—— 排在内网之前
   - RULE-SET,apple-system,DIRECT

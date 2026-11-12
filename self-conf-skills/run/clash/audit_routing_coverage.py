@@ -334,8 +334,8 @@ def _has_direct_token(n):
     """
     n = str(n).lower()
     _DIRECT = ("cn", "private", "apple-cn", "apple-system",
-               "apple-update", "jinx-cn")
-    # ① 先整名匹配（apple-cn / apple-system / jinx-cn 这类复合名）
+               "apple-update", "rfu-direct")
+    # ① 先整名匹配（apple-cn / apple-system / rfu-direct 这类复合名）
     if n in _DIRECT:
         return True
     # ② 再按分隔符切词匹配（geoip-cn / cn-ip 这类）

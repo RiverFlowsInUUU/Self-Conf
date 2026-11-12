@@ -1,4 +1,4 @@
-#! version=lazy_v1.0.3
+#! version=lazy_v1.0.4
 # ============================================================================
 # lazy · 懒人版
 #
@@ -176,13 +176,13 @@ rules:
 #    否则会被下面的广告规则误杀。（白名单内容随上游更新，条数不写死）
 # ⚠️ 两层白名单的第二层（系统域 `System`）不在此处，见下方 ③。
 - rule_set:
-    name: Jinx-CN
+    name: RFU-Direct
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
-# ② 广告拦截 —— 两条并列（先 Jinx，后 AWAvenue），都指向 AD。
+# ② 广告拦截 —— 两条并列（先 RFU-Ads，后 AWAvenue），都指向 AD。
 - rule_set:
-    name: Jinx-Ads
+    name: RFU-Ads
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
     policy: AD
     update_interval: 604800
