@@ -108,7 +108,7 @@ python self-conf-skills/gates/verify_all.py
 · `gates/check_priority_weight.py` —— 规则顺序/权重口径
 
 ⚠️ **自托管清单**（`rules/*.list`）是**唯一真源**；`rules/*.yaml` 与
-`rules/AI.list` 是**生成物**（见根 AGENTS.md 的生成链）。
+`RFU-Rules/main/surge-ai.list` 由姊妹仓 RFU-Rules 托管（2026-11-12 迁入），本仓不再生成。
 
 ### 升版（三个内核同时）
 

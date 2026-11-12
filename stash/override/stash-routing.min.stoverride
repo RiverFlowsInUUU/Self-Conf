@@ -271,17 +271,17 @@ rule-providers: #!replace
     url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.yaml
     path: ./ruleset/AWAvenue-Ads.yaml
     interval: 86400
-  Jinx-CN:
+  RFU-Direct:
     behavior: classical
     format: yaml
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml
-    path: ./ruleset/Jinx-CN.yaml
+    path: ./ruleset/RFU-Direct.yaml
     interval: 86400
-  Jinx-Ads:
+  RFU-Ads:
     behavior: classical
     format: yaml
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
-    path: ./ruleset/Jinx-Ads.yaml
+    path: ./ruleset/RFU-Ads.yaml
     interval: 86400
   emby:
     behavior: classical
@@ -289,11 +289,11 @@ rule-providers: #!replace
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/emby.yaml
     path: ./ruleset/emby.yaml
     interval: 86400
-  AI_Domains:
+  RFU-AI:
     behavior: classical
     format: yaml
-    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI_Domains.yaml
-    path: ./ruleset/AI_Domains.yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ai.yaml
+    path: ./ruleset/RFU-AI.yaml
     interval: 86400
   apple-system:
     behavior: classical
@@ -302,8 +302,8 @@ rule-providers: #!replace
     path: ./ruleset/apple_system.yaml
     interval: 86400
 rules: #!replace
-  - RULE-SET,Jinx-CN,DIRECT
-  - RULE-SET,Jinx-Ads,AD
+  - RULE-SET,RFU-Direct,DIRECT
+  - RULE-SET,RFU-Ads,AD
   - RULE-SET,AWAvenue-Ads,AD
   - RULE-SET,apple-update,Apple Update
   - RULE-SET,apple-system,DIRECT
@@ -313,7 +313,7 @@ rules: #!replace
   - RULE-SET,google-gemini,Gemini
   - RULE-SET,anthropic,Claude
   - RULE-SET,category-ai-chat-!cn,AI
-  - RULE-SET,AI_Domains,AI
+  - RULE-SET,RFU-AI,AI
   - DOMAIN-SUFFIX,music.youtube.com,YouTube Music
   - RULE-SET,github,Proxy
   - RULE-SET,youtube,YouTube

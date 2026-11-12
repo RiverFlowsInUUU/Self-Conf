@@ -327,7 +327,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 >
 > | 洞 | 为什么会漏 | 现状 |
 > |:--|:--|:--|
-> | **单侧整条规则消失判绿** | 原码 `if key in tgt[s]` 过滤掉「该侧没有这条」⇒ 删掉 egern 的整个 `Jinx-Ads` 块后，剩下三侧去向仍一致 ⇒ 通过 | 已修：断言 source 必须**四侧齐全**，缺侧判负（`SOURCE_EQUIV` 归一命名差异、`SIDE_ONLY` 登记机制性单侧独有） |
+> | **单侧整条规则消失判绿** | 原码 `if key in tgt[s]` 过滤掉「该侧没有这条」⇒ 删掉 egern 的整个 `RFU-Ads` 块后，剩下三侧去向仍一致 ⇒ 通过 | 已修：断言 source 必须**四侧齐全**，缺侧判负（`SOURCE_EQUIV` 归一命名差异、`SIDE_ONLY` 登记机制性单侧独有） |
 > | **egern 域名规则结构性失明** | `build_ir._load_egern_rules` 只对 `rule_set`/`geoip` 取 `source`，`domain_suffix` 类恒为 `None` ⇒ 被 `_targets()` 直接跳过 | 已修：域名类规则的 `match` 也归一到 `source` |
 >
 > 实测危害：删掉 egern lazy 的 2 条 `domain_suffix`（13→11，YAML 合法）后本判据仍
@@ -337,7 +337,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 > 同一轮还修了两处「读数骗人」：① 「N 个 source 已核」取的是**并集**大小，
 > 而真正四侧齐全参与比对的只有 35% / 17% ⇒ 改为分报「四侧齐全 / 单侧独有 / 并集」；
 > ② 豁免判定从全字典相等退化成「只校验登记侧的 `all()`」⇒ clash/stash 可被改成任意值
-> 而判绿（把 `jinx-ads` 改成 `DIRECT` = 关掉广告拦截，仍报"四侧齐全"）。
+> 而判绿（把 `rfu-ads` 改成 `DIRECT` = 关掉广告拦截，仍报"四侧齐全"）。
 > ⇒ 豁免表现在**必须登记全四侧**。
 
 **刻意豁免表**（判据文件顶部，唯一真源）：
@@ -346,7 +346,7 @@ README 下载表四侧齐全 · DIFFERENCES 有含四侧列的对照表 · AGENT
 |:--|:--|:--|
 | 组名 | `Airport` 仅 Surge/Egern | 那是它们的**订阅槽位组**（`external`/手填）；Clash 系用 `proxy-providers`，没有这个组 |
 | 组名 | `Auto`/`Low Mult.`/`High Mult.` 仅 Clash/Stash | 倍率**三档**结构；Surge/Egern 的 smart 组用 `policy-priority` 表达同一件事 |
-| 去向 | `jinx-ads`、`awavenue-ads`：`surge=REJECT` vs 其余三侧 `AD` | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截。⚠️ 键名是**等价类归一后**的 canonical 名（`surge-ads`→`jinx-ads`、`awavenue-ads-rule-surge-rule-set`→`awavenue-ads`），且**必须登记全四侧** |
+| 去向 | `rfu-ads`、`awavenue-ads`：`surge=REJECT` vs 其余三侧 `AD` | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。两者都达成拦截。⚠️ 键名是**等价类归一后**的 canonical 名（`surge-ads`→`rfu-ads`、`awavenue-ads-rule-surge-rule-set`→`awavenue-ads`），且**必须登记全四侧** |
 
 ⚠️ **不要为「让闸门变绿」往豁免表里塞条目** —— 豁免表是「刻意差异的登记处」，
 不是「红线的逃生口」。新增豁免必须写清**为什么刻意**，否则它就是漂移。
@@ -988,14 +988,14 @@ for r in c.get("rules") or []:
 ```yaml
 nameserver-policy:
   rule-set:AWAvenue-Ads: rcode://success
-  rule-set:Jinx-Ads: rcode://success
+  rule-set:RFU-Ads: rcode://success
   rule-set:private,cn:
     - https://doh.18bit.cn/dns-query
     - https://dns.alidns.com/dns-query
 fake-ip-filter:
   - '*.lan' … （15 条域名类）
   - rule-set:AWAvenue-Ads
-  - rule-set:Jinx-Ads
+  - rule-set:RFU-Ads
 ```
 
 ⚠️ `lazy.yaml` 用的是 `geosite:private,cn`（带 `geosite:` 前缀），`routing.yaml` 用的是
@@ -1271,7 +1271,7 @@ for method in ("HEAD", "GET"):
 TARGETS = [
     ("emby.list", "emby.yaml", "Emby 自用枚举域名 → Emby 组"),
     ("apple_system.list", "apple_system.yaml", "Apple 系统域 → DIRECT"),
-    ("AI.list", "AI_Domains.yaml", "AI 伴生域 → AI 组"),
+    ("AI.list", "RFU-AI.yaml", "AI 伴生域 → AI 组"),
 ]
 ```
 
@@ -1386,7 +1386,7 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 
 | # | 注入 | 期望 | 实际（⚠️ 见 §6.2）|
 |:-:|:-----|:-----|:------------------|
-| 13 | 从 `override/clash-lazy.js` 的规则数组里删掉一条 `RULE-SET,Jinx-CN,DIRECT` | exit 1 + 报出 rules 差异 | **exit 1，但输出是 `NameError` traceback**，无差异明细 |
+| 13 | 从 `override/clash-lazy.js` 的规则数组里删掉一条 `RULE-SET,RFU-Direct,DIRECT` | exit 1 + 报出 rules 差异 | **exit 1，但输出是 `NameError` traceback**，无差异明细 |
 
 > ✅ 已实测：基线 `clash-routing.js` / `clash-lazy.js` 双双 `OK`（exit 0）；
 > 删掉一条规则后 exit 1 —— **闸门会红，不会假绿**，但诊断信息缺失（§6.2）。
@@ -1398,12 +1398,12 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 
 | # | 注入 | 期望 |
 |:-:|:-----|:-----|
-| 14 | 往 `rules/AI.list` 末尾追加一行（任意域名）后跑 `--check` | `NG rules/AI_Domains.yaml 已过期（真源 AI.list 有更新）` + exit 1 |
+| 14 | 往 `RFU-Rules/main/surge-ai.list` 末尾追加一行（任意域名）后跑 `--check` | `NG RFU-Rules/main/mihomo-ai.yaml 已过期（真源 AI.list 有更新）` + exit 1 |
 
-> ✅ 已实测：追加一行后 `--check` 输出 `NG rules/AI_Domains.yaml 已过期（真源 AI.list 有更新）`、
+> ✅ 已实测：追加一行后 `--check` 输出 `NG RFU-Rules/main/mihomo-ai.yaml 已过期（真源 AI.list 有更新）`、
 > exit 1；恢复真源后 exit 0。
 >
-> ⚠️ **做这个实验前先备份真源**（`cp rules/AI.list $SB/AI.list.bak`），做完立刻还原，
+> ⚠️ **做这个实验前先备份真源**（`cp RFU-Rules/main/surge-ai.list $SB/AI.list.bak`），做完立刻还原，
 > 并跑一次 `git diff rules/` 确认为空。**别让探针污染真源。**
 
 ##### `check_remote_urls.py`
@@ -2389,7 +2389,7 @@ uuid: REPLACE_WITH_YOUR_UUID
 
 | 上游 | 本仓用途 | 本地刷新 | 主要风险 | 维护关注点 |
 |:-----|:---------|:---------|:---------|:-----------|
-| **MetaCubeX / meta-rules-dat** | mihomo 的 geosite / geoip `.mrs`；也是 `rules/AI.list` 的构建来源之一 | mihomo **1 天**；本地 AI 源快照需人工重抓再生成 | `meta` 移动分支持续变化；CDN 缓存有延迟；`.mrs` 不便人工审阅；format / behavior 配错会静默失配 | 核对 domain / ipcidr 类型、抽样反解、观察类别增删；上游标称日构建不等于本仓快照自动更新 |
+| **MetaCubeX / meta-rules-dat** | mihomo 的 geosite / geoip `.mrs`；也是 `RFU-Rules/main/surge-ai.list` 的构建来源之一 | mihomo **1 天**；本地 AI 源快照需人工重抓再生成 | `meta` 移动分支持续变化；CDN 缓存有延迟；`.mrs` 不便人工审阅；format / behavior 配错会静默失配 | 核对 domain / ipcidr 类型、抽样反解、观察类别增删；上游标称日构建不等于本仓快照自动更新 |
 | **blackmatrix7 / ios_rule_script** | Surge / Egern 分流应用集、LAN 补位；AI 整合器的多个源快照 | 现役规则集 **1 周**；构建快照人工刷新 | 大仓整体活跃不代表每个分类都活跃；集合可能混入 IP 条目；类别语义可能扩大 | 每次刷新重新数 IP / 域名条目，检查 `no-resolve`；不能只看文件名。历史上 Apple 集曾暴露裸 IP 条目问题 |
 | **RFU-Rules**（原 Jinx，姊妹仓） | 三内核广告白名单与广告主清单；数据是 Jinx 3.2.3 的**冻结快照**，不再跟随上游 | Surge / Egern **1 周**；mihomo **1 天**（内容已冻结，定期刷新只是兜底；真会变的只有姊妹仓重发新版） | 两份清单都处在规则链最前，误收影响大；**仓名 / 文件名改动**会造成死链静默降级 —— 旧路径仍 200 只是 GitHub 内部重定向，不是承诺 | 白名单必须先于广告；双广告出口参数一致；本仓曾因上游 `white-guard` 改名 `direct` 留下 404，2026-10-27 又逢仓名 `Jinx` → `RFU-Rules`（旧路径已进 `check_selfcontained.py` 判负表） |
 | **TG-Twilight / AWAvenue-Ads-Rule** | 第二条广告清单；mihomo 使用 `.mrs`，另两核使用 Surge list | Surge / Egern **1 周**；mihomo **1 天** | 广告规则误杀、与 Jinx 重叠；`.mrs` 内容不可直接 diff；镜像或产物链异常时影响 DNS 拦截 | 做白名单交集与误杀探针；mihomo 同一广告集必须同时进入 `nameserver-policy` 与 `fake-ip-filter` |

@@ -37,7 +37,7 @@ python self-conf-skills/run/repo_state.py     # 一屏现状：版本 / Release 
 提交前先过 [`ops.md`](./self-conf-skills/references/ops.md) §6.0 影响面清单（自检三问）。
 **⚠️ 先问**：改判据、加闸门、结构性调整（先说原判据错在哪，先补判据）。
 **🚫 从不**：手工编辑生成物（`*.min.*` · `clash/profiles/*.yaml` · `rules/*.yaml` ·
-`rules/AI.list` · `references/intent.json`）；为门禁变绿而改判据；文档数字当权威（一律现抓）；
+`references/intent.json`
 **把各侧「对齐」**—— 差异多是刻意的（豁免表在 `check_four_way_sync.py` 顶部，不是逃生口）。
 
 ## 两条铁律

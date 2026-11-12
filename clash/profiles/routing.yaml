@@ -1,4 +1,4 @@
-#! version=routing_v1.0.3
+#! version=routing_v1.0.4
 # ============================================================================
 #  routing · 分流版（由 override/clash-routing.js 生成）
 # ============================================================================
@@ -390,19 +390,19 @@ rule-providers:
     url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs
     path: ./rule_provider/AWAvenue-Ads-Rule-Clash.mrs
     interval: 86400
-  Jinx-CN:
+  RFU-Direct:
     type: http
     behavior: classical
     format: yaml
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml
-    path: ./rule_provider/Jinx-CN.yaml
+    path: ./rule_provider/RFU-Direct.yaml
     interval: 86400
-  Jinx-Ads:
+  RFU-Ads:
     type: http
     behavior: classical
     format: yaml
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
-    path: ./rule_provider/Jinx-Ads.yaml
+    path: ./rule_provider/RFU-Ads.yaml
     interval: 86400
   emby:
     type: http
@@ -411,12 +411,12 @@ rule-providers:
     url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/emby.yaml
     path: ./rule_provider/emby.yaml
     interval: 86400
-  AI_Domains:
+  RFU-AI:
     type: http
     behavior: classical
     format: yaml
-    url: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI_Domains.yaml
-    path: ./rule_provider/AI_Domains.yaml
+    url: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ai.yaml
+    path: ./rule_provider/RFU-AI.yaml
     interval: 86400
   apple-system:
     type: http
@@ -426,8 +426,8 @@ rule-providers:
     path: ./rule_provider/apple_system.yaml
     interval: 86400
 rules:
-  - RULE-SET,Jinx-CN,DIRECT
-  - RULE-SET,Jinx-Ads,AD
+  - RULE-SET,RFU-Direct,DIRECT
+  - RULE-SET,RFU-Ads,AD
   - RULE-SET,AWAvenue-Ads,AD
   - RULE-SET,apple-update,Apple Update
   - RULE-SET,apple-system,DIRECT
@@ -437,7 +437,7 @@ rules:
   - RULE-SET,google-gemini,Gemini
   - RULE-SET,anthropic,Claude
   - RULE-SET,category-ai-chat-!cn,AI
-  - RULE-SET,AI_Domains,AI
+  - RULE-SET,RFU-AI,AI
   - DOMAIN-SUFFIX,music.youtube.com,YouTube Music
   - RULE-SET,github,Proxy
   - RULE-SET,youtube,YouTube
@@ -481,7 +481,7 @@ dns:
     geoip: true
   nameserver-policy:
     rule-set:AWAvenue-Ads: rcode://success
-    rule-set:Jinx-Ads: rcode://success
+    rule-set:RFU-Ads: rcode://success
     rule-set:private:
       - https://doh.18bit.cn/dns-query
       - https://dns.alidns.com/dns-query
@@ -505,5 +505,5 @@ dns:
     - +.pool.ntp.org
     - +.market.xiaomi.com
     - rule-set:AWAvenue-Ads
-    - rule-set:Jinx-Ads
+    - rule-set:RFU-Ads
 proxies: []

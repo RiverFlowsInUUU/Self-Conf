@@ -139,7 +139,7 @@ Egern 的分流组**按类型做键**，而不是平铺的 `name` 字段。一�
 
 **规则的实际匹配顺序**（`rules` 按声明顺序求值，第一条命中即决定去向）：
 
-> 广告白名单 → 广告拦截（`Jinx` + `AWAvenue`）→ 系统域（`apple_system`）
+> 广告白名单 → 广告拦截（`RFU-Ads` + `AWAvenue`）→ 系统域（`apple_system`）
 > → 内网（`Lan` + `private`）→ 应用（13 条）→ Apple（`apple.txt`）→ 国内域名 → 国内 IP（`geoip: CN`）→ 兜底（`default`）
 >
 > ⚠️ 上表为**分流版**；懒人版段序相同但**不含 `SystemOTA`**（`Apple Update` 组仅分流版有），

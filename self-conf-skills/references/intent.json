@@ -92,7 +92,7 @@
        "clash",
        "stash"
       ],
-      "source": "jinx-cn"
+      "source": "rfu-direct"
      },
      {
       "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
@@ -101,7 +101,7 @@
        "clash",
        "stash"
       ],
-      "source": "jinx-ads"
+      "source": "rfu-ads"
      },
      {
       "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
@@ -141,12 +141,6 @@
      }
     ],
     "sources": {
-     "ai-domains": {
-      "clash": "AI",
-      "egern": "AI",
-      "stash": "AI",
-      "surge": "AI"
-     },
      "apple-system": {
       "clash": "DIRECT",
       "egern": "DIRECT",
@@ -182,14 +176,6 @@
       "clash": "DIRECT",
       "stash": "DIRECT"
      },
-     "jinx-ads": {
-      "clash": "AD",
-      "stash": "AD"
-     },
-     "jinx-cn": {
-      "clash": "DIRECT",
-      "stash": "DIRECT"
-     },
      "lan": {
       "egern": "DIRECT",
       "surge": "DIRECT"
@@ -199,6 +185,20 @@
       "egern": "DIRECT",
       "stash": "DIRECT",
       "surge": "DIRECT"
+     },
+     "rfu-ads": {
+      "clash": "AD",
+      "stash": "AD"
+     },
+     "rfu-ai": {
+      "clash": "AI",
+      "egern": "AI",
+      "stash": "AI",
+      "surge": "AI"
+     },
+     "rfu-direct": {
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "services.googleapis.cn": {
       "clash": "Proxy",
@@ -252,15 +252,15 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-CN",
-       "source_norm": "jinx-cn",
+       "source": "RFU-Direct",
+       "source_norm": "rfu-direct",
        "target": "DIRECT"
       },
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-Ads",
-       "source_norm": "jinx-ads",
+       "source": "RFU-Ads",
+       "source_norm": "rfu-ads",
        "target": "AD"
       },
       {
@@ -303,8 +303,8 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "AI_Domains",
-       "source_norm": "ai-domains",
+       "source": "RFU-AI",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -422,14 +422,14 @@
        "kind": "rule_set",
        "options": [],
        "source": "https://raw.githubusercontent.com/Repcz/Tool/X/Surge/Rules/AI.list",
-       "source_norm": "ai-domains",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI.list",
-       "source_norm": "ai-domains",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ai.list",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -497,15 +497,15 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-CN",
-       "source_norm": "jinx-cn",
+       "source": "RFU-Direct",
+       "source_norm": "rfu-direct",
        "target": "DIRECT"
       },
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-Ads",
-       "source_norm": "jinx-ads",
+       "source": "RFU-Ads",
+       "source_norm": "rfu-ads",
        "target": "AD"
       },
       {
@@ -548,8 +548,8 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "AI_Domains",
-       "source_norm": "ai-domains",
+       "source": "RFU-AI",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -677,7 +677,7 @@
         "update-interval=604800"
        ],
        "source": "https://raw.githubusercontent.com/Repcz/Tool/X/Surge/Rules/AI.list",
-       "source_norm": "ai-domains",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -685,8 +685,8 @@
        "options": [
         "update-interval=604800"
        ],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI.list",
-       "source_norm": "ai-domains",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ai.list",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -876,7 +876,7 @@
        "clash",
        "stash"
       ],
-      "source": "jinx-cn"
+      "source": "rfu-direct"
      },
      {
       "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
@@ -885,7 +885,7 @@
        "clash",
        "stash"
       ],
-      "source": "jinx-ads"
+      "source": "rfu-ads"
      },
      {
       "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
@@ -979,12 +979,6 @@
      }
     ],
     "sources": {
-     "ai-domains": {
-      "clash": "AI",
-      "egern": "AI",
-      "stash": "AI",
-      "surge": "AI"
-     },
      "anthropic": {
       "clash": "Claude",
       "egern": "Claude",
@@ -1076,14 +1070,6 @@
       "clash": "Gemini",
       "stash": "Gemini"
      },
-     "jinx-ads": {
-      "clash": "AD",
-      "stash": "AD"
-     },
-     "jinx-cn": {
-      "clash": "DIRECT",
-      "stash": "DIRECT"
-     },
      "lan": {
       "egern": "DIRECT",
       "surge": "DIRECT"
@@ -1109,6 +1095,20 @@
       "egern": "DIRECT",
       "stash": "DIRECT",
       "surge": "DIRECT"
+     },
+     "rfu-ads": {
+      "clash": "AD",
+      "stash": "AD"
+     },
+     "rfu-ai": {
+      "clash": "AI",
+      "egern": "AI",
+      "stash": "AI",
+      "surge": "AI"
+     },
+     "rfu-direct": {
+      "clash": "DIRECT",
+      "stash": "DIRECT"
      },
      "spotify": {
       "clash": "Spotify",
@@ -1378,15 +1378,15 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-CN",
-       "source_norm": "jinx-cn",
+       "source": "RFU-Direct",
+       "source_norm": "rfu-direct",
        "target": "DIRECT"
       },
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-Ads",
-       "source_norm": "jinx-ads",
+       "source": "RFU-Ads",
+       "source_norm": "rfu-ads",
        "target": "AD"
       },
       {
@@ -1457,8 +1457,8 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "AI_Domains",
-       "source_norm": "ai-domains",
+       "source": "RFU-AI",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -1874,14 +1874,14 @@
        "kind": "rule_set",
        "options": [],
        "source": "https://raw.githubusercontent.com/Repcz/Tool/X/Surge/Rules/AI.list",
-       "source_norm": "ai-domains",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI.list",
-       "source_norm": "ai-domains",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ai.list",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -2201,15 +2201,15 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-CN",
-       "source_norm": "jinx-cn",
+       "source": "RFU-Direct",
+       "source_norm": "rfu-direct",
        "target": "DIRECT"
       },
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "Jinx-Ads",
-       "source_norm": "jinx-ads",
+       "source": "RFU-Ads",
+       "source_norm": "rfu-ads",
        "target": "AD"
       },
       {
@@ -2280,8 +2280,8 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "AI_Domains",
-       "source_norm": "ai-domains",
+       "source": "RFU-AI",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -2708,7 +2708,7 @@
         "update-interval=604800"
        ],
        "source": "https://raw.githubusercontent.com/Repcz/Tool/X/Surge/Rules/AI.list",
-       "source_norm": "ai-domains",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {
@@ -2716,8 +2716,8 @@
        "options": [
         "update-interval=604800"
        ],
-       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI.list",
-       "source_norm": "ai-domains",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ai.list",
+       "source_norm": "rfu-ai",
        "target": "AI"
       },
       {

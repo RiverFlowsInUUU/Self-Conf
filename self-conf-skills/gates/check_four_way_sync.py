@@ -98,11 +98,11 @@ SIDES = ("surge", "egern", "clash", "stash")
 #         这两个键**永不出现** ⇒ 是两条死条目，让「豁免 4 条」的读数虚高。
 #      ② 豁免必须登记**全四侧**的期望去向。原先只写 surge/egern 两侧，判定用
 #         `all(present.get(s)==t for s,t in exempt.items())` 只校验这两侧 ⇒
-#         **clash/stash 可以被改成任意值而判绿**（实测把 clash 的 `jinx-ads` 改成
+#         **clash/stash 可以被改成任意值而判绿**（实测把 clash 的 `rfu-ads` 改成
 #         `DIRECT` = 广告拦截静默关闭，F5 仍报"四侧齐全"）。这比原实现更宽。
 #         ⇒ 现在四侧全写，判定改回"全字典相等"语义。
 TARGET_EXEMPT = {
-    "jinx-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
+    "rfu-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
     "awavenue-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
 }
 
@@ -135,10 +135,10 @@ GROUP_EXEMPT = {
 SOURCE_EQUIV = {
     # 同一条 URL：RFU-Rules/main/surge-direct.list ↔ RFU-Rules/main/mihomo-direct.yaml
     # （独立审查逐条比对：47 条内容完全相同）
-    "surge-direct": "jinx-cn",
+    "surge-direct": "rfu-direct",
     # 姊妹仓 ads 那两件的两种格式（Surge .list ↔ mihomo .yaml，数据同为 Jinx 快照）；
     # 3885 条语义等价，只是语法不同（DOMAIN-WILDCARD ↔ DOMAIN-REGEX）
-    "surge-ads": "jinx-ads",
+    "surge-ads": "rfu-ads",
     # 同一 AWAvenue 仓库的两个格式变体（Surge 965 行 / Clash 962 行）
     "awavenue-ads-rule-surge-rule-set": "awavenue-ads",
     # `rules/apple_system.list` 头注自述 = Surge 官方内置 SYSTEM 的 2026-09-24 快照
@@ -443,7 +443,7 @@ def main():
         #       present = {s: tgt[s][key] for s in SIDES if key in tgt[s]}
         #       if len(set(present.values())) <= 1: continue
         #   `if key in tgt[s]` 过滤掉了「该侧没有这条规则」的情况 ⇒ 从某一侧删掉整条
-        #   规则后，剩下三侧去向仍一致 ⇒ 通过。实测删掉 egern 的完整 `Jinx-Ads` 块
+        #   规则后，剩下三侧去向仍一致 ⇒ 通过。实测删掉 egern 的完整 `RFU-Ads` 块
         #   （rules 25→24，YAML 合法）后本判据仍 exit 0。
         #
         #   洞二（读数系统性夸大覆盖面）：原输出「%d 个 source 已核」取的是**并集**大小，
@@ -500,7 +500,7 @@ def main():
             if len(set(present.values())) <= 1:
                 continue
             # 豁免判定：**必须登记全四侧且逐一相等**（不是只校验登记到的那几侧）。
-            # 2026-10-18 独立审查实测：旧的 all() 写法下，把 clash 的 jinx-ads 改成
+            # 2026-10-18 独立审查实测：旧的 all() 写法下，把 clash 的 rfu-ads 改成
             # DIRECT（= 关掉广告拦截）仍判绿 —— 只因为 clash 没被登记进豁免表。
             exempt = TARGET_EXEMPT.get(key)
             if exempt and set(exempt) == set(SIDES) \

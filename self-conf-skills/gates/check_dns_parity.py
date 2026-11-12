@@ -154,7 +154,7 @@ def main():
         for fam, d in mp.items():
             pol = d.get("nameserver-policy") or {}
             checked += 1
-            if "rule-set:AWAvenue-Ads" not in pol or "rule-set:Jinx-Ads" not in pol:
+            if "rule-set:AWAvenue-Ads" not in pol or "rule-set:RFU-Ads" not in pol:
                 bad.append("clash %s 的 nameserver-policy 缺广告拦截 rule-set" % fam)
 
     print("DNS 段跨配置一致性（防泄露标准不因分流粒度而变）")

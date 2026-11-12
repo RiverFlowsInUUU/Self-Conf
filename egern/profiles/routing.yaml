@@ -1,9 +1,9 @@
-#! version=routing_v1.0.3
+#! version=routing_v1.0.4
 # ================================================================ routing（正式版 · 推荐）
 # 结构（与 Surge `routing.conf` 逐行对齐，内容与顺序均对拍）：
 #   ① `dns.forward` 由单条 catch-all 扩为 4 层：
 #      白名单（direct → Domestic-DNS，抢在拦截前拿到解析）
-#      → Jinx-Ads / AWAvenue 两条广告清单（value: reject —— 官方语义
+#      → RFU-Ads / AWAvenue 两条广告清单（value: reject —— 官方语义
 #      "refuse the query and return an empty response"，解析阶段直接拒答；
 #      Surge 自 2026-10-27 起已无等价机制 —— 它的广告拦截在连接阶段）→ catch-all 兜底。
 #      防泄露面不变：查询去向仍是 Domestic-DNS 加密组或拒答二选一，
@@ -480,12 +480,12 @@ rules:
 # （详见 self-conf-skills/references/profiles/egern.md 的「配置框架逐段详解」一节）。
 # ---- 规则段（与 Surge `routing.conf` 同一基准序）----
 - rule_set:
-    name: Jinx-CN
+    name: RFU-Direct
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
 - rule_set:
-    name: Jinx-Ads
+    name: RFU-Ads
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
     policy: AD
     update_interval: 604800
@@ -562,8 +562,8 @@ rules:
 # googleapis.com / googleusercontent.com 整域收编 —— play.googleapis.com 等 GMS 网关
 # 与 ChatGPT 认证/遥测/风控基础设施域不再漏出 AI 组；上行 Repcz 管滚动新 AI 域。
 - rule_set:
-    name: AI_Domains
-    match: https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI.list
+    name: RFU-AI
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ai.list
     policy: AI
 # GitHub —— 规则集仍引用（`GitHub.list`），但**不再单独成组**：本条直接指向 `Proxy`。
     update_interval: 604800

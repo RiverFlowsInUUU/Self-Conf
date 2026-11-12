@@ -54,7 +54,7 @@ python self-conf-skills/gates/verify_all.py
 - **跨仓引用**：单内核消费、整份接收、高频更新（上游自己维护）
 
 ⚠️ 自托管清单改完要跑 `build_rules.py` 生成 `rules/*.yaml`；
-`rules/AI.list` 由 `run/ai_domains_build.py` 从 `run/ai_sources/` 合并生成。
+`RFU-Rules/main/surge-ai.list` 由 `run/ai_domains_build.py` 从 `run/ai_sources/` 合并生成。
 
 
 ## 规则集与来源
@@ -96,7 +96,7 @@ python self-conf-skills/gates/verify_all.py
 本仓自托管的 `rules/*.list` 是**唯一真源**，三个内核都吃它 —— 但**吃的不是同一份文件**：
 
 ```text
-rules/AI.list             （272 条 —— 条数以该文件头注「合计」行为唯一真源）
+RFU-Rules/main/surge-ai.list             （272 条 —— 条数以该文件头注「合计」行为唯一真源）
 rules/apple_system.list   （18 条）
 rules/emby.list           （4 条）
    │
@@ -113,7 +113,7 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 `.yaml` 是**生成物**，禁止手工编辑（改真源 `.list` 后重跑）。
 整合前两仓各存一份（内容逐条相同）⇒ 改一处忘一处就漂移；单一真源后物理上不可能漂移。
 
-> 📌 `rules/AI_Domains.yaml` / `apple_system.yaml` / `emby.yaml` 的头部都写着真源名与条数，
+> 📌 `RFU-Rules/main/mihomo-ai.yaml` / `apple_system.yaml` / `emby.yaml` 的头部都写着真源名与条数，
 > 且标注「纯域名集、零 IP 条目 ⇒ 引用方**不写**规则级 `no-resolve`」—— 这条提示对三内核都成立。
 
 #### 0.2 为什么 mihomo 那份是 `.mrs` 而不是 `.list`
@@ -126,7 +126,7 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 | `ipcidr` | 纯 CIDR 集合 | 4 |
 
 它**装不下 `DOMAIN-SUFFIX,xxx` 这种完整规则行**。所以凡是 payload 是完整规则行的集合
-（本仓的 `AI_Domains` / `apple-system` / `emby`、以及 Jinx 的 2 份）**必须**是
+（本仓的 `RFU-AI` / `apple-system` / `emby`、以及 Jinx 的 2 份）**必须**是
 `format: yaml` + `behavior: classical` —— 不是偏好，是内容决定的。
 
 ⚠️ 判据：**先落样本看 payload 形态，再定 `format` / `behavior`**。
@@ -155,7 +155,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 | `Gemini.list` | → `Gemini` | ✅ | ✅ | 同上 |
 | `Anthropic.list` · `Claude.list` | → `Claude` | ✅ | ✅ | 同上 |
 | `AI.list` | → `AI`（通用 AI，必须排在上面三条**之后**） | ✅ | ✅ | [Repcz/Tool](https://github.com/Repcz/Tool)（分支头 · 活跃维护；2026-09-28 自 ACL4SSR 换入） |
-| `AI_Domains`（本仓自托管） | → `AI`（伴生域/宽后缀/基础设施域，**必须紧跟 `AI.list`**） | ✅ | ✅ | 本仓 `rules/AI.list`（静态整合 · 生成器 `self-conf-skills/run/ai_domains_build.py`；条数与来源见该文件头部档案） |
+| `RFU-AI`（本仓自托管） | → `AI`（伴生域/宽后缀/基础设施域，**必须紧跟 `AI.list`**） | ✅ | ✅ | 本仓 `RFU-Rules/main/surge-ai.list`（静态整合 · 生成器 `self-conf-skills/run/ai_domains_build.py`；条数与来源见该文件头部档案） |
 | `Spotify.list` · `YouTubeMusic.list` · `YouTube.list` | 各自应用组 | ✅ | ✅ | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) |
 | `GitHub.list` | → **`Proxy` 直指**（2026-10-05 起不再单设 `GitHub` 组） | ✅ | ✅ | 同上 |
 | `Google.list` · `Microsoft.list` | 各自应用组 | ✅ | ✅ | 同上 |
@@ -288,7 +288,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 
 懒人版同口径：**MetaCubeX 5 + 本仓 2 + Jinx 2 + AWAvenue 1 = 10**。
 
-⇒ **供应链归属决定出问题时找谁**：`cn.mrs` 变空 → 只能等上游；`AI_Domains.yaml` 404 → **本仓事故，立刻可修**。
+⇒ **供应链归属决定出问题时找谁**：`cn.mrs` 变空 → 只能等上游；`RFU-AI.yaml` 404 → **姊妹仓事故，需去 RFU-Rules 修**。
 自托管的 3 份是唯一"出事能自己修"的。
 
 #### 5.3 刷新周期：`interval: 86400`，与 Surge / Egern 的 604800 不一致是**刻意的**
@@ -323,8 +323,8 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 
 | 位 | 规则 | 位 | 规则 |
 |:-:|:-----|:-:|:-----|
-| ① | `RULE-SET,Jinx-CN,DIRECT`（白名单） | ⑮ | `RULE-SET,youtube,YouTube` |
-| ② | `RULE-SET,Jinx-Ads,AD` | ⑯ | `RULE-SET,emby,Emby`（本仓自托管） |
+| ① | `RULE-SET,RFU-Direct,DIRECT`（白名单） | ⑮ | `RULE-SET,youtube,YouTube` |
+| ② | `RULE-SET,RFU-Ads,AD` | ⑯ | `RULE-SET,emby,Emby`（本仓自托管） |
 | ③ | `RULE-SET,AWAvenue-Ads,AD` | ⑰ | `RULE-SET,google,Google` |
 | ④ | `RULE-SET,apple-update,Apple Update` | ⑱ | `RULE-SET,spotify,Spotify` |
 | ⑤ | `RULE-SET,apple-system,DIRECT`（本仓自托管） | ⑲ | `RULE-SET,twitter,Twitter` |
@@ -334,12 +334,12 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 | ⑨ | `RULE-SET,google-gemini,Gemini` | ㉓ | `RULE-SET,geoip-google,Google,no-resolve` |
 | ⑩ | `RULE-SET,anthropic,Claude` | ㉔ | `RULE-SET,geoip-telegram,Telegram,no-resolve` |
 | ⑪ | `RULE-SET,category-ai-chat-!cn,AI` | ㉕ | `RULE-SET,cn,DIRECT` |
-| ⑫ | `RULE-SET,AI_Domains,AI`（本仓自托管） | ㉖ | `RULE-SET,geoip-cn,DIRECT,no-resolve` |
+| ⑫ | `RULE-SET,RFU-AI,AI`（本仓自托管） | ㉖ | `RULE-SET,geoip-cn,DIRECT,no-resolve` |
 | ⑬ | `DOMAIN-SUFFIX,music.youtube.com,YouTube Music`（**唯一内联**） | ㉗ | `MATCH,Proxy` |
 | ⑭ | `RULE-SET,github,Proxy`（无同名组） | | |
 
-**懒人版 11 条**：`Jinx-CN` → `Jinx-Ads` → `AWAvenue-Ads` → `apple-system` →
-`geoip-private`(no-resolve) → `private` → `category-ai-chat-!cn` → `AI_Domains` →
+**懒人版 11 条**：`RFU-Direct` → `RFU-Ads` → `AWAvenue-Ads` → `apple-system` →
+`geoip-private`(no-resolve) → `private` → `category-ai-chat-!cn` → `RFU-AI` →
 `cn` → `geoip-cn`(no-resolve) → `MATCH,Proxy`。
 
 三处尤其**不是疏漏**（与 Surge / Egern 的结构差异）：
@@ -355,10 +355,10 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 
 #### 5.5 ⭐ 两个 AI 集：mihomo 侧独有的"双保险"
 
-`category-ai-chat-!cn`（远程滚动）与 `AI_Domains`（本仓自托管 272 条）**都落 `AI` 组**，
-两个内核侧也有同名的一对（`AI.list` Repcz + 本仓 `AI_Domains`），**形态一致、理由同源**：
+`category-ai-chat-!cn`（远程滚动）与 `RFU-AI`（RFU-Rules 托管（条数随周更变化））**都落 `AI` 组**，
+两个内核侧也有同名的一对（`AI.list` Repcz + 本仓 `RFU-AI`），**形态一致、理由同源**：
 
-- `AI_Domains`（272 条）= **10 源人工整合快照**，覆盖度更高；
+- `RFU-AI`（272 条）= **10 源人工整合快照**，覆盖度更高；
 - `category-ai-chat-!cn`（181 / 188 条）= **每 24 小时自动刷新**，能接住"两次人工整合之间"新出现的域。
 
 ⚠️ 二者**互相漏，且漏的方向不对称**（实测差集：上游漏本仓 **94 条**伴生域，本仓只漏上游 **4 条**）。
@@ -500,13 +500,13 @@ Surge 与 Egern 的 26 条规则逐位同义；mihomo 有 27 条。当前分流�
 
 | 语义 | Surge | Egern | clash-mihomo |
 |:-----|:------|:------|:-------------|
-| 广告白名单 | ① `surge-direct.list` → `DIRECT` | ① 同源 `.list` → `DIRECT` | ① `Jinx-CN`（yaml/classical）→ `DIRECT` |
-| 两条广告 | ②③ `.list` → 字面量 `REJECT` + extended-matching | ②③ `.list` → `AD` | ②③ `Jinx-Ads` / `AWAvenue-Ads` → `AD` |
+| 广告白名单 | ① `surge-direct.list` → `DIRECT` | ① 同源 `.list` → `DIRECT` | ① `RFU-Direct`（yaml/classical）→ `DIRECT` |
+| 两条广告 | ②③ `.list` → 字面量 `REJECT` + extended-matching | ②③ `.list` → `AD` | ②③ `RFU-Ads` / `AWAvenue-Ads` → `AD` |
 | Apple 更新 | ④ `SystemOTA.list` → `Apple Update` | ④ 同左 | ④ `apple-update.mrs` → `Apple Update` |
 | 系统域 | ⑤ 内置 `SYSTEM` → `DIRECT` | ⑤ `apple_system.list` → `DIRECT` | ⑤ `apple-system.yaml` → `DIRECT` |
 | 内网 | ⑥ 内置 `LAN`；⑦ `private.txt` | ⑥ `Lan.list`；⑦ `private.txt` | ⑥ `geoip-private.mrs`；⑦ `private.mrs` |
 | AI 专属 | ⑧ OpenAI；⑨ Gemini；⑩ Anthropic；⑪ Claude | ⑧–⑪ 同左 | ⑧ openai；⑨ google-gemini；⑩ anthropic；**无独立 Claude 集** |
-| AI 兜底 | ⑫ Repcz `AI.list`；⑬ 本仓 `AI.list` | ⑫⑬ 同左 | ⑪ `category-ai-chat-!cn.mrs`；⑫ 本仓 `AI_Domains.yaml` |
+| AI 兜底 | ⑫ Repcz `AI.list`；⑬ RFU-Rules 的 `surge-ai.list` | ⑫⑬ 同左 | ⑪ `category-ai-chat-!cn.mrs`；⑫ 本仓 `RFU-AI.yaml` |
 | YouTube Music | ⑭ 远程 `YouTubeMusic.list` | ⑭ 同左 | ⑬ 内联 `DOMAIN-SUFFIX,music.youtube.com` |
 | GitHub / YouTube / Emby / Google | ⑮–⑱ | ⑮–⑱ | ⑭–⑰ |
 | Telegram / Spotify / Twitter / Microsoft | ⑲–㉒，Telegram 在前 | ⑲–㉒，同左 | ⑱ Spotify；⑲ Twitter；⑳ Microsoft；Telegram 下移到㉒ |
@@ -622,7 +622,7 @@ mihomo 的实际值应以本页和 [`profiles/<kern>.md`](./profiles/clash.md) �
 
 | 唯一真源 | 条目数 | mihomo 生成物 | 三侧用途 |
 |:---------|------:|:---------------|:---------|
-| `rules/AI.list` | 272 | `rules/AI_Domains.yaml` | Surge/Egern 直接引用 `.list`；mihomo 引用 yaml/classical |
+| `RFU-Rules/main/surge-ai.list` | 272 | `RFU-Rules/main/mihomo-ai.yaml` | Surge/Egern 直接引用 `.list`；mihomo 引用 yaml/classical |
 | `rules/apple_system.list` | 18 | `rules/apple_system.yaml` | Egern 补 Surge 内置 `SYSTEM`；mihomo 用 yaml；Surge 直接用内置集 |
 | `rules/emby.list` | 4 | `rules/emby.yaml` | Surge/Egern 直接引用 `.list`；mihomo 引用 yaml/classical |
 
@@ -955,7 +955,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 这个等式就会失效。稳妥做法是数 `rule-providers` 的键。
 
 ⚠️ 另一个易错点：**两个 AI 集是两份集、两条规则，不是一份集被引用两次**。
-`category-ai-chat-!cn` 与 `AI_Domains` 是两个不同的 provider，各自一条 `RULE-SET`，
+`category-ai-chat-!cn` 与 `RFU-AI` 是两个不同的 provider，各自一条 `RULE-SET`，
 所以它们既占 2 个 provider 键，也占 2 条 `RULE-SET`（§7 解释为什么需要两份）。
 
 #### 1.1 一个反复出现的头注错误
@@ -1013,7 +1013,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | # | 名称 | behavior | format | 条目数 | 真源 | 落点 |
 |:-:|:--|:--|:--|:--:|:--|:--|
 | 21 | `emby` | classical | yaml | **4** | `rules/emby.list` | Emby |
-| 22 | `AI_Domains` | classical | yaml | **272** | `rules/AI.list` | AI |
+| 22 | `RFU-AI` | classical | yaml | **272** | `RFU-Rules/main/surge-ai.list` | AI |
 | 23 | `apple-system` | classical | yaml | **18** | `rules/apple_system.list` | DIRECT |
 
 这 3 份的条目数是**确定的** —— 它们是本仓自己维护的静态文件，不随上游变化。
@@ -1021,13 +1021,15 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 #### 2.3 Jinx（2 份）
 
 数据来自 Jinx 3.2.3 的冻结快照，托管在姊妹仓 [`RFU-Rules`](https://github.com/RiverFlowsInUUU/RFU-Rules)
-（2026-10-27 前名 `RiverFlowsInUUU/Jinx`）。文件名与 provider 名沿用 `Jinx-*`，
-标记的是**数据来源**，与仓名无关。
+（2026-10-27 前名 `RiverFlowsInUUU/Jinx`）。远端文件名沿用 `*-direct` / `*-ads`；
+provider 名自 2026-11-12 起为 `RFU-Direct` / `RFU-Ads`，按托管仓与用途命名，
+不再拿来源名当标识符 —— 数据出处（Jinx 3.2.3 冻结快照）只保留在说明里。
+改名后旧的本地缓存文件会成为孤儿，客户端按新 `path` 自动重下。
 
 | # | 名称 | behavior | format | 条目数 | 落点 |
 |:-:|:--|:--|:--|:--|:--|
-| 24 | `Jinx-CN` | classical | yaml | 现抓 | DIRECT |
-| 25 | `Jinx-Ads` | classical | yaml | 现抓 | AD |
+| 24 | `RFU-Direct` | classical | yaml | 现抓 | DIRECT |
+| 25 | `RFU-Ads` | classical | yaml | 现抓 | AD |
 
 三类合计 **20 + 3 + 2 = 25 份**，与 `rule-providers` 的键数一致。
 
@@ -1058,9 +1060,9 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | 4 | `geoip-private` | MetaCubeX | ipcidr | mrs | 现抓 | DIRECT `no-resolve` |
 | 5 | `geoip-cn` | MetaCubeX | ipcidr | mrs | 现抓 | DIRECT `no-resolve` |
 | 6 | `AWAvenue-Ads` | AWAvenue | domain | mrs | 现抓 | AD |
-| 7 | `Jinx-CN` | Jinx | classical | yaml | 现抓 | DIRECT |
-| 8 | `Jinx-Ads` | Jinx | classical | yaml | 现抓 | AD |
-| 9 | `AI_Domains` | 本仓 | classical | yaml | **272** | AI |
+| 7 | `RFU-Direct` | Jinx | classical | yaml | 现抓 | DIRECT |
+| 8 | `RFU-Ads` | Jinx | classical | yaml | 现抓 | AD |
+| 9 | `RFU-AI` | 本仓 | classical | yaml | **272** | AI |
 | 10 | `apple-system` | 本仓 | classical | yaml | **18** | DIRECT |
 
 #### 3.1 与分流版的差集（15 份）
@@ -1102,7 +1104,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 但**供应链归属以本表为准**：评估上游可用性、写事故报告时，`AWAvenue-Ads` 要单独算。
 
 懒人版按同一口径拆：**MetaCubeX 5**（`private` `cn` `category-ai-chat-!cn`
-`geoip-private` `geoip-cn`）+ **本仓 2**（`AI_Domains` `apple-system`）
+`geoip-private` `geoip-cn`）+ **本仓 2**（`RFU-AI` `apple-system`）
 + **Jinx 2** + **AWAvenue 1** = **10 份**。
 
 #### 4.1 为什么"来源"这一维重要
@@ -1110,8 +1112,8 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 因为它决定了**出问题时找谁**：
 
 - `cn.mrs` 突然变空 → MetaCubeX 上游问题 → 只能等或换源；
-- `AI_Domains.yaml` 404 → **本仓问题**（文件被删、仓改名、分支改名）→ 立刻可修；
-- `Jinx-CN.yaml` 变空 → 姊妹仓问题 → 需要跨仓协调。
+- `RFU-AI.yaml` 404 → **本仓问题**（文件被删、仓改名、分支改名）→ 立刻可修；
+- `RFU-Direct.yaml` 变空 → 姊妹仓问题 → 需要跨仓协调。
 
 ⇒ 判据：**自托管的 3 份是唯一"出事能自己修"的**。这也是 §8 的取舍基础。
 
@@ -1137,15 +1139,15 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 （`TYPE,value`），匹配时按整条规则求值。这类内容只能放在
 `format: yaml`（或 `text`）里。
 
-本仓 5 份 classical 集（`Jinx-CN` `Jinx-Ads` `emby` `AI_Domains` `apple-system`）
+本仓 5 份 classical 集（`RFU-Direct` `RFU-Ads` `emby` `RFU-AI` `apple-system`）
 之所以必须是 yaml，**不是偏好，是内容决定的**：
 
 | 集 | 为什么不能是 `domain` 集 |
 |:--|:--|
-| `AI_Domains` | 272 条里有 **39 条 `DOMAIN`、8 条 `DOMAIN-KEYWORD`、1 条 `URL-REGEX`** —— 关键字与正则在 `domain` 行为下就是一串永远匹配不上的字符 |
+| `RFU-AI` | 272 条里有 **39 条 `DOMAIN`、8 条 `DOMAIN-KEYWORD`、1 条 `URL-REGEX`** —— 关键字与正则在 `domain` 行为下就是一串永远匹配不上的字符 |
 | `apple-system` | 18 条里 12 条 `DOMAIN` 精确匹配（如 `DOMAIN,mesu.apple.com`），`domain` 行为下会退化 |
 | `emby` | 4 条全 `DOMAIN-SUFFIX` —— 理论可转，但纳入生成链路统一用 yaml 更省事 |
-| `Jinx-*` | 姊妹仓发布的产物本身就是 mihomo classical payload |
+| `RFU-Direct` / `RFU-Ads` | 姊妹仓发布的产物本身就是 mihomo classical payload |
 
 **⇒ 判据：先看 payload 的形态，再定 format。**
 `domain` 集里混进一条 `DOMAIN-SUFFIX,xxx` 这样的完整规则行，
@@ -1180,9 +1182,9 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | **命中率** | 随机抽 N 个真实域名，命中几条 | 抽样对拍 |
 | **差集** | A 集有、B 集没有的是哪些，那些是什么 | 求差集并**人工分类** |
 
-⚠️ **只有第三层有意义。** 条目数会被冗余条目虚增（本仓 `AI.list` 就曾
+⚠️ **只有第三层有意义。** 条目数会被冗余条目虚增（RFU-Rules 的 `surge-ai.list` 就曾
 318 → 286 → 272 两次归并，条目少了 46 条但**匹配行为零变化**，
-见 `rules/AI.list` 头注"六修/七修"）；命中率会被抽样偏差带偏。
+见 `RFU-Rules/main/surge-ai.list` 头注"六修/七修"）；命中率会被抽样偏差带偏。
 **差集 + 人工分类**才能回答"漏的是什么、后果是什么"。
 
 #### 6.2 求差集时必须做的两件事
@@ -1195,7 +1197,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 
 **(2) 先把两边的格式归一化。**
 
-本仓 `rules/AI.list` 是 Surge ruleset 格式（`TYPE,value`）；
+本仓 `RFU-Rules/main/surge-ai.list` 是 Surge ruleset 格式（`TYPE,value`）；
 MetaCubeX 的 `category-ai-chat-!cn` 源自 v2ray domain-list 格式，
 用的是 `+.example.com`（后缀）、`full:example.com`（精确）、
 `keyword:xxx`、`regexp:xxx` 这套前缀。**直接按行比对会得到荒谬的结果**
@@ -1215,7 +1217,7 @@ MetaCubeX 的 `category-ai-chat-!cn` 源自 v2ray domain-list 格式，
 
 ```yaml
   - RULE-SET,category-ai-chat-!cn,AI     # MetaCubeX，188 条
-  - RULE-SET,AI_Domains,AI               # 本仓自托管，272 条
+  - RULE-SET,RFU-AI,AI               # 本仓自托管，272 条
 ```
 
 **两条都指向 `AI` 组。** 既然落点相同，为什么不是二选一？
@@ -1226,7 +1228,7 @@ MetaCubeX 的 `category-ai-chat-!cn` 源自 v2ray domain-list 格式，
 
 | 项 | 数值 |
 |:--|:--|
-| A = 本仓 `rules/AI.list`（→ `AI_Domains.yaml`） | **272 条**（其中 271 条域名类 + 1 条 `URL-REGEX`） |
+| A = 本仓 `RFU-Rules/main/surge-ai.list`（→ `RFU-AI.yaml`） | **272 条**（其中 271 条域名类 + 1 条 `URL-REGEX`） |
 | B = MetaCubeX `category-ai-chat-!cn` | **181 条**（本仓快照 `self-conf-skills/run/ai_sources/meta-ai.list` 实测）/ **188 条**（历史记录值） |
 | A ∩ B（B 能接住的 A 条目） | **177 条** |
 | **A − B（B 漏掉的）** | **94 条** |
@@ -1305,7 +1307,7 @@ statsig.com          → MATCH   → 节点 B（出口 IP 2，地区 Y）
 
 #### 7.5 那反过来呢：本仓 272 条漏了上游什么
 
-**只有 4 条。** 这个方向的差集很小，原因是本仓 `AI.list` 的生成器
+**只有 4 条。** 这个方向的差集很小，原因是RFU-Rules 的 `surge-ai.list` 的生成器
 （`self-conf-skills/run/ai_domains_build.py`）**把 MetaCubeX 当作 10 个上游源之一**
 （源列表里的 `meta-ai.list`，标签 `MetaCubeX geosite category-ai-!cn`）。
 
@@ -1344,10 +1346,10 @@ statsig.com          → MATCH   → 节点 B（出口 IP 2，地区 Y）
 
 #### 8.1 本仓的选择：自托管（各存一份）
 
-3 份自托管集（`emby` / `AI_Domains` / `apple-system`）的 URL 都指向本仓自己：
+3 份自托管集（`emby` / `RFU-AI` / `apple-system`）的 URL 都指向本仓自己：
 
 ```
-https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/AI_Domains.yaml
+https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ai.yaml
 https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/apple_system.yaml
 https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/emby.yaml
 ```
@@ -1417,13 +1419,13 @@ https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
 #### 9.1 链路
 
 ```text
-rules/AI.list              ← 唯一真源（Surge ruleset 格式）
+RFU-Rules/main/surge-ai.list              ← 唯一真源（Surge ruleset 格式）
     │                         ↑ 由 self-conf-skills/run/ai_domains_build.py 从
     │                           self-conf-skills/run/ai_sources/ 的 10 份上游快照整合而来
     │
     ├─ Surge / Egern 直接消费（原生 .list）
     │
-    └─ build_rules.py ──→ rules/AI_Domains.yaml   ← mihomo 消费（classical payload）
+    └─ build_rules.py ──→ RFU-Rules/main/mihomo-ai.yaml   ← mihomo 消费（classical payload）
 
 rules/apple_system.list ──→ rules/apple_system.yaml
 rules/emby.list         ──→ rules/emby.yaml
@@ -1435,7 +1437,7 @@ rules/emby.list         ──→ rules/emby.yaml
 TARGETS = [
     ("emby.list", "emby.yaml", "Emby 自用枚举域名 → Emby 组"),
     ("apple_system.list", "apple_system.yaml", "Apple 系统域 → DIRECT"),
-    ("AI.list", "AI_Domains.yaml", "AI 伴生域 → AI 组"),
+    ("AI.list", "RFU-AI.yaml", "AI 伴生域 → AI 组"),
 ]
 ```
 
@@ -1551,7 +1553,7 @@ Surge 侧 [`rulesets.md`](./rulesets.md) §5.3
 1. **25 份不是负担。** 唯一代价是常驻内存，而本仓的量级是 MB 级。
    （对比：Egern 侧单是 `ChinaMax_All_No_Resolve` 一份就是 111,332 条 / 3.42 MB / +22.6 MB。
    本仓 25 份加起来远不到这个量级 —— 因为本仓没有引入任何"国内域名全量表"。）
-2. **不要为了"轻"而砍规则集。** 砍掉 `AI_Domains` 省下 272 条（约 40 KB），
+2. **不要为了"轻"而砍规则集。** 砍掉 `RFU-AI` 省下 272 条（约 40 KB），
    代价是 §7.4 的出口不一致。**这是一笔极坏的交换**。
 3. ⚠️ **真正会变重的是"引入国内域名全量表"**。本仓目前用 `cn`（MetaCubeX 域名集）
    接国内域名，没有引入 ChinaMax 那种十万条目级的表。
@@ -1562,7 +1564,7 @@ Surge 侧 [`rulesets.md`](./rulesets.md) §5.3
 | | Surge 侧 | mihomo 侧 |
 |:--|:--|:--|
 | 主要风险 | 缺 `no-resolve` 的 **IP** 条目制造出口 ③ | 覆盖度不足导致的**出口不一致**（§7.4） |
-| 承重墙 | `direct.txt`（十几万条域名） | `cn` + `Jinx-CN` + `geoip-cn` |
+| 承重墙 | `direct.txt`（十几万条域名） | `cn` + `RFU-Direct` + `geoip-cn` |
 | 条数纪律 | 一律不写死 | 自托管 3 份写死，远程集不写死 |
 
 ⚠️ 差异的根源是**规则集构成不同**：Surge 侧的痛点是 IP 条目，
@@ -1579,13 +1581,13 @@ Surge 侧 [`rulesets.md`](./rulesets.md) §5.3
 **Q：25 份规则集太多了吧，能不能合并成几份？**
 
 不能按"份数"合并。份数对应的是**落点**（策略组）与**来源**（供应链），
-不是冗余。`category-ai-chat-!cn` 与 `AI_Domains` 都落 `AI` 组看似重复，
+不是冗余。`category-ai-chat-!cn` 与 `RFU-AI` 都落 `AI` 组看似重复，
 但 §7.2 实测显示前者漏 94 条 —— 合并（取并集）才是正确动作，
 而取并集要跑生成器，不是手抄。
 
-**Q：为什么 AI 要用两份集？只用 `AI_Domains`（272 条）不行吗？**
+**Q：为什么 AI 要用两份集？只用 `RFU-AI`（272 条）不行吗？**
 
-§7.5 显示反方向只漏 4 条。所以**理论上**只用 `AI_Domains` 覆盖度更高。
+§7.5 显示反方向只漏 4 条。所以**理论上**只用 `RFU-AI` 覆盖度更高。
 保留 `category-ai-chat-!cn` 的理由是**它滚动更新**：
 `AI.list` 是 2026-10-01 的人工整合快照，上游新出的 AI 域要等人工同步；
 MetaCubeX 那一份每 24 小时自动刷新，能接住"两次人工整合之间"新出现的域。
@@ -1596,14 +1598,14 @@ MetaCubeX 那一份每 24 小时自动刷新，能接住"两次人工整合之�
 不能（§5）。`mrs` 只装 domain / ipcidr，装不下带类型的规则行。
 凡是需要 `DOMAIN-KEYWORD` / `URL-REGEX` / 精确 `DOMAIN` 的集合，必须是 yaml + classical。
 
-**Q：为什么 `AI_Domains.yaml` 里有一条 `URL-REGEX`？它会不会影响性能？**
+**Q：为什么 `RFU-AI.yaml` 里有一条 `URL-REGEX`？它会不会影响性能？**
 
 272 条里 1 条。它是**不可预匹配**的类型（需在 HTTP 层求值），
 但**不会触发 DNS 解析**，不参与 `no-resolve` 判据。
 1 条不构成性能问题，Surge 侧
 [`rulesets.md`](./rulesets.md) §4 有同类说明。
 
-**Q：我只改了 `rules/AI.list`，需要改三个内核吗？**
+**Q：我只改了 `RFU-Rules/main/surge-ai.list`，需要改三个内核吗？**
 
 改真源即可，然后跑 `build_rules.py`。Surge / Egern 直接消费 `.list`，
 mihomo 消费生成的 `.yaml`。**不要手工改两份** —— 见

@@ -395,7 +395,7 @@ dns:
 ```yaml
 nameserver-policy:
   "rule-set:AWAvenue-Ads": rcode://success      # 广告 → 空回答
-  "rule-set:Jinx-Ads": rcode://success
+  "rule-set:RFU-Ads": rcode://success
   "rule-set:private":                            # 私有域 → 国内 DoH
     - https://doh.18bit.cn/dns-query
   "rule-set:cn":                                 # 国内域名 → 国内 DoH

@@ -743,7 +743,7 @@ Surge 的组名 / 节点名引用**不区分大小写地可解析**，但 `check
 | 5 | `RULE-SET,LAN` | `DIRECT` | `no-resolve` | 含 18 条 IP-CIDR，**必须** `no-resolve`。内网段排在应用之前，与 Egern 同位 |
 | 6 | `RULE-SET,…,private.txt` | `DIRECT` | `update-interval=604800` | 内网域名。实测零 IP ⇒ 按原则**不写** `no-resolve` |
 | 7 | `RULE-SET,…,AI.list`（Repcz） | `AI` | `update-interval=604800` | 实测零 IP（纯域名系）⇒ 不写 `no-resolve` |
-| 8 | `RULE-SET,…/self-conf/main/rules/AI.list` | `AI` | `update-interval=604800` | 本仓自托管整合集（伴生域 / 宽后缀），与 7 号同指 `AI` 组 |
+| 8 | `RULE-SET,…/self-conf/main/RFU-Rules/main/surge-ai.list` | `AI` | `update-interval=604800` | RFU-Rules 整合集（伴生域 / 宽后缀），与 7 号同指 `AI` 组 |
 | 9 | `RULE-SET,…,direct.txt` | `DIRECT` | `update-interval=604800` | **主承重墙**，纯域名、零 IP（条数一律现抓）。见 §12 |
 | 10 | `GEOIP,CN,DIRECT` | `DIRECT` | `no-resolve` | IP 类规则，放最后 |
 | 11 | `FINAL,Proxy,dns-failed` | `Proxy` | `dns-failed` | 兜底 |
@@ -761,7 +761,7 @@ Surge 的组名 / 节点名引用**不区分大小写地可解析**，但 `check
 | 5 | **系统域白名单**：`SYSTEM` | `DIRECT` | 同 lazy（2026-10-06 起不再置顶） |
 | **6–7** | 内网：`LAN` / `private.txt` | `DIRECT`（`LAN` 带 `no-resolve`，`private.txt` 零 IP 不写） | 同 lazy |
 | **8–12** | AI 厂商：`OpenAI` / `Gemini` / `Anthropic` / `Claude` / `AI` | `ChatGPT` / `Gemini` / `Claude` / `Claude` / `AI` | **新增 5 条**（AI 细分） |
-| **13** | 本仓自托管 `AI.list` | `AI` | **新增**（伴生域 / 宽后缀） |
+| **13** | RFU-Rules 的 `surge-ai.list` | `AI` | **新增**（伴生域 / 宽后缀） |
 | **14** | 媒体：`YouTubeMusic` | `YouTube Music` | **新增**（因包含关系前移，见 §14 要点 4） |
 | **15–22** | `GitHub`→`Proxy` · `YouTube` · `emby` · `Google` · `Telegram` · `Spotify` · `Twitter` · `Microsoft` | 同名组（`Microsoft` 首项 `DIRECT`） | **新增 8 条**（应用分流） |
 | 23 | Apple 域名集：`apple.txt` | `DIRECT`（零 IP **不写**开关） | 新增 |

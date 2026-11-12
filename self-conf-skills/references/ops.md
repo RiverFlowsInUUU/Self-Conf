@@ -383,7 +383,7 @@ clash/
 
 | 唯一真源 | 条数 | 生成物 | 谁消费 |
 |:---------|----:|:-------|:-------|
-| `rules/AI.list` | **272** | `rules/AI_Domains.yaml` | Surge / Egern 直接引 `.list`；mihomo 引 `.yaml`（classical） |
+| `RFU-Rules/main/surge-ai.list` | **272** | `RFU-Rules/main/mihomo-ai.yaml` | Surge / Egern 直接引 `.list`；mihomo 引 `.yaml`（classical） |
 | `rules/apple_system.list` | **18** | `rules/apple_system.yaml` | Egern 补 Surge 内置 `SYSTEM`；mihomo 用 `.yaml` |
 | `rules/emby.list` | **4** | `rules/emby.yaml` | 同 AI |
 
@@ -1054,7 +1054,7 @@ python self-conf-skills/gates/clash/check_structure.py
 | 5 | `enhanced-mode: fake-ip` 且 `fake-ip-range` 落在 **RFC 6815 保留段** | `redir-host` / 未设置 ⇒ 每个域名都真实解析一次（本地留答案）；`fake-ip-range` 不在 `198.18.0.0/15` ⇒ 拿假 IP 去连真实网络。当前 `198.18.0.1/16` ✅ | **高**（段不对）／中（模式不对） |
 | 6 | ⭐ IPv6 **两处**都要显式关闭：顶层 `ipv6` **与** `dns.ipv6` | 判据用 `is not False` ⇒ **键缺失也算不过**。`dns.ipv6: true` ⇒ 应用拿到真实 AAAA；顶层 `ipv6: false` ⇒ IPv6 流量不被 TUN 接管；两者叠加 = 双栈站点直连出去、绕过代理。⚠️ 只关一处比两处都开更隐蔽 | **高** |
 | 7 | ⭐ `tun` 是否接管 `:53`（旁路设备面③）+ `strict-route` | ⭐ 判据不是"列了几条"，而是**是否覆盖 `:53` 的整个地址空间** —— 地址空间无限，逐个列举永远列不全（Surge 侧第 3 项踩过同一个坑：按条数判负是错的）。只有 `any:53` / `0.0.0.0:53` 才叫收口。另要求 `enable` / `auto-route` / `strict-route` 三键。<br>⚠️ **形态差异**：覆写脚本（`override/*.js`）的输出**不该有** `tun`（客户端自己管 TUN）⇒ `--override` 下本项整体跳过；当前也未接管 TCP:53（不写协议前缀默认 `udp://`，LOW，是已知取舍） | **高** |
-| 8 | ⭐⭐ **DNS 层广告拦截的两个必要条件**（缺任一 ⇒ 静默失效、且不报错） | ① `nameserver-policy` 里 `rule-set:<广告集>: rcode://success`；② **同一个广告集在 `fake-ip-filter` 里再列一遍** —— 否则 `withFakeIP` 中间件对 A / AAAA **直接返回假 IP**，请求永远走不到 ①。另：两处广告集**必须一致**，且都**不得引用未定义**的 `rule-set:`（死引用 ⇒ 静默消失）。当前两版均为 `AWAvenue-Ads` + `Jinx-Ads`，两处一致 ✅ | **高** |
+| 8 | ⭐⭐ **DNS 层广告拦截的两个必要条件**（缺任一 ⇒ 静默失效、且不报错） | ① `nameserver-policy` 里 `rule-set:<广告集>: rcode://success`；② **同一个广告集在 `fake-ip-filter` 里再列一遍** —— 否则 `withFakeIP` 中间件对 A / AAAA **直接返回假 IP**，请求永远走不到 ①。另：两处广告集**必须一致**，且都**不得引用未定义**的 `rule-set:`（死引用 ⇒ 静默消失）。当前两版均为 `AWAvenue-Ads` + `RFU-Ads`，两处一致 ✅ | **高** |
 | 9 | `nameserver-policy` 的**广告项必须排在 `cn` / `private` 之前** | YAML mapping 在 Python 3.7+ 保持插入顺序，而这个顺序**就是 mihomo 的匹配顺序**：先命中 `rule-set:cn` ⇒ 拿国内答案，永远走不到后面的 `rcode://success` | **高** |
 | 10 | ⭐⭐ IP 类规则必须带 `no-resolve`（面④），域名类不该写 | ⭐ 判"是不是 IP 类规则"的**第一依据是 provider 的 `behavior`**，不是名字前缀：`ipcidr` ⇒ 不带会为判定而强制解析；`domain` ⇒ 写了无意义；`classical` ⇒ 内容混合、**无法静态判定**（单独归组提示）。只有 provider 未声明 `behavior` 时才退回 `geoip-` 名字前缀兜底。<br>⚠️ **双刃与另两侧同**：给 IP 规则补 `no-resolve` 会同时关掉"靠解析判 IP 归属"那条直连路径 ⇒ 必须与域名补偿**成对交付**（见 [`dns.md` 的成对交付节](./dns.md)）。当前分流版 4 条 / 懒人版 2 条全部带 ✅ | **高**（IP 类缺）／低（域名类写了） |
 | 11 | ⭐ **零 dat 依赖** | 顶层出现 `geox-url` / `geo-auto-update` / `geo-update-interval` ⇒ mihomo 会去下载并加载 `GeoSite.dat` / `GeoIP.dat`；规则写原生 `GEOSITE,` / `GEOIP,` ⇒ 直接查那两个库；`nameserver-policy` 键用 `geosite:` 同理；provider 引 `.dat` 文件同样判负。<br>⚠️ **这不排斥 `.mrs`**：`geoip-private` / `geoip-cn` 等是 MetaCubeX 的**独立远程集文件**（`format: mrs`），与 dat 数据库无关 —— 正是本仓想要的形态。判据只拦 dat，不拦 mrs（注入测试专门验过不误伤） | **高** |
@@ -1967,7 +1967,7 @@ PY
 **定位方法**：
 
 ```bash
-grep -cE '^(IP-CIDR|IP-CIDR6|IP-ASN|GEOIP|ASN)' rules/emby.list rules/apple_system.list rules/AI.list
+grep -cE '^(IP-CIDR|IP-CIDR6|IP-ASN|GEOIP|ASN)' rules/emby.list rules/apple_system.list RFU-Rules/main/surge-ai.list
 
 curl -s https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml \
   | grep -cE 'IP-CIDR'
@@ -1979,14 +1979,14 @@ curl -s https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-
 |:---------|:----------------|:---------|
 | `ipcidr`（mrs）| ✅ **是**（内容就是 IP 段）| `geoip-private` / `geoip-google` / `geoip-telegram` / `geoip-cn` |
 | `domain`（mrs）| ❌ 否 | `cn` / `openai` / `github` / `youtube` … |
-| `classical`（yaml）| ⚠️ 混合，要看内容 | `Jinx-CN` / `Jinx-Ads` / `emby` / `AI_Domains` / `apple-system` |
+| `classical`（yaml）| ⚠️ 混合，要看内容 | `RFU-Direct` / `RFU-Ads` / `emby` / `RFU-AI` / `apple-system` |
 
 ⭐ **`build_rules.py` 生成物自带结论**，头部注释写明：
 
 ```
 ```
 
-⇒ `emby` / `AI_Domains` / `apple-system` 三份**零 IP 条目**
+⇒ `emby` / `RFU-AI` / `apple-system` 三份**零 IP 条目**
 （`grep -cE '^(IP-CIDR|...)' rules/*.list` 实测均为 0），
 **引用它们时不写 `no-resolve` 是正确的** —— 写了反而有害（见 §4.4.1 的刀刃二）。
 
@@ -2290,7 +2290,7 @@ mihomo 的 fake-ip 模式先返回假 IP、等连接建立时再按域名分流�
 补是安全的（准入条件满足），但**补完必须实测国内是否仍直连** ——
 本仓已有 mihomo 侧的分流覆盖脚本（闸门 #9），但离线档只按规则集名推演，不能替代实测。见 §4.4.1。
 
-**Q：为什么 `emby` / `AI_Domains` / `apple-system` 不写 `no-resolve`？**
+**Q：为什么 `emby` / `RFU-AI` / `apple-system` 不写 `no-resolve`？**
 
 它们是 `build_rules.py` 从 `.list` 生成的**纯域名集**（`grep -cE '^(IP-CIDR|...)' rules/*.list`
 实测均为 0），生成物头部注释写明「零 IP 条目 ⇒ 引用方不写规则级 no-resolve」。

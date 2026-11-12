@@ -44,7 +44,7 @@
 |:-:|:--|:--|
 | 1 | 把 mihomo 的 `AI` 组从手动选择改成自动选优 | 改 `clash/override/clash-*.js`（**不是** yaml）→ `build_profiles.py` → `verify_all.py` |
 | 2 | 给分流版新增一份远程规则集 | 见 `references/rulesets.md` 顶部「🚀 新增一份规则集：完整步骤」6 步 |
-| 3 | `rules/AI.list` 里加一条域名 | 改 `run/ai_sources/` 再跑 `ai_domains_build.py`（**AI.list 是生成物**）|
+| 3 | AI 清单加一条域名 | 去姊妹仓 RFU-Rules 改 `ai_sources/` 再跑 `regen.sh`（本仓只远程引用）|
 | 4 | 三内核版本号从 v1.0.0 升到 v1.1.0 | **12 处**头注；**clash 的头注要手改 profile**（生成器只保留不生成）|
 | 5 | Surge 的 `hijack-dns` 改掉 | `surge/profiles/routing.conf` → `make_min.py --apply` → `verify_all.py` |
 | 6 | 加一道新闸门 | 先说明「原判据错在哪」→ 读 `references/gates.md` 的自查清单 → 注错验证 |

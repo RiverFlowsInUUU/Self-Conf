@@ -5,10 +5,12 @@
 为什么需要（合并项目的核心收益）：
     整合前，`Self-Configuration` 与 `Clash` 两仓各存一份相同内容的规则集，
     一份 `.list`（Surge / Egern 原生）、一份 `.yaml`（mihomo payload）。
-    内容逐条相同（emby 4 / apple_system 18 / AI 272），只是格式不同 ——
+    内容逐条相同（emby 4 / apple_system 18），只是格式不同 ——
     **双份维护，改一处忘一处就漂移**。
 
     合并后：`.list` 是唯一真源，本脚本生成 `.yaml`。单一真源，不可能漂移。
+    ⚠️ AI 集（原先那份 AI 清单）已于 2026-11-12 迁至姊妹仓
+       RFU-Rules 统一管辖，本脚本只管 emby / apple_system 两份。
 
 用法：
     python self-conf-skills/run/clash/build_rules.py            # 生成
@@ -38,7 +40,6 @@ ROOT = _repo_root()
 TARGETS = [
     ("emby.list", "emby.yaml", "Emby 自用枚举域名 → Emby 组"),
     ("apple_system.list", "apple_system.yaml", "Apple 系统域 → DIRECT"),
-    ("AI.list", "AI_Domains.yaml", "AI 伴生域 → AI 组"),
 ]
 
 HEADER = '''# %s

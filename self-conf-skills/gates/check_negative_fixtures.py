@@ -85,7 +85,6 @@ def _build_sandbox(dst):
         "stash/override/stash-lazy.min.stoverride",
         "rules/emby.list", "rules/emby.yaml",
         "rules/apple_system.list", "rules/apple_system.yaml",
-        "rules/AI.list", "rules/AI_Domains.yaml",
         "self-conf-skills/lib/paths.py",
         "self-conf-skills/run/clash/build_rules.py",
     ]
@@ -200,7 +199,7 @@ def main():
             "check_structure",
             lambda: _mutate(
                 os.path.join(clash_sb, "profiles", "lazy.yaml"),
-                "  - RULE-SET,Jinx-CN,DIRECT\n",
+                "  - RULE-SET,RFU-Direct,DIRECT\n",
                 "  - RULE-SET,ghost-set,DIRECT\n"),
             baselines[0][1],
             "规则引用了未定义的规则集: ghost-set")
@@ -223,7 +222,7 @@ def main():
             "check_script_sync",
             lambda: _mutate(
                 os.path.join(clash_sb, "override", "clash-lazy.js"),
-                '    "RULE-SET,Jinx-CN,DIRECT",\n',
+                '    "RULE-SET,RFU-Direct,DIRECT",\n',
                 ""),
             baselines[2][1],
             "长度不同")
@@ -233,9 +232,9 @@ def main():
         c4 = _case(
             "build_rules --check",
             lambda: _mutate(
-                os.path.join(sb, "rules", "AI.list"),
-                "# NAME: AI_Domains (AI 全量整合集 · Surge ruleset)\n",
-                "# NAME: AI_Domains (AI 全量整合集 · Surge ruleset)\nnegfix-probe.example\n"),
+                os.path.join(sb, "rules", "emby.list"),
+                "# emby.list\n",
+                "# emby.list\nnegfix-probe.example\n"),
             baselines[3][1],
             "已过期")
         passed += c4
@@ -354,10 +353,10 @@ def main():
             "四侧同步·clash 广告改 DIRECT",
             lambda: _mutate(
                 os.path.join(sb, "clash", "profiles", "routing.yaml"),
-                "  - RULE-SET,Jinx-Ads,AD\n",
-                "  - RULE-SET,Jinx-Ads,DIRECT\n"),
+                "  - RULE-SET,RFU-Ads,AD\n",
+                "  - RULE-SET,RFU-Ads,DIRECT\n"),
             [PY, os.path.join(GATES, "check_four_way_sync.py"), sb],
-            "jinx-ads")
+            "rfu-ads")
         passed += c12
 
         # ⚠️ 用例总数从用例本身派生，别写魔数：原先写死 `6`，加用例时必须同步改两处

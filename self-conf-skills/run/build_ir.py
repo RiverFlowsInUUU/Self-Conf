@@ -53,7 +53,11 @@ SIDES = KERNELS + ("stash",)
 # 这张表把同一份「本仓规则集」在三内核里的 source 归一到同一个 key，供跨内核弱关联。
 # 值必须等于该集在 mihomo 侧经通用归一后的形态（小写 + 去扩展 + 下划线转连字符）。
 _SELF_HOSTED = {
-    "rules/ai.list": "ai-domains",      # rules/AI.list（由 ai_sources 生成） <-> mihomo provider AI_Domains
+    "rfu-rules/main/surge-ai.list": "rfu-ai",   # RFU-Rules 的 surge-ai.list <-> mihomo provider RFU-AI
+    # ⚠️ 后缀匹配：Repcz 的 .../Surge/Rules/AI.list 也以 surge/rules/ai.list 结尾。
+    #    迁移前它跟本仓 AI.list 一起归一到 ai-domains，四侧对拍才齐全；迁到 RFU-Rules
+    #    后若漏掉这条，Repcz 会独立成 `ai` 只在 surge/egern 出现 ⇒ F5 判「缺侧」。
+    "surge/rules/ai.list": "rfu-ai",
     "rules/emby.list": "emby",
     "rules/apple_system.list": "apple-system",
 }

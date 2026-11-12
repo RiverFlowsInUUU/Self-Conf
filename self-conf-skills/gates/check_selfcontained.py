@@ -136,8 +136,8 @@ def main():
         if len(bad) > 20:
             print("  ... 另 %d 处" % (len(bad) - 20))
         print("-" * 78)
-        print("修法：把 URL 里的仓库名换成 self-conf，"
-              "并确认对应文件已在本仓（icons/ 或 rules/）")
+        print("修法：原仓资源改指向本仓（icons/ 或 rules/），"
+              "或指向已授权的姊妹仓 RFU-Rules（规则集由它统一托管）")
         return 1
     print("自洽 —— 配置与脚本均引用本仓资源")
     return 0

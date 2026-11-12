@@ -372,20 +372,20 @@ function main(config) {
     path: "./rule_provider/AWAvenue-Ads-Rule-Clash.mrs",
     interval: 86400,
   };
-  rp["Jinx-CN"] = {
+  rp["RFU-Direct"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
     url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml",
-    path: "./rule_provider/Jinx-CN.yaml",
+    path: "./rule_provider/RFU-Direct.yaml",
     interval: 86400,
   };
-  rp["Jinx-Ads"] = {
+  rp["RFU-Ads"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
     url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml",
-    path: "./rule_provider/Jinx-Ads.yaml",
+    path: "./rule_provider/RFU-Ads.yaml",
     interval: 86400,
   };
 
@@ -401,13 +401,13 @@ function main(config) {
   };
 
   // AI 伴生域整合集：补 MetaCubeX category-ai-chat-!cn 漏掉的 93 条
-  // （认证 / 遥测 / 风控类基础设施域），与姊妹仓 rules/AI.list 同源。
-  rp["AI_Domains"] = {
+  // （认证 / 遥测 / 风控类基础设施域），与姊妹仓 RFU-Rules/main/surge-ai.list 同源。
+  rp["RFU-AI"] = {
     type: "http",
     behavior: "classical",
     format: "yaml",
-    url: RAW + "rules/AI_Domains.yaml",
-    path: "./rule_provider/AI_Domains.yaml",
+    url: "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ai.yaml",
+    path: "./rule_provider/RFU-AI.yaml",
     interval: 86400,
   };
   rp["apple-system"] = {
@@ -421,8 +421,8 @@ function main(config) {
 
   // ── 3. 分流规则 ────────────────────────────────────────────────────────
   config.rules = [
-    "RULE-SET,Jinx-CN,DIRECT",
-    "RULE-SET,Jinx-Ads,AD",
+    "RULE-SET,RFU-Direct,DIRECT",
+    "RULE-SET,RFU-Ads,AD",
     "RULE-SET,AWAvenue-Ads,AD",
     "RULE-SET,apple-update,Apple Update",
     "RULE-SET,apple-system,DIRECT",
@@ -432,7 +432,7 @@ function main(config) {
     "RULE-SET,google-gemini,Gemini",
     "RULE-SET,anthropic,Claude",
     "RULE-SET,category-ai-chat-!cn,AI",
-    "RULE-SET,AI_Domains,AI",
+    "RULE-SET,RFU-AI,AI",
     // YouTube Music：bm7 的 Clash 版清单也只有 music.youtube.com 一条，
     // 与硬编码等效且无增益，故保留内联写法（避免一次无谓的远程拉取）
     "DOMAIN-SUFFIX,music.youtube.com,YouTube Music",
@@ -506,7 +506,7 @@ function main(config) {
 
     "nameserver-policy": {
       "rule-set:AWAvenue-Ads": "rcode://success",
-      "rule-set:Jinx-Ads": "rcode://success",
+      "rule-set:RFU-Ads": "rcode://success",
       // 官方示例是单名（rule-set:cn）。逗号多值无依据，拆成两条。
       "rule-set:private": [
         "https://doh.18bit.cn/dns-query",
@@ -535,7 +535,7 @@ function main(config) {
       "+.pool.ntp.org",
       "+.market.xiaomi.com",
       "rule-set:AWAvenue-Ads",
-      "rule-set:Jinx-Ads",
+      "rule-set:RFU-Ads",
     ],
   };
 
