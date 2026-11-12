@@ -15,6 +15,8 @@
     · 出现原仓仓库名（Self-Configuration / Clash）即判负
     · 出现姊妹仓**改名前的旧路径**（RiverFlowsInUUU/Jinx）同样判负 ——
       旧路径一直 200（GitHub 内部重定向），留着不报错，只是在赌一条转发
+    · 出现本仓**已迁出的 AI 清单旧路径**（self-conf/main/rules/AI*）同样判负 ——
+      raw CDN 缓存可能继续返回 200，客户端会静默拿到不再更新的旧快照
     · 注释里的说明性文字（提及来源）不在扫描范围 —— 那是记录，不是引用
     · 上游第三方（MetaCubeX / blackmatrix7 / TG-Twilight）放行；
       姊妹仓 RFU-Rules 属本账号名下，本就在放行范围（不在上面那张判负表里）
@@ -42,7 +44,16 @@ ROOT = sys.argv[1] if len(sys.argv) > 1 else os.getcwd()
 #     只是静默依赖一条随时可能失效的转发（旧名一旦被别的仓占用，转发就断，
 #     而规则集拉不到只会**变空**，配置照样"加载成功"）。
 #     「还能用、但已不该用」的 URL，注释守不住，只有判据能守。
-FORBIDDEN_REPOS = ("Self-Configuration", "RiverFlowsInUUU/Clash", "RiverFlowsInUUU/Jinx")
+FORBIDDEN_REPOS = (
+    "Self-Configuration", "RiverFlowsInUUU/Clash", "RiverFlowsInUUU/Jinx",
+    # ⚠️ 2026-11-12 二次核查补：AI 清单已迁至 RFU-Rules，本仓这两个路径已删除。
+    #    实测 GitHub Contents API 返回 404，但 raw CDN 边缘缓存仍让 curl 拿到 200
+    #    ⇒ check_remote_urls.py 只判可达性，把 URL 改回旧地址照样「全部可达」判绿，
+    #      客户端却会静默拉到那份不再更新的 272 条冻结快照。与上面 Jinx 旧路径
+    #      同类：「还能用、但已不该用」，注释守不住，只有判据能守。
+    "RiverFlowsInUUU/self-conf/main/rules/AI.list",
+    "RiverFlowsInUUU/self-conf/main/rules/AI_Domains.yaml",
+)
 
 # 排除：说明性文字（注释里提及来源不算引用）
 COMMENT_PREFIX = ("#", "//", ";")

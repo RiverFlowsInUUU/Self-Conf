@@ -401,7 +401,7 @@ function main(config) {
   };
 
   // AI 伴生域整合集：补 MetaCubeX category-ai-chat-!cn 漏掉的 93 条
-  // （认证 / 遥测 / 风控类基础设施域），与姊妹仓 RFU-Rules/main/surge-ai.list 同源。
+  // （认证 / 遥测 / 风控类基础设施域），与姊妹仓 RFU-Rules 的 RFU-AI 清单同源。
   rp["RFU-AI"] = {
     type: "http",
     behavior: "classical",

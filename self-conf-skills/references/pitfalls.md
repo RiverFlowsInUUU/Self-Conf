@@ -2012,10 +2012,10 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 | 10 | `check_structure` | **删掉 `ipv6` 键** | 仍判负 ← 证明 `is not False`（缺失 ≠ 通过）|
 | 11–12 | `check_min_pair` | `.min` 插一条规则 / 只改 `dns.prefer-h3` | `rules 长度不同: 11 vs 12` / `.dns.prefer-h3 值不同` |
 | 13 | `check_script_sync` | 从脚本删一条 `RULE-SET,RFU-Direct,DIRECT` | `rules[…]` 定位标记 |
-| 14 | `build_rules --check` | 往 `RFU-Rules/main/surge-ai.list` 追加一行 | `NG RFU-Rules/main/mihomo-ai.yaml 已过期` |
+| 14 | `build_rules --check` | 往 `rules/emby.list` 追加一行 | `NG rules/emby.yaml 已过期` |
 | 15 | `check_remote_urls` | URL 改成 `mihomo-white-guard.yaml`（**当年真实死链**）| `死链 N 个` |
 
-⚠️ 第 14 条做之前**先备份真源**（`cp RFU-Rules/main/surge-ai.list $SB/AI.list.bak`），做完立刻还原，
+⚠️ 第 14 条做之前**先备份真源**（`cp rules/emby.list $SB/emby.list.bak`），做完立刻还原，
 并跑一次 `git diff rules/` 确认为空。**别让探针污染真源。**
 
 📌 **9 与 10 这两条"边界样例"尤其值得做** —— 它们证明的是**判据没写反**

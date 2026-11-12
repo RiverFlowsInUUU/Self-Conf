@@ -743,7 +743,7 @@ Surge 的组名 / 节点名引用**不区分大小写地可解析**，但 `check
 | 5 | `RULE-SET,LAN` | `DIRECT` | `no-resolve` | 含 18 条 IP-CIDR，**必须** `no-resolve`。内网段排在应用之前，与 Egern 同位 |
 | 6 | `RULE-SET,…,private.txt` | `DIRECT` | `update-interval=604800` | 内网域名。实测零 IP ⇒ 按原则**不写** `no-resolve` |
 | 7 | `RULE-SET,…,AI.list`（Repcz） | `AI` | `update-interval=604800` | 实测零 IP（纯域名系）⇒ 不写 `no-resolve` |
-| 8 | `RULE-SET,…/self-conf/main/RFU-Rules/main/surge-ai.list` | `AI` | `update-interval=604800` | RFU-Rules 整合集（伴生域 / 宽后缀），与 7 号同指 `AI` 组 |
+| 8 | `RULE-SET,…/RFU-Rules/main/surge-ai.list` | `AI` | `update-interval=604800` | 姊妹仓 RFU-Rules 托管（伴生域 / 宽后缀），与 7 号同指 `AI` 组 |
 | 9 | `RULE-SET,…,direct.txt` | `DIRECT` | `update-interval=604800` | **主承重墙**，纯域名、零 IP（条数一律现抓）。见 §12 |
 | 10 | `GEOIP,CN,DIRECT` | `DIRECT` | `no-resolve` | IP 类规则，放最后 |
 | 11 | `FINAL,Proxy,dns-failed` | `Proxy` | `dns-failed` | 兜底 |

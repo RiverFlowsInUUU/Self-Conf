@@ -9,12 +9,13 @@
     用途：回答「这张表值不值得用」。尤其是大表（10 万条级）与小表（几百条级）
     在体积上差 100 倍时，必须用**覆盖率**而不是文件大小来决策 ——
     这正是本仓决定「`category-ai-chat-!cn`（181 条）不够，还要自托管
-    `RFU-AI`（272 条）」的依据（两者交集 177、差集 94 条伴生域）。
+    `RFU-AI`（迁入前快照 272 条）」的依据（两者交集 177、差集 94 条伴生域）。
 
 用法：
-    python self-conf-skills/run/clash/weigh_ruleset.py RFU-Rules/main/surge-ai.list
+    ⚠️ AI 清单已迁至姊妹仓 RFU-Rules，本仓不再自带该文件；先从那里取一份本地副本再传参。
+    python self-conf-skills/run/clash/weigh_ruleset.py <AI 清单本地副本>
     python self-conf-skills/run/clash/weigh_ruleset.py big.list --sub small.list
-    python self-conf-skills/run/clash/weigh_ruleset.py RFU-Rules/main/surge-ai.list --probe www.jd.com --probe api.deepseek.com
+    python self-conf-skills/run/clash/weigh_ruleset.py <AI 清单本地副本> --probe www.jd.com --probe api.deepseek.com
 
 内存口径（重要）：
     下面的 RSS 是 **Python dict** 的数字，约为原生实现（Go）的 2 倍。

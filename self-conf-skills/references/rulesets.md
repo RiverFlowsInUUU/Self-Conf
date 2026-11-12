@@ -61,7 +61,7 @@ python self-conf-skills/gates/verify_all.py
 - **跨仓引用**：单内核消费、整份接收、高频更新（上游自己维护）
 
 ⚠️ 自托管清单改完要跑 `build_rules.py` 生成 `rules/*.yaml`；
-`RFU-Rules/main/surge-ai.list` 由 `run/ai_domains_build.py` 从 `run/ai_sources/` 合并生成。
+`RFU-Rules/main/surge-ai.list` 由姊妹仓 `build_ai.py` 从 `ai_sources/` 归并生成，本仓只远程引用。
 
 
 ## 规则集与来源
@@ -162,7 +162,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 | `Gemini.list` | → `Gemini` | ✅ | ✅ | 同上 |
 | `Anthropic.list` · `Claude.list` | → `Claude` | ✅ | ✅ | 同上 |
 | `AI.list` | → `AI`（通用 AI，必须排在上面三条**之后**） | ✅ | ✅ | [Repcz/Tool](https://github.com/Repcz/Tool)（分支头 · 活跃维护；2026-09-28 自 ACL4SSR 换入） |
-| `RFU-AI`（本仓自托管） | → `AI`（伴生域/宽后缀/基础设施域，**必须紧跟 `AI.list`**） | ✅ | ✅ | 本仓 `RFU-Rules/main/surge-ai.list`（静态整合 · 生成器 `self-conf-skills/run/ai_domains_build.py`；条数与来源见该文件头部档案） |
+| `RFU-AI`（RFU-Rules 托管） | → `AI`（伴生域/宽后缀/基础设施域，**必须紧跟 `AI.list`**） | ✅ | ✅ | 姊妹仓 `RFU-Rules/main/surge-ai.list`（随周更刷新、由姊妹仓归并器产出；条数以产物头注为准） |
 | `Spotify.list` · `YouTubeMusic.list` · `YouTube.list` | 各自应用组 | ✅ | ✅ | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script) |
 | `GitHub.list` | → **`Proxy` 直指**（2026-10-05 起不再单设 `GitHub` 组） | ✅ | ✅ | 同上 |
 | `Google.list` · `Microsoft.list` | 各自应用组 | ✅ | ✅ | 同上 |
@@ -216,7 +216,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 | ⑩ | 厂商专属 `Anthropic.list` → `Claude` | ㉓ | `apple.txt` → `DIRECT` |
 | ⑪ | 厂商专属 `Claude.list` → `Claude` | ㉔ | `direct.txt` → `DIRECT` |
 | ⑫ | `AI.list`（Repcz）→ `AI` | ㉕ | `GEOIP,CN` → `DIRECT` |
-| ⑬ | `AI.list`（**本仓自托管**）→ `AI` | ㉖ | `FINAL` → `Proxy` |
+| ⑬ | `surge-ai.list`（**RFU-Rules 托管**）→ `AI` | ㉖ | `FINAL` → `Proxy` |
 
 **懒人版**：两侧各 **11 条**、逐位同构。段序同上表把「应用段」收缩成一条 `AI` 的形态，
 且**不含位 ④ `SystemOTA`**（`Apple Update` 组仅分流版有），即：
@@ -341,7 +341,7 @@ mihomo 分流版的实际顺序（`rules` 段解析结果）：
 | ⑨ | `RULE-SET,google-gemini,Gemini` | ㉓ | `RULE-SET,geoip-google,Google,no-resolve` |
 | ⑩ | `RULE-SET,anthropic,Claude` | ㉔ | `RULE-SET,geoip-telegram,Telegram,no-resolve` |
 | ⑪ | `RULE-SET,category-ai-chat-!cn,AI` | ㉕ | `RULE-SET,cn,DIRECT` |
-| ⑫ | `RULE-SET,RFU-AI,AI`（本仓自托管） | ㉖ | `RULE-SET,geoip-cn,DIRECT,no-resolve` |
+| ⑫ | `RULE-SET,RFU-AI,AI`（RFU-Rules 托管） | ㉖ | `RULE-SET,geoip-cn,DIRECT,no-resolve` |
 | ⑬ | `DOMAIN-SUFFIX,music.youtube.com,YouTube Music`（**唯一内联**） | ㉗ | `MATCH,Proxy` |
 | ⑭ | `RULE-SET,github,Proxy`（无同名组） | | |
 
@@ -1204,7 +1204,7 @@ provider 名自 2026-11-12 起为 `RFU-Direct` / `RFU-Ads`，按托管仓与用�
 
 **(2) 先把两边的格式归一化。**
 
-本仓 `RFU-Rules/main/surge-ai.list` 是 Surge ruleset 格式（`TYPE,value`）；
+姊妹仓 `RFU-Rules/main/surge-ai.list` 是 Surge ruleset 格式（`TYPE,value`）；
 MetaCubeX 的 `category-ai-chat-!cn` 源自 v2ray domain-list 格式，
 用的是 `+.example.com`（后缀）、`full:example.com`（精确）、
 `keyword:xxx`、`regexp:xxx` 这套前缀。**直接按行比对会得到荒谬的结果**
@@ -1235,7 +1235,7 @@ MetaCubeX 的 `category-ai-chat-!cn` 源自 v2ray domain-list 格式，
 
 | 项 | 数值 |
 |:--|:--|
-| A = 本仓 `RFU-Rules/main/surge-ai.list`（→ `RFU-AI.yaml`） | **272 条**（其中 271 条域名类 + 1 条 `URL-REGEX`） |
+| A = 迁入前的本仓 AI 清单（→ `RFU-AI.yaml`） | **272 条**（其中 271 条域名类 + 1 条 `URL-REGEX`，历史快照） |
 | B = MetaCubeX `category-ai-chat-!cn` | **181 条**（本仓快照 `self-conf-skills/run/ai_sources/meta-ai.list` 实测）/ **188 条**（历史记录值） |
 | A ∩ B（B 能接住的 A 条目） | **177 条** |
 | **A − B（B 漏掉的）** | **94 条** |
@@ -1426,13 +1426,14 @@ https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-ads.yaml
 #### 9.1 链路
 
 ```text
-RFU-Rules/main/surge-ai.list              ← 唯一真源（Surge ruleset 格式）
-    │                         ↑ 由 self-conf-skills/run/ai_domains_build.py 从
-    │                           self-conf-skills/run/ai_sources/ 的 10 份上游快照整合而来
-    │
-    ├─ Surge / Egern 直接消费（原生 .list）
-    │
-    └─ build_rules.py ──→ RFU-Rules/main/mihomo-ai.yaml   ← mihomo 消费（classical payload）
+姊妹仓 RFU-Rules（2026-11-12 起统一管辖 AI 清单）：
+    ai_sources/ 10 份上游快照 ──build_ai.py──> surge-ai.list ──to_mihomo_ai.py──> mihomo-ai.yaml
+        ↑ update.yml 每周刷新        （verify_ai.py 独立闸门：两格式等价 / 人工裁定 / 可复现）
+
+本仓 Self-Conf：四侧远程引用上面两份产物，不再有本地真源或生成物。
+    要加/改 AI 域名 → 去姊妹仓改 ai_sources/ 或 build_ai.py 后跑 regen.sh；本仓无需改动。
+
+本仓仍自带的两份清单（由 build_rules.py 生成）：
 
 rules/apple_system.list ──→ rules/apple_system.yaml
 rules/emby.list         ──→ rules/emby.yaml
@@ -1605,24 +1606,26 @@ MetaCubeX 那一份每 24 小时自动刷新，能接住"两次人工整合之�
 不能（§5）。`mrs` 只装 domain / ipcidr，装不下带类型的规则行。
 凡是需要 `DOMAIN-KEYWORD` / `URL-REGEX` / 精确 `DOMAIN` 的集合，必须是 yaml + classical。
 
-**Q：为什么 `RFU-AI.yaml` 里有一条 `URL-REGEX`？它会不会影响性能？**
+**Q：为什么 `mihomo-ai.yaml` 里有一条 `URL-REGEX`？它会不会影响性能？**
 
-272 条里 1 条。它是**不可预匹配**的类型（需在 HTTP 层求值），
+迁入前的 272 条快照里有 1 条。它是**不可预匹配**的类型（需在 HTTP 层求值），
 但**不会触发 DNS 解析**，不参与 `no-resolve` 判据。
 1 条不构成性能问题，Surge 侧
 [`rulesets.md`](./rulesets.md) §4 有同类说明。
 
-**Q：我只改了 `RFU-Rules/main/surge-ai.list`，需要改三个内核吗？**
+**Q：AI 清单要加一条域名，本仓要改什么？**
 
-改真源即可，然后跑 `build_rules.py`。Surge / Egern 直接消费 `.list`，
-mihomo 消费生成的 `.yaml`。**不要手工改两份** —— 见
-[`profiles/<kern>.md`](./profiles/clash.md) §13。
+本仓什么都不用改。AI 清单由姊妹仓 RFU-Rules 统一管辖：改它的 `ai_sources/` 或
+`build_ai.py` 后跑 `regen.sh`，产物随每周上游刷新一起发布；本仓四侧只是远程引用，
+客户端按各自 `interval` 自行拉取。**不要在本仓手改任何规则集文件**（也别直接改姊妹仓的
+`surge-ai.list` —— 那是生成物，真源是 `ai_sources/`）。
 
 **Q：`--check` 通过了，是不是说明规则集是最新的？**
 
-**不是。** `--check` 只证明"`.yaml` 没落后于本仓的 `.list`"（§9.3）。
-它不检查：本仓 `.list` 是否落后于原仓、是否落后于那 10 份上游快照。
-后者是**人工流程**，没有自动化防线。
+**不是。** `build_rules.py --check` 现在只管 emby / apple_system 两份本仓清单，
+证明 `.yaml` 没落后于同目录的 `.list`；它**完全不覆盖 AI 清单**。
+AI 集由姊妹仓 RFU-Rules 的 `verify_ai.py` 守（两格式等价、快照未被手改、人工裁定仍在、
+产物可复现），上游快照由 `update.yml` 每周刷新 —— 那是另一套自动化，不归本仓管。
 
 **Q：能不能把 `interval` 改成 604800（一周）省点流量？**
 

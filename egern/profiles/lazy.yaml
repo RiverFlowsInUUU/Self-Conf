@@ -218,7 +218,7 @@ rules:
     update_interval: 604800
 # ⑤ AI 分流 —— 命中即走 AI 组（→ Proxy）。集源 Repcz/Tool，滚动维护，
 #    覆盖 gemini / bard / aistudio / notebooklm / antigravity / sora / grok 全家，零 IP 条目。
-#    之后并排一条本仓自托管 RFU-AI（main/RFU-Rules/main/surge-ai.list，静态整合快照 · 条数与来源见该文件头部档案）：
+#    之后并排一条姊妹仓 RFU-Rules 的 RFU-AI 整合集（surge-ai.list，随周更刷新 · 条数与来源见其头注）：
 #    管 Repcz 没有的伴生域与宽后缀 —— googleapis.com / googleusercontent.com 整域收编
 #    （play.googleapis.com 等 GMS 网关不再漏到 Final）、ChatGPT 认证/遥测/风控基础设施域。
 #    零 IP 条目。分工：新 AI 域靠 Repcz 滚动，伴生域/宽后缀靠本集（结构稳定不常变）。
@@ -227,7 +227,7 @@ rules:
     match: https://raw.githubusercontent.com/Repcz/Tool/X/Surge/Rules/AI.list
     policy: AI
     update_interval: 604800
-# 伴生域/宽后缀整合集（本仓自托管静态快照，与上行 Repcz 同指 AI 组；分工见上）
+# 伴生域/宽后缀整合集（姊妹仓 RFU-Rules 托管、随周更刷新，与上行 Repcz 同指 AI 组；分工见上）
 - rule_set:
     name: RFU-AI
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ai.list

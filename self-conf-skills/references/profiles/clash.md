@@ -2073,10 +2073,11 @@ PyYAML 只取最后一份，门禁看似全绿，真实文件却已畸形。**�
 因为组、provider、内置集合和规则语义不同。强行对齐数字会制造空组、死规则或错误 DNS 行为。
 应对齐用户可观察的结果与安全底线，而不是表面计数。
 
-**Q：我只改了 `RFU-Rules/main/surge-ai.list`，还要改三个内核吗？**
+**Q：AI 清单要加一条域名，本仓还要改三个内核吗？**
 
-Surge / Egern 直接消费 `.list`；mihomo 消费生成的 `.yaml`。因此只改真源，然后运行
-`build_rules.py` 生成并检查 mihomo 产物，不要手工改两份。
+不用。AI 清单 2026-11-12 起由姊妹仓 RFU-Rules 统一管辖，本仓四侧只是远程引用
+`surge-ai.list` / `mihomo-ai.yaml`。去姊妹仓改 `ai_sources/` 后跑 `regen.sh` 即可；
+本仓的 `build_rules.py` 现在只管 emby / apple_system 两份清单。
 
 **Q：新客户端声称兼容 Clash，可以直接用 mihomo 目录吗？**
 

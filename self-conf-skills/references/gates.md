@@ -1398,12 +1398,12 @@ python self-conf-skills/gates/clash/check_script_sync.py "$SB"   # 期望 0
 
 | # | 注入 | 期望 |
 |:-:|:-----|:-----|
-| 14 | 往 `RFU-Rules/main/surge-ai.list` 末尾追加一行（任意域名）后跑 `--check` | `NG RFU-Rules/main/mihomo-ai.yaml 已过期（真源 AI.list 有更新）` + exit 1 |
+| 14 | 往 `rules/emby.list` 末尾追加一行后跑 `build_rules.py --check` | `NG rules/emby.yaml 已过期` + exit 1 |
 
-> ✅ 已实测：追加一行后 `--check` 输出 `NG RFU-Rules/main/mihomo-ai.yaml 已过期（真源 AI.list 有更新）`、
+> ✅ 已实测：追加一行后 `--check` 输出 `NG rules/emby.yaml 已过期`、
 > exit 1；恢复真源后 exit 0。
 >
-> ⚠️ **做这个实验前先备份真源**（`cp RFU-Rules/main/surge-ai.list $SB/AI.list.bak`），做完立刻还原，
+> ⚠️ **做这个实验前先备份真源**（`cp rules/emby.list $SB/emby.list.bak`），做完立刻还原，
 > 并跑一次 `git diff rules/` 确认为空。**别让探针污染真源。**
 
 ##### `check_remote_urls.py`

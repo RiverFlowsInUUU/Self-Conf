@@ -1967,7 +1967,8 @@ PY
 **定位方法**：
 
 ```bash
-grep -cE '^(IP-CIDR|IP-CIDR6|IP-ASN|GEOIP|ASN)' rules/emby.list rules/apple_system.list RFU-Rules/main/surge-ai.list
+grep -cE '^(IP-CIDR|IP-CIDR6|IP-ASN|GEOIP|ASN)' rules/emby.list rules/apple_system.list
+# AI 清单已迁出，其零 IP 纪律由姊妹仓 RFU-Rules 的 verify_ai.py 守
 
 curl -s https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/mihomo-direct.yaml \
   | grep -cE 'IP-CIDR'
