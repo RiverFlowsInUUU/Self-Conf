@@ -567,8 +567,8 @@ Surge 默认：走代理的域名用 Fake-IP，DIRECT 的用 Real-IP。
 
 #### 11.4 广告拦截的两条清单与 `-RULE-SET` 版地址
 
-**① 两条并列，不是替换。** 顺序是 `白名单 → Jinx → AWAvenue → 应用分流`，
-与 Egern 的结构一致。两条同策略同参数（`REJECT,extended-matching`）——
+**① 现役为一条 RFU-Ads**（2026-11-22 移除原第二条 AWAvenue，已并入 RFU 94%）。
+顺序是 `白名单 → RFU-Ads（含原 Jinx/AWAvenue）→ 应用分流`，与 Egern 的结构一致。策略 `REJECT,extended-matching`——
 Surge 这边指向**字面量 `REJECT`** 而不是 `AD` 组，是与 `AD` 组分工的选择，见 §13.3。
 
 **② 收益按「净新增覆盖」算，不是按总条数。** 实测（2026-09-22）：
@@ -592,9 +592,9 @@ Surge 这边指向**字面量 `REJECT`** 而不是 `AD` 组，是与 `AD` 组分
 裸域名的 `DOMAIN-KEYWORD` / `DOMAIN-SUFFIX`）。换成裸域名版，Surge 会把
 「前导点域名」那几行当规则行解析 —— 格式不匹配。（Egern 于 2026-09-22 修过同一问题。）
 
-**④ 顺序是这条的命门。** AWAvenue 会命中白名单里的 **10 条**功能域
+**④ 顺序是这条的命门。** 广告集会命中白名单里的功能域
 （`jpush.cn` / `appcfg.v.qq.com` / `p.l.qq.com` / 微信登录 `apd-pcdnwx*` / 字节 `tnc3-*`）——
-白名单留在最前面才拦得住这 10 条误杀。同理，两条清单**都不能**挪到
+白名单留在最前面才拦得住这些误杀。同理，广告清单**不能**挪到
 `direct.txt` / `GEOIP,CN` 之后，否则永远轮不到。
 
 #### 11.5 `direct.txt` 的主承重作用

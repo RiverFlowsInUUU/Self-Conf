@@ -36,7 +36,7 @@
 | 倍率分档 | `policy-priority`（权重） | `priorities`（权重） | **静态模板有三档** | **有三档**（同静态模板） |
 | 组数（分流版） | 23 | 23 | **25** | **25** |
 | 规则数（分流版） | 26 | 26 | **27** | **27** |
-| DNS 查询路径 | 显式关「跟随出站」 | — | `respect-rules: true`（**走代理**） | **默认直接出站** |
+| DNS 查询路径 | 跟随出站（2026-11-22 起 `true`，走节点；改前为显式关） | — | `respect-rules: true`（**走代理**） | **默认直接出站** |
 | 直连域名解析器 | —（`forward` 分流） | `forward` → `Domestic-DNS` | `direct-nameserver` | **主 `nameserver`**（无专用键） |
 | IPv6 关闭 | 两处（`ipv6`+`ipv6-vif`） | 一处 | 两处（顶层+`dns.ipv6`） | **不写**（官方自动选择） |
 
@@ -56,7 +56,7 @@
 |:--|:--|
 | `Airport` 组只在 Surge/Egern | 那是它们的**订阅槽位组**；Clash 系用 `proxy-providers`，没有这个组 |
 | `Auto`/`Low Mult.`/`High Mult.` 只在 Clash/Stash | **倍率三档**结构；Surge/Egern 用 `policy-priority` 权重表达同一件事 |
-| `rfu-ads` / `awavenue-ads` 两条规则去向不同（`surge=REJECT` vs 其余三侧 `AD`） | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。⚠️ 2026-10-18：键名是**等价类归一后**的 canonical 名，且豁免**必须登记全四侧**（否则未登记的侧可被任意改动而判绿） |
+| `rfu-ads` 去向不同（`surge=REJECT` vs 其余三侧 `AD`） | Surge 内置拦截口径直接挂 REJECT；Egern/Clash/Stash 挂 `AD` 组（面板可切 DIRECT）。⚠️ 2026-11-22 起 `awavenue-ads` 已移除；键名是**等价类归一后**的 canonical 名，豁免**必须登记全四侧**（否则未登记的侧可被任意改动而判绿） |
 
 ⚠️ **不要为「让判据变绿」往豁免表里塞条目** —— 它是「刻意差异的登记处」，
 不是「红线的逃生口」。新增豁免必须写清**为什么刻意**。

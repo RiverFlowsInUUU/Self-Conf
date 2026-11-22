@@ -139,7 +139,7 @@ Egern 的分流组**按类型做键**，而不是平铺的 `name` 字段。一�
 
 **规则的实际匹配顺序**（`rules` 按声明顺序求值，第一条命中即决定去向）：
 
-> 广告白名单 → 广告拦截（`RFU-Ads` + `AWAvenue`）→ 系统域（`apple_system`）
+> 广告白名单 → 广告拦截（`RFU-Ads`，2026-11-22 起唯一广告集）→ 系统域（`apple_system`）
 > → 内网（`Lan` + `private`）→ 应用（13 条）→ Apple（`apple.txt`）→ 国内域名 → 国内 IP（`geoip: CN`）→ 兜底（`default`）
 >
 > ⚠️ 上表为**分流版**；懒人版段序相同但**不含 `SystemOTA`**（`Apple Update` 组仅分流版有），
@@ -219,8 +219,8 @@ forward:
 > 命中即在**解析阶段**拒答，连接根本不会发起。
 > ⚠️ 2026-10-27 起 Surge 已不再用 `pre-matching`（它会越过广告白名单），
 > **Egern 这一侧仍是解析阶段拒答** —— 两边不再等价，Egern 更强。
-> ⚠️ 顺序是命门：**白名单必须排在两条广告清单之前**（AWAvenue 会命中白名单里 10 条功能域，
-> 如 `jpush.cn` / `apd-pcdnwx*` / `tnc3-*`），否则白名单域名连解析都拿不到。
+> ⚠️ 顺序是命门：**白名单必须排在广告清单之前**（广告集会命中白名单里 10 条功能域，
+> 如 `jpush.cn` / `apd-pcdnwx*` / `tnc3-*`），否则白名单域名连解析都拿不到。2026-11-22 起 AWAvenue 已移除。
 > `routing_v1` 里是两条（`domain_regex: '.'` + `domain_wildcard: '*'`）；`routing_v2.1` 删掉了 `domain_regex` ——
 > 它与 `domain_wildcard` 语义完全重叠（任何域名两条都命中、`value` 又相同），
 > 按官方「第一条命中即决定上游」，第二条永远不会被求值。详见 2.4。
@@ -521,7 +521,7 @@ S="self-conf-skills/run"
 
 一句话：**`no-resolve` 是「IP 规则的开关」，与域名规则无关。** 判据是「这条规则能不能匹配 IP」，而不是「别人的配置里写了没写」。代价见 Q3：给 IP 规则关掉解析判定后，必须用域名规则补回来。
 
-> **实证（本模板）**：`no_resolve` 在 profile 里**作为配置键只出现 1 次**（`geoip: CN`；带注释版另有 7 处提及全在注释里）。模板引用的 **21 个**远程规则集中，**14 个是纯域名**（`direct.txt` / `private.txt` / Gemini / Claude / Anthropic / AI / GitHub / Microsoft / YouTubeMusic / AWAvenue-Ads / **Jinx direct**（2026-10-04 前名 `white-guard`） / **Jinx ads** / 本仓自托管的 `apple_system.list` / **`apple.txt`**，无需 `no-resolve`）、**7 个含 IP 条目**（Lan / ChatGPT / Spotify / YouTube / Google / Telegram / Twitter；`Proxy.list` 已改纯注释、不再被引用），而这 7 个的 IP 条目**已在上游 `.list` 内全部自带 `,no-resolve`**（写作时点逐条核对：`Lan` 18/18、`ChatGPT` 2/2、`Spotify` 2/2、`YouTube` 3/3、`Google` 5/5、`Telegram` 10/10、`Twitter` 6/6）。所以「看起来到处是 `no-resolve`」是**上游规则集自带的**，不是 profile 在堆 —— profile 只需管好自己那一条 `geoip: CN`。（2026-10-04 前 Apple 那条是 `Apple_All_No_Resolve.list`，13/13 自带 `,no-resolve`，计入含 IP 的 8 个；换成零 IP 的 `apple.txt` 后为 7 个。）
+> **实证（本模板）**：`no_resolve` 在 profile 里**作为配置键只出现 1 次**（`geoip: CN`；带注释版另有 7 处提及全在注释里）。模板引用的 **20 个**远程规则集中，**13 个是纯域名**（`direct.txt` / `private.txt` / Gemini / Claude / Anthropic / AI / GitHub / Microsoft / YouTubeMusic / **Jinx direct**（2026-11-22 起 AWAvenue-Ads 已移除）（2026-10-04 前名 `white-guard`） / **Jinx ads** / 本仓自托管的 `apple_system.list` / **`apple.txt`**，无需 `no-resolve`）、**7 个含 IP 条目**（Lan / ChatGPT / Spotify / YouTube / Google / Telegram / Twitter；`Proxy.list` 已改纯注释、不再被引用），而这 7 个的 IP 条目**已在上游 `.list` 内全部自带 `,no-resolve`**（写作时点逐条核对：`Lan` 18/18、`ChatGPT` 2/2、`Spotify` 2/2、`YouTube` 3/3、`Google` 5/5、`Telegram` 10/10、`Twitter` 6/6）。所以「看起来到处是 `no-resolve`」是**上游规则集自带的**，不是 profile 在堆 —— profile 只需管好自己那一条 `geoip: CN`。（2026-10-04 前 Apple 那条是 `Apple_All_No_Resolve.list`，13/13 自带 `,no-resolve`，计入含 IP 的 8 个；换成零 IP 的 `apple.txt` 后为 7 个。）
 
 **Q5：`Foreign-DNS` 组去哪了？我还能用吗？**
 `routing_v2` 起已整段删除（迭代 f10 起它就无引用，`routing_v1` 曾注释保留为 A/B 备用）。想用境外解析答案，需自行在 `upstreams` 里加回该组（6 个境外 DoH/DoT 端点），并把 forward 兜底 `value` 改过去。但注意：若它作兜底且代理未就绪，会掉进明文 `:53` —— 迭代 f10 默认用国内组兜底正是为了避免这条路径。

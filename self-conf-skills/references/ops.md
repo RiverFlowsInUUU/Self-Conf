@@ -62,9 +62,9 @@ Surge 的 `.conf` 按节组织，模板里与防泄露相关的节：
 | 键 | 堵哪 | 注意 |
 |:---|:-----|:-----|
 | `dns-server` | 引导与连通性测试用的本地上游 | 全 IP 字面量，不放 `system`。不要删它来"减少解析面"：删了 Surge 会用系统 DNS（运营商下发），正是出口 ① |
-| `encrypted-dns-server` | 日常解析走加密通道 | 端点尽量 IP 字面量；保留的 2 个主机名端点已用 `# audit-waive:` 记录豁免与理由 |
+| `encrypted-dns-server` | 日常解析走加密通道 | 端点尽量 IP 字面量；Surge 现役保留 1 个主机名端点（`dns.google`），2026-11-22 已移除 `dns.alidns.com`（并发查询下它常先应答、出口落在国内 ISP），用 `# audit-waive: 1` 记录豁免与理由 |
 | `hijack-dns` | 旁路设备（出口 ②） | 模板列出最常见的境外解析器地址把它们收进本地；想一网打尽可写 `hijack-dns = *`（有取舍，见 `profiles/<内核>.md` 的「逐键语义」 §10.3） |
-| `encrypted-dns-follow-outbound-mode` | 防止"出站走代理、解析也跟着出境"的意外 | 模板显式设 `false`，理由在 `profiles/<内核>.md` 的「逐键语义」 |
+| `encrypted-dns-follow-outbound-mode` | 决定加密 DNS 连接是否走代理出站 | ⚠️ 2026-11-22 起 **Surge 单边改为 `true`**（端点已无国内项、走节点不成环），用 `# audit-waive: 4` 留痕；改前为 `false`。Egern / mihomo / Stash 不涉及此键，理由见 `profiles/surge.md`「逐键语义」§3.1 |
 | `use-local-host-item-for-proxy` | 防止本地 hosts 条目污染代理侧解析 | 理由在 `profiles/<内核>.md` 的「逐键语义」 |
 | `always-real-ip` | Fake-IP 模式下游戏机 / NTP / STUN 拿到假 IP | 是功能清单，不是可选装饰。里面的主机名应能被 `[Rule]` 域名规则接住，`check_surge_dns.py` 第 11 项专查这条 |
 | `internet-test-url` / `proxy-test-url` | — | 性能探针，不是泄露通道：前者国内 204（测"能不能上网"），后者保持境外 `gstatic.com`（`smart` 打分要含国际段才是真实路径）。把后者"为防泄露"改成国内是典型的原则误套用，见 `profiles/<内核>.md` 的「逐键语义」 §16 |
@@ -105,9 +105,9 @@ Surge 的 `.conf` 按节组织，模板里与防泄露相关的节：
    ⭐ **白名单是两层，但两层不再连写**（2026-10-06 起变更）：
    **① 广告白名单**（`surge-direct.list`，位 ①）· **系统域白名单**
    （Surge 内置 `SYSTEM` ／ Egern `apple_system.list`，分流版位 ⑤ / 懒人版位 ④，在广告清单**之后**）。
-   ⚠️ 变更依据：`SYSTEM` 18 个域名与两条广告清单零交集（排前后结果相同）
-   ⇒ 不再占用「最前」这个语义位置；`apple.txt` 与 AWAvenue 有 1 条交集
-   （`iadsdk.apple.com`）⇒ 它**不上提**。
+   ⚠️ 变更依据：`SYSTEM` 18 个域名与广告清单零交集（排前后结果相同）
+   ⇒ 不再占用「最前」这个语义位置；`apple.txt` 与 RFU-Ads 有 1 条交集
+   （`iadsdk.apple.com`，2026-11-22 起 AWAvenue 并入 RFU-Ads 后仍命中）⇒ 它**不上提**。
 2. 应用类规则必须排在 `direct.txt` 之前。否则域名恰好被国内清单收录的应用会被直连接走 —— 实测：`direct.txt` 收录了若干含 `github` 的域名（githubim.com / githubshare.com / hellogithub.com / kkgithub.com 等），`GitHub.list` 的 `DOMAIN-KEYWORD,github` 本可兜住它们，排到后面就分流失效。（`github.com` 本身**不在** `direct.txt` 里；该条现直指 `Proxy`。）
 3. `GEOIP` 必须带 `no-resolve`，且必须与 ⑤ 成对。见 [DNS 基础](./dns.md)。
 
@@ -914,7 +914,7 @@ R5 仓库级 Latest 指向最新那张。
 | 1 | `encrypted-dns-server` 的端点是否 **IP 字面量** | 出现主机名端点 → 该主机名**必被明文解析一次**才能建连 | **高**（境外域名端点）；低（国内域名端点） |
 | 2 | `dns-server` 是否显式、是否含 `system` | 写 `system` = 把引导交给运营商 DHCP；**绝不允许**。另要求 ≥2 个**不同机构**的国内解析器 IP | **高**（缺失或含 system） |
 | 3 | `hijack-dns` 是否接管硬编码解析器 | 缺失 → 忽略 Surge DNS 的设备（HomePod / Apple TV / 智能音箱）明文 `:53` 裸奔 | **高**（缺失时） |
-| 4 | `encrypted-dns-follow-outbound-mode` | 必须 `false`。`true` 时 DoH 连接遵循代理规则 ⇒ 解析代理本身要代理 ⇒ 启动期成环 / 回落明文 | **高**（为 true 时） |
+| 4 | `encrypted-dns-follow-outbound-mode` | 判据字面仍要求 `false`（`true` 时 DoH 连接遵循代理规则 ⇒ 解析代理本身要代理 ⇒ 成环 / 回落明文）；**本仓现役 Surge 为 `true`**，因端点已无国内项、走节点不成环，用 `# audit-waive: 4` 豁免，判据源码未改 | **高**（为 true 时，未豁免） |
 | 5 | `use-local-host-item-for-proxy` | 保持 `false`。`true` 会把本地 DNS 结果变成硬性代理目标，破坏远端解析 | **高**（为 true 时） |
 | 6 | 延迟测试端点（`internet-test-url` / `proxy-test-url` / `proxy-test-udp`） | **性能探针，非泄露通道**。官方 KB：走代理时解析在代理服务器进行。选址是性能取向：连通性检测宜国内，`smart` 打分宜境外（含国际段）。仅作提示 | 低 |
 | 7 | 策略组引用的成员是否都存在 | 引用不存在的节点名 → Surge **拒绝加载整份配置** | **高** |
@@ -1054,7 +1054,7 @@ python self-conf-skills/gates/clash/check_structure.py
 | 5 | `enhanced-mode: fake-ip` 且 `fake-ip-range` 落在 **RFC 6815 保留段** | `redir-host` / 未设置 ⇒ 每个域名都真实解析一次（本地留答案）；`fake-ip-range` 不在 `198.18.0.0/15` ⇒ 拿假 IP 去连真实网络。当前 `198.18.0.1/16` ✅ | **高**（段不对）／中（模式不对） |
 | 6 | ⭐ IPv6 **两处**都要显式关闭：顶层 `ipv6` **与** `dns.ipv6` | 判据用 `is not False` ⇒ **键缺失也算不过**。`dns.ipv6: true` ⇒ 应用拿到真实 AAAA；顶层 `ipv6: false` ⇒ IPv6 流量不被 TUN 接管；两者叠加 = 双栈站点直连出去、绕过代理。⚠️ 只关一处比两处都开更隐蔽 | **高** |
 | 7 | ⭐ `tun` 是否接管 `:53`（旁路设备面③）+ `strict-route` | ⭐ 判据不是"列了几条"，而是**是否覆盖 `:53` 的整个地址空间** —— 地址空间无限，逐个列举永远列不全（Surge 侧第 3 项踩过同一个坑：按条数判负是错的）。只有 `any:53` / `0.0.0.0:53` 才叫收口。另要求 `enable` / `auto-route` / `strict-route` 三键。<br>⚠️ **形态差异**：覆写脚本（`override/*.js`）的输出**不该有** `tun`（客户端自己管 TUN）⇒ `--override` 下本项整体跳过；当前也未接管 TCP:53（不写协议前缀默认 `udp://`，LOW，是已知取舍） | **高** |
-| 8 | ⭐⭐ **DNS 层广告拦截的两个必要条件**（缺任一 ⇒ 静默失效、且不报错） | ① `nameserver-policy` 里 `rule-set:<广告集>: rcode://success`；② **同一个广告集在 `fake-ip-filter` 里再列一遍** —— 否则 `withFakeIP` 中间件对 A / AAAA **直接返回假 IP**，请求永远走不到 ①。另：两处广告集**必须一致**，且都**不得引用未定义**的 `rule-set:`（死引用 ⇒ 静默消失）。当前两版均为 `AWAvenue-Ads` + `RFU-Ads`，两处一致 ✅ | **高** |
+| 8 | ⭐⭐ **DNS 层广告拦截的两个必要条件**（缺任一 ⇒ 静默失效、且不报错） | ① `nameserver-policy` 里 `rule-set:<广告集>: rcode://success`；② **同一个广告集在 `fake-ip-filter` 里再列一遍** —— 否则 `withFakeIP` 中间件对 A / AAAA **直接返回假 IP**，请求永远走不到 ①。另：两处广告集**必须一致**，且都**不得引用未定义**的 `rule-set:`（死引用 ⇒ 静默消失）。当前两版均为 `RFU-Ads`（2026-11-22 起唯一广告集），两处一致 ✅ | **高** |
 | 9 | `nameserver-policy` 的**广告项必须排在 `cn` / `private` 之前** | YAML mapping 在 Python 3.7+ 保持插入顺序，而这个顺序**就是 mihomo 的匹配顺序**：先命中 `rule-set:cn` ⇒ 拿国内答案，永远走不到后面的 `rcode://success` | **高** |
 | 10 | ⭐⭐ IP 类规则必须带 `no-resolve`（面④），域名类不该写 | ⭐ 判"是不是 IP 类规则"的**第一依据是 provider 的 `behavior`**，不是名字前缀：`ipcidr` ⇒ 不带会为判定而强制解析；`domain` ⇒ 写了无意义；`classical` ⇒ 内容混合、**无法静态判定**（单独归组提示）。只有 provider 未声明 `behavior` 时才退回 `geoip-` 名字前缀兜底。<br>⚠️ **双刃与另两侧同**：给 IP 规则补 `no-resolve` 会同时关掉"靠解析判 IP 归属"那条直连路径 ⇒ 必须与域名补偿**成对交付**（见 [`dns.md` 的成对交付节](./dns.md)）。当前分流版 4 条 / 懒人版 2 条全部带 ✅ | **高**（IP 类缺）／低（域名类写了） |
 | 11 | ⭐ **零 dat 依赖** | 顶层出现 `geox-url` / `geo-auto-update` / `geo-update-interval` ⇒ mihomo 会去下载并加载 `GeoSite.dat` / `GeoIP.dat`；规则写原生 `GEOSITE,` / `GEOIP,` ⇒ 直接查那两个库；`nameserver-policy` 键用 `geosite:` 同理；provider 引 `.dat` 文件同样判负。<br>⚠️ **这不排斥 `.mrs`**：`geoip-private` / `geoip-cn` 等是 MetaCubeX 的**独立远程集文件**（`format: mrs`），与 dat 数据库无关 —— 正是本仓想要的形态。判据只拦 dat，不拦 mrs（注入测试专门验过不误伤） | **高** |

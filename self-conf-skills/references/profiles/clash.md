@@ -816,8 +816,7 @@ python self-conf-skills/run/clash/build_rules.py --check   # CI 用：过期即�
 
 #### 11.3 五条排序约束
 
-1. **白名单（位 1）必须排在两条广告规则之前** —— `AWAvenue-Ads` 与 `RFU-Ads`
-   存在重叠域名，顺序颠倒会把白名单里的功能域误杀。
+1. **白名单（位 1）必须排在广告规则之前** —— 广告集与白名单存在重叠域名，顺序颠倒会把白名单里的功能域误杀。（2026-11-22 起 AWAvenue 已移除，只余 `RFU-Ads`）
 2. **两条广告规则并列、同一出口 `AD`** —— 一起切才一致。
 3. **AI 厂商专属规则（位 8–10）必须排在通用 AI 兜底（位 11）之前** ——
    否则 AI 域名先被 `category-ai-chat-!cn` 接走，`ChatGPT` / `Gemini` / `Claude` 组永远轮不到。
@@ -959,7 +958,7 @@ fallback-filter:
 ```
 广告域名查询
     ↓
-① dns.fake-ip-filter: "rule-set:AWAvenue-Ads" / "rule-set:RFU-Ads"
+① dns.fake-ip-filter: "rule-set:RFU-Ads"（2026-11-22 起唯一广告集）
    → 跳过 fake-ip（否则 withFakeIP 对 A/AAAA 直接返回假 IP，请求永远到不了 ②）
     ↓
 ② dns.nameserver-policy: "rule-set:xxx": rcode://success
@@ -1049,7 +1048,7 @@ if cn_idx and ads_idx and min(ads_idx) > min(cn_idx):
 | 🎮 游戏机 | `+.srv.nintendo.net` · `+.stun.playstation.net` · `+.xboxlive.com` | 联网检测与 NAT 类型判定失败 |
 | 🕐 NTP / STUN | `stun.*` · `time.*.com` · `ntp.*.com` · `+.pool.ntp.org` | 时间同步走假 IP 直接失败 |
 | 🧩 其他 | `localhost.ptlogin2.qq.com` · `+.market.xiaomi.com` | 登录与应用商店的本地连通性检测 |
-| 🚫 广告 | `rule-set:AWAvenue-Ads` · `rule-set:RFU-Ads` | **必须与 `nameserver-policy` 一一对应**（§14.2） |
+| 🚫 广告 | `rule-set:RFU-Ads`（2026-11-22 起唯一广告集） | **必须与 `nameserver-policy` 一一对应**（§14.2） |
 
 #### 15.2 三种通配符的语义（v1.19.31 实测）
 
@@ -1072,8 +1071,7 @@ if cn_idx and ads_idx and min(ads_idx) > min(cn_idx):
 
 | 集 | behavior | 可用 |
 |:--|:---------|:--:|
-| `AWAvenue-Ads` | `domain` | ✅ |
-| `RFU-Ads` | `classical` | ✅（classical 时**仅生效其中的域名类规则**） |
+| `RFU-Ads` | `classical` | ✅（classical 时**仅生效其中的域名类规则**；2026-11-22 起唯一广告集） |
 | `geoip-cn` 之类 | `ipcidr` | ❌ 放进 `fake-ip-filter` 无意义 |
 
 #### 15.4 命中的代价
@@ -1337,7 +1335,7 @@ python self-conf-skills/gates/clash/check_secrets.py        # 占位符纪律
 ipv6: false                  # ① 顶层开关（与 dns.ipv6 成对，见 §3.6）
 proxy-providers:             # 订阅槽位，唯一需要用户填的东西
 proxy-groups:                # 25 个策略组
-rule-providers:              # 25 份规则集（19 MRS + 1 AWAvenue + 2 Jinx + 3 自托管）
+rule-providers:              # 24 份规则集（19 MRS + 2 Jinx + 3 自托管；2026-11-22 移除 AWAvenue）
 rules:                       # 27 条，自上而下
 dns:                         # 防泄露本体
 tun:                         # 流量接管 + :53 劫持（见下）
@@ -1524,8 +1522,7 @@ nameserver:
 
 ```yaml
 nameserver-policy:
-  "rule-set:AWAvenue-Ads": rcode://success
-  "rule-set:RFU-Ads": rcode://success
+  "rule-set:RFU-Ads": rcode://success   # 2026-11-22 起唯一广告集
   "rule-set:private":
     - https://doh.18bit.cn/dns-query
     - https://dns.alidns.com/dns-query
@@ -1567,8 +1564,7 @@ fake-ip-filter:
   - "ntp.*.com"
   - "+.pool.ntp.org"
   - "+.market.xiaomi.com"
-  - "rule-set:AWAvenue-Ads"    # 广告（必须列，见 §8）
-  - "rule-set:RFU-Ads"
+  - "rule-set:RFU-Ads"    # 广告（必须列，见 §8；2026-11-22 起唯一广告集）
 ```
 
 通配语义：`+.` 含本域与任意层子域；`*` / `*.` 只匹配一层。
@@ -2488,8 +2484,8 @@ Apple 则由 `GEOSITE,apple`（1792 条）做**全量直连**（懒人版只要�
 
 #### 3 · 排序约束
 
-1. **白名单必须排在两条广告规则之前** —— `AWAvenue-Ads` 与 `rfu-ads` 存在重叠域名，顺序颠倒会把白名单里的功能域误杀。
-2. **两条广告规则并列、同出口** —— 都指向 `AD` 组，一起切才一致（两份配置的 `AD` 组都只有一个 `REJECT` 子策略）。
+1. **白名单必须排在广告规则之前** —— 广告集与白名单存在重叠域名，顺序颠倒会把白名单里的功能域误杀。（2026-11-22 起 AWAvenue 已移除）
+2. **广告规则指向 `AD` 组**（2026-11-22 起单条 `RFU-Ads`；此前两条并列、同出口，一起切才一致）。
 3. **内网判定（`private`）排在 AI 与国内之前** —— 私有网段与私有域名不应落到任何代理出口。
 4. **应用分流必须在国内直连之前** —— 否则「ChatGPT 但域名恰好被国内清单收录」会被直连接走；越具体的越靠前。
 5. **AI 厂商专属规则（openai / google-gemini / anthropic）排在通用 AI 兜底（category-ai-chat-!cn）之前** —— 否则 AI 域名会先被兜底接走，轮不到专属组。

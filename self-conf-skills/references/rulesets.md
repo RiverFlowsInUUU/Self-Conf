@@ -154,7 +154,6 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 |:-------|:-----|:-----------|:-----------|:-----|
 | `surge-direct.list` | 白名单（精确域名） | `DIRECT` | `DIRECT` | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
 | `surge-ads.list` | 广告拦截主清单 | `REJECT`（连接阶段） | `AD` 组 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) |
-| `AWAvenue-Ads-Rule-Surge-RULE-SET.list` | 广告拦截第 2 条 | `REJECT`（连接阶段） | `AD` 组 | [TG-Twilight/AWAvenue-Ads-Rule](https://github.com/TG-Twilight/AWAvenue-Ads-Rule) |
 | `SystemOTA.list` | Apple 系统更新（OTA） | `Apple Update` 组 | `Apple Update` 组 | [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script)（**仅分流版引用**） |
 | `private.txt` | 特殊 TLD 与路由器域（`.lan` `.local` `miwifi.com`） | `DIRECT`（实测零 IP ⇒ 不写规则级开关） | `DIRECT`（分流版 v3 起补） | [Loyalsoldier/surge-rules](https://github.com/Loyalsoldier/surge-rules) |
 | `direct.txt` | 国内域名（纯域名、零 IP；**条数一律现抓**）**主承重墙** | `DIRECT`（同上，不写开关） | `DIRECT` | [Loyalsoldier/surge-rules](https://github.com/Loyalsoldier/surge-rules) |
@@ -206,7 +205,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 |:-:|:-----|:-:|:-----|
 | ① | 广告白名单 `surge-direct.list` → `DIRECT` | ⑭ | `YouTubeMusic.list` → `YouTube Music` |
 | ② | 广告拦截 `surge-ads.list` → `REJECT`(S) / `AD`(E) | ⑮ | `GitHub.list` → **`Proxy`**（无同名组） |
-| ③ | 广告拦截 `AWAvenue-Ads-Rule-...list` → `REJECT`(S) / `AD`(E) | ⑯ | `YouTube.list` → `YouTube` |
+| ③ | ~~广告拦截 AWAvenue~~（2026-11-22 移除，位号保留未重排；并入 ② `RFU-Ads`） | ⑯ | `YouTube.list` → `YouTube` |
 | ④ | `SystemOTA.list` → `Apple Update` | ⑰ | `emby.list`（**本仓自托管**）→ `Emby` |
 | ⑤ | **系统域白名单**：Surge 内置 `SYSTEM` ／ Egern `apple_system.list` → `DIRECT` | ⑱ | `Google.list` → `Google` |
 | ⑥ | 内网 `LAN`（Surge 内置）／ `Lan.list` → `DIRECT` | ⑲ | `Telegram.list` → `Telegram` |
@@ -224,7 +223,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
 
 ### 4 · 排序与选材约束（改动前逐条确认）
 
-1. **白名单必须排在两条广告清单之前** —— Jinx 与 AWAvenue 存在重叠域名，白名单排到后面会被误杀。
+1. **白名单必须排在广告清单之前** —— 广告清单与白名单存在重叠域名，白名单排到后面会被误杀。
    ⭐ **白名单是两层，但两层不再连写**（2026-10-06 起变更）：
    **① 广告白名单**（`surge-direct.list`，位 ①，在广告清单之前）·
    **⑤ 系统域白名单**（Surge 内置 `SYSTEM` ／ Egern `apple_system.list`，位 ⑤，在广告清单**之后**）。
@@ -232,7 +231,7 @@ Egern 的规则集**内联在 `rules` 段的 `rule_set` 条目里**，没有独�
    2026-10-06 复测仍成立）⇒ 排前或排后**拦截结果完全相同** ⇒ 不再占用「最前」这个语义位置。
    （分流版另有位 ④ `SystemOTA`：它与 `SYSTEM` 有 3 条重叠 ⇒ 必须排在 `SYSTEM` 之前，
    否则 `Apple Update` 组永远轮不到那 3 条。`Apple Update` **仅分流版提供**。）
-   而 `apple.txt` 与 AWAvenue 有 **1 条交集**（`iadsdk.apple.com`）⇒ 它**不**上提（否则会放行一条苹果广告 SDK 域）。
+   而 `apple.txt` 与 RFU-Ads 有 **1 条交集**（`iadsdk.apple.com`，2026-11-22 起 AWAvenue 并入 RFU-Ads 后仍命中）⇒ 它**不**上提（否则会放行一条苹果广告 SDK 域）。
 2. **厂商专属规则（`OpenAI` / `Gemini` / `Anthropic` / `Claude`）排在 `AI.list` 之前** —— 否则 AI 域名先被 `AI.list` 接走，专属组形同虚设。
 3. **`GitHub.list` 排在 `direct.txt` 之前** —— 实测 `direct.txt` 收录了若干含 `github` 的域名（githubim.com / githubshare.com / hellogithub.com / kkgithub.com 等），它们会被 `GitHub.list` 的 `DOMAIN-KEYWORD,github` 命中；排到后面这几个就接不到。本条**直指 `Proxy`**（2026-10-05 起不再单设 `GitHub` 组）。（`github.com` 本身**不在** `direct.txt` 里。）
 4. **IP 类规则排最后，且必须带 `no-resolve` / `no_resolve`** —— 否则每个走到它的域名都会被强制本地解析一次，那正是泄露来源。详见 [`dns.md`](./dns.md)。
@@ -728,7 +727,7 @@ Surge 把被引用的规则集**在内存里展开成匹配表**。一份十几�
 |:-------|:----:|:----:|:--:|:---------------------:|
 | `surge-direct.list` | — | — | 0 | 0 |
 | `surge-ads.list` | — | — | 0 | 0 |
-| `AWAvenue-Ads-Rule-Surge-RULE-SET.list` | — | — | 0 | 0 |
+| ~~`AWAvenue-Ads-Rule-Surge-RULE-SET.list`~~（2026-11-22 移除） | — | — | 0 | 0 |
 | `AI.list` | — | — | 0 | 0 |
 | `private.txt` | — | — | 0 | 0 |
 | `direct.txt` | **十几万** | **十几万** | 0 | 0 |
@@ -758,7 +757,7 @@ python self-conf-skills/run/surge/audit_ruleset_content.py surge/profiles/lazy.c
    共 <n> 条：域名类 <n> / IP 类 0 / 其他 0
    域名类型：{'DOMAIN-SUFFIX': <n>, 'DOMAIN-WILDCARD': <n>}
 
-── 第 210 行 · AWAvenue-Ads-Rule-Surge-RULE-SET.list （新下载） → REJECT
+── 第 210 行 · AWAvenue-Ads-Rule-Surge-RULE-SET.list （新下载） → REJECT　（2026-11-22 起此集已移除，现役 audit 不再有此行；此处保留为输出格式示例）
    共 <n> 条：域名类 <n> / IP 类 0 / 其他 0
    域名类型：{'DOMAIN': <n>, 'DOMAIN-SUFFIX': <n>, 'DOMAIN-KEYWORD': <n>}
 ```
@@ -1006,7 +1005,7 @@ key = re.sub(r"[^A-Za-z0-9._-]", "_", url)[-120:]
 | 17 | `geoip-google` | ipcidr | mrs | 现抓 | Google |
 | 18 | `geoip-telegram` | ipcidr | mrs | 现抓 | Telegram |
 | 19 | `geoip-cn` | ipcidr | mrs | 现抓 | DIRECT |
-| 20 | `AWAvenue-Ads` | domain | mrs | 现抓 | AD |
+| 20 | `AWAvenue-Ads`（2026-11-22 移除，此行保留仅为编号连续） | domain | mrs | 现抓 | AD |
 
 > 第 20 项 `AWAvenue-Ads` 的 URL 在 `TG-Twilight/AWAvenue-Ads-Rule` 仓下，
 > 但历史上本仓把它与 MetaCubeX 一起归为"MRS 域名集"这一类讨论；
@@ -1066,7 +1065,7 @@ provider 名自 2026-11-12 起为 `RFU-Direct` / `RFU-Ads`，按托管仓与用�
 | 3 | `category-ai-chat-!cn` | MetaCubeX | domain | mrs | 181 / 188 ⚠️ | AI |
 | 4 | `geoip-private` | MetaCubeX | ipcidr | mrs | 现抓 | DIRECT `no-resolve` |
 | 5 | `geoip-cn` | MetaCubeX | ipcidr | mrs | 现抓 | DIRECT `no-resolve` |
-| 6 | `AWAvenue-Ads` | AWAvenue | domain | mrs | 现抓 | AD |
+| 6 | `AWAvenue-Ads`（2026-11-22 移除） | AWAvenue | domain | mrs | 现抓 | AD |
 | 7 | `RFU-Direct` | Jinx | classical | yaml | 现抓 | DIRECT |
 | 8 | `RFU-Ads` | Jinx | classical | yaml | 现抓 | AD |
 | 9 | `RFU-AI` | RFU-Rules | classical | yaml | 随周更 | AI |
@@ -1102,7 +1101,7 @@ provider 名自 2026-11-12 起为 `RFU-Direct` / `RFU-Ads`，按托管仓与用�
 | **MetaCubeX** `meta-rules-dat` | **19** | `mrs` | 上游每日重建 | 移动分支 `@meta`（不可钉 commit） |
 | **本仓自托管** `rules/*.yaml` | **3** | `yaml` / classical | **本仓自己** | 无第三方依赖；失效即本仓事故 |
 | **Jinx** `RiverFlowsInUUU/RFU-Rules` | **2** | `yaml` / classical | 姊妹仓 | `main` 移动分支 |
-| **AWAvenue** `TG-Twilight/AWAvenue-Ads-Rule` | **1** | `mrs` | 上游 | `main` 移动分支 |
+| **AWAvenue** `TG-Twilight/AWAvenue-Ads-Rule`（2026-11-22 移除） | **1** | `mrs` | 上游 | `main` 移动分支 |
 | **合计** | **25** | | | |
 
 ⚠️ **"20 份 MRS" ≠ "20 份 MetaCubeX"** —— 这是本仓最容易混淆的一处。

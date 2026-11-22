@@ -1172,7 +1172,7 @@ mihomo 的双层广告拦截是**两个必要条件**，它们是同一件事的
 ```
 广告域名查询
     ↓
-① dns.fake-ip-filter: "rule-set:AWAvenue-Ads" / "rule-set:RFU-Ads"
+① dns.fake-ip-filter: "rule-set:RFU-Ads"（2026-11-22 起唯一广告集）
    → 跳过 fake-ip（否则 withFakeIP 对 A/AAAA 直接返回假 IP，请求永远到不了 ②）
     ↓
 ② dns.nameserver-policy: "rule-set:xxx": rcode://success

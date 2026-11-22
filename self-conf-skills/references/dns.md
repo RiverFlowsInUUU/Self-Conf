@@ -264,7 +264,7 @@ provider 的 `behavior`，不是 `geoip-` 名字前缀。）
 | 假 IP 模式 | 默认 Fake-IP | 默认 Fake-IP | **`enhanced-mode: fake-ip` 必须显式给** | **默认就是 Fake IP**，无该键 |
 | 跳过假 IP 的名单 | `always-real-ip` | `real_ip_domains` | **`dns.fake-ip-filter`**（`+.` ≠ `*.`） | **`dns.fake-ip-filter`**（同形） |
 | 旁路设备 :53 收口 | `hijack-dns = 8.8.8.8:53, …`（**列举式**） | `hijack_dns: ['*']` | **`tun.dns-hijack: [any:53]`** ⭐ 覆盖整个地址空间 | 由 Stash 网络引擎自动接管 |
-| 是否走路由规则 | `encrypted-dns-follow-outbound-mode = false` | — | **`respect-rules: true`**（反向：要它**跟着**规则走） | **默认"直接出站"、无 `respect-rules`**；对应物 `follow-rule`，官方不建议开 |
+| 是否走路由规则 | `encrypted-dns-follow-outbound-mode = true`（2026-11-22 单边调整；改前 `false`，端点已无国内项故走节点不成环，`audit-waive: 4` 留痕） | — | **`respect-rules: true`**（反向：要它**跟着**规则走） | **默认"直接出站"、无 `respect-rules`**；对应物 `follow-rule`，官方不建议开 |
 | 关闭 IPv6 | `ipv6 = false` + `ipv6-vif = disable` | `ipv6: false` | **顶层 `ipv6: false` + `dns.ipv6: false`（两处）** | 按官方〈IPv6 兼容性〉**自动**选择，不写该键 |
 | 地理判定依赖 | `GeoLite2-Country.mmdb` | `Country.mmdb` + `GeoLite2-ASN.mmdb` | **无 dat** —— 全部远程 `.mrs` | 同 mihomo（stash 侧用 `.list`/`.yaml`） |
 | 判据脚本 | `self-conf-skills/gates/surge/check_surge_dns.py` | `self-conf-skills/gates/egern/check_egern_dns.py` | `self-conf-skills/gates/clash/check_clash_dns.py` | **`self-conf-skills/gates/check_stash_dns.py`** |
@@ -277,8 +277,9 @@ provider 的 `behavior`，不是 `geoip-` 名字前缀。）
 1. **`hijack-dns` / `dns-hijack` 不是同一种东西**。Surge 是**列举解析器地址**，mihomo 是
    **TUN 层劫持**且 `any:53` 才叫收口。判据也不是「列了几条」——:53 的地址空间是无限的，
    逐个列举**永远列不全**。
-2. **`respect-rules` 的方向与 Surge 相反**。Surge 显式关掉「解析跟着出站走」；mihomo 打开它
-   是为了让发往境外 DoH 的查询按规则经代理发出（否则国内线路直连境外 :443 常被阻断）。
+2. **`respect-rules` 与 Surge 现在同向**。2026-11-22 起 Surge 也打开「解析跟着出站走」（`= true`），
+   与 mihomo 一样让发往境外 DoH 的查询按规则经代理发出（否则国内线路直连境外 :443 常被阻断）。
+   改前 Surge 是关的（`false`）；旧资料若写"方向与 Surge 相反"指的都是改前状态。
    ⚠️ 代价：打开后内核**强制要求**同时给 `proxy-server-nameserver`，缺了直接报错。
 3. **IPv6 的关闭处数不同**：Surge 两处（`ipv6` + `ipv6-vif`）、Egern 一处（`ipv6`）、
    mihomo 两处（顶层 `ipv6` + `dns.ipv6`）—— 但**是不同语义的两处**，不是同一处的两种写法。

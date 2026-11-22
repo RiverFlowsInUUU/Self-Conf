@@ -55,7 +55,7 @@ mihomo 取 `.js`，Stash 取 `.stoverride`。
 | 🛑 `AD` | ✅ | ✅ |
 | 🇭🇰 `Hong Kong` · 🇨🇳 `Taiwan` · 🇯🇵 `Japan`<br>🇸🇬 `Singapore` · 🇺🇸 `United States`<br>🇦🇶 `Other Regions` | - | ✅ |
 
-分流版组数：**Surge / Egern 23 组 · 26 条规则**。**mihomo 25 组 · 27 条规则**。
+分流版组数：**Surge / Egern 23 组 · 25 条规则**。**mihomo 25 组 · 26 条规则**。
 
 ## 🌐 隐私至上 · 无 DNS 泄露
 
