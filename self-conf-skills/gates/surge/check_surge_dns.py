@@ -79,7 +79,7 @@ def add(level, cid, msg, detail=""):
 # 豁免机制
 # ---------------------------------------------------------------------------
 # 为什么要有它：本模板有两处是**刻意的设计取舍**，不是缺陷 ——
-#   ① `encrypted-dns-server` 带 `https://dns.google/dns-query`（2026-11-22 起已无 dns.alidns.com）：
+#   ① `encrypted-dns-server` 里带 `https://dns.google/dns-query` / `dns.alidns.com`：
 #      这两个端点的主机名会被引导解析一次。换成纯 IP 字面量能消除它，但会失去
 #      "按域名走 CDN 就近解析" 与 "ECS 合规" 这两项收益。
 #   ② 兜底指 `Proxy` 而非国内组：本模板不做分流兜底的境内/境外切分。

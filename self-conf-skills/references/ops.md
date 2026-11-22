@@ -62,9 +62,9 @@ Surge 的 `.conf` 按节组织，模板里与防泄露相关的节：
 | 键 | 堵哪 | 注意 |
 |:---|:-----|:-----|
 | `dns-server` | 引导与连通性测试用的本地上游 | 全 IP 字面量，不放 `system`。不要删它来"减少解析面"：删了 Surge 会用系统 DNS（运营商下发），正是出口 ① |
-| `encrypted-dns-server` | 日常解析走加密通道 | 端点尽量 IP 字面量；Surge 现役保留 1 个主机名端点（`dns.google`），2026-11-22 已移除 `dns.alidns.com`（并发查询下它常先应答、出口落在国内 ISP），用 `# audit-waive: 1` 记录豁免与理由 |
+| `encrypted-dns-server` | 日常解析走加密通道 | 端点尽量 IP 字面量；保留的 2 个主机名端点已用 `# audit-waive:` 记录豁免与理由 |
 | `hijack-dns` | 旁路设备（出口 ②） | 模板列出最常见的境外解析器地址把它们收进本地；想一网打尽可写 `hijack-dns = *`（有取舍，见 `profiles/<内核>.md` 的「逐键语义」 §10.3） |
-| `encrypted-dns-follow-outbound-mode` | 决定加密 DNS 连接是否走代理出站 | ⚠️ 2026-11-22 起 **Surge 单边改为 `true`**（端点已无国内项、走节点不成环），用 `# audit-waive: 4` 留痕；改前为 `false`。Egern / mihomo / Stash 不涉及此键，理由见 `profiles/surge.md`「逐键语义」§3.1 |
+| `encrypted-dns-follow-outbound-mode` | 防止"出站走代理、解析也跟着出境"的意外 | 模板显式设 `false`，理由在 `profiles/<内核>.md` 的「逐键语义」 |
 | `use-local-host-item-for-proxy` | 防止本地 hosts 条目污染代理侧解析 | 理由在 `profiles/<内核>.md` 的「逐键语义」 |
 | `always-real-ip` | Fake-IP 模式下游戏机 / NTP / STUN 拿到假 IP | 是功能清单，不是可选装饰。里面的主机名应能被 `[Rule]` 域名规则接住，`check_surge_dns.py` 第 11 项专查这条 |
 | `internet-test-url` / `proxy-test-url` | — | 性能探针，不是泄露通道：前者国内 204（测"能不能上网"），后者保持境外 `gstatic.com`（`smart` 打分要含国际段才是真实路径）。把后者"为防泄露"改成国内是典型的原则误套用，见 `profiles/<内核>.md` 的「逐键语义」 §16 |
@@ -914,7 +914,7 @@ R5 仓库级 Latest 指向最新那张。
 | 1 | `encrypted-dns-server` 的端点是否 **IP 字面量** | 出现主机名端点 → 该主机名**必被明文解析一次**才能建连 | **高**（境外域名端点）；低（国内域名端点） |
 | 2 | `dns-server` 是否显式、是否含 `system` | 写 `system` = 把引导交给运营商 DHCP；**绝不允许**。另要求 ≥2 个**不同机构**的国内解析器 IP | **高**（缺失或含 system） |
 | 3 | `hijack-dns` 是否接管硬编码解析器 | 缺失 → 忽略 Surge DNS 的设备（HomePod / Apple TV / 智能音箱）明文 `:53` 裸奔 | **高**（缺失时） |
-| 4 | `encrypted-dns-follow-outbound-mode` | 判据字面仍要求 `false`（`true` 时 DoH 连接遵循代理规则 ⇒ 解析代理本身要代理 ⇒ 成环 / 回落明文）；**本仓现役 Surge 为 `true`**，因端点已无国内项、走节点不成环，用 `# audit-waive: 4` 豁免，判据源码未改 | **高**（为 true 时，未豁免） |
+| 4 | `encrypted-dns-follow-outbound-mode` | 必须 `false`。`true` 时 DoH 连接遵循代理规则 ⇒ 解析代理本身要代理 ⇒ 启动期成环 / 回落明文 | **高**（为 true 时） |
 | 5 | `use-local-host-item-for-proxy` | 保持 `false`。`true` 会把本地 DNS 结果变成硬性代理目标，破坏远端解析 | **高**（为 true 时） |
 | 6 | 延迟测试端点（`internet-test-url` / `proxy-test-url` / `proxy-test-udp`） | **性能探针，非泄露通道**。官方 KB：走代理时解析在代理服务器进行。选址是性能取向：连通性检测宜国内，`smart` 打分宜境外（含国际段）。仅作提示 | 低 |
 | 7 | 策略组引用的成员是否都存在 | 引用不存在的节点名 → Surge **拒绝加载整份配置** | **高** |
