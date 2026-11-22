@@ -2400,8 +2400,7 @@ WeChat 换到上游活跃维护的 `.mrs`（原因见 §0.3）。
 | 规则集 | 格式 | 行为 | 去向 | 用在哪 | 来源 |
 |:-------|:-----|:-----|:-----|:--:|:-----|
 | `RFU-Direct` | YAML | `classical` | `DIRECT` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-direct.yaml`（上游 2026-10-04 由 `*-white-guard.*` 改名而来，旧名已 404） |
-| `RFU-Ads` | YAML | `classical` | `AD` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-ads.yaml` |
-| `AWAvenue-Ads` | `.mrs` | `domain` | `AD` | 两份 | [TG-Twilight/AWAvenue-Ads-Rule](https://github.com/TG-Twilight/AWAvenue-Ads-Rule) · `Filters/AWAvenue-Ads-Rule-Clash.mrs` |
+| `RFU-Ads` | YAML | `classical` | `AD` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-ads.yaml`（2026-11-22 起为唯一广告集，原 AWAvenue 已并入） |
 | `RFU-AI` | YAML | `classical` | `AI` | 两份 | [RFU-Rules](https://github.com/RiverFlowsInUUU/RFU-Rules) · `mihomo-ai.yaml`（Surge / Egern 复用同仓的 Surge 格式清单；条数随周更变化，见文件头注） |
 | `apple-system` | text | `classical` | `DIRECT` | 仅懒人版 | [self-conf](https://github.com/RiverFlowsInUUU/self-conf) · `rules/apple_system.list` |
 

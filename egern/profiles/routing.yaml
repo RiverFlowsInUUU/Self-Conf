@@ -1,11 +1,12 @@
-#! version=routing_v1.0.4
+#! version=routing_v1.0.5
 # ================================================================ routing（正式版 · 推荐）
 # 结构（与 Surge `routing.conf` 逐行对齐，内容与顺序均对拍）：
 #   ① `dns.forward` 由单条 catch-all 扩为 4 层：
 #      白名单（direct → Domestic-DNS，抢在拦截前拿到解析）
-#      → RFU-Ads / AWAvenue 两条广告清单（value: reject —— 官方语义
+#      → RFU-Ads 广告清单（value: reject —— 官方语义
 #      "refuse the query and return an empty response"，解析阶段直接拒答；
 #      Surge 自 2026-10-27 起已无等价机制 —— 它的广告拦截在连接阶段）→ catch-all 兜底。
+#      2026-11-22：移除第二条广告清单 AWAvenue（已并入 RFU-Rules/surge-ads.list 94%）。
 #      防泄露面不变：查询去向仍是 Domestic-DNS 加密组或拒答二选一，
 #      proxy_nameservers 绕过 Forward、bootstrap 依旧闲置。
 #   ② `rules` 补 `private.txt → DIRECT`（与 Surge 同源同策略；Lan.list 保留互补
@@ -90,7 +91,7 @@ dns:
   #   ① 白名单首位：命中 → Domestic-DNS 正常加密解析。对应 Surge 的
   #      RULE-SET direct,DIRECT —— 白名单（会被广告清单误杀的功能域，
   #      条数随上游更新，不写死）
-  #      （AWAvenue 命中其中若干条：jpush.cn / appcfg.v.qq.com / apd-pcdnwx* /
+  #      （广告清单命中其中若干条：jpush.cn / appcfg.v.qq.com / apd-pcdnwx* /
   #      tnc3-* 等）必须抢在 reject 之前拿到解析，否则流量层的白名单救不了
   #      一个解析都失败的域名。
   #   ② 广告拦截：Egern 侧是**解析阶段**拒答（Surge 自 2026-10-27 起不再有
@@ -109,9 +110,6 @@ dns:
       value: Domestic-DNS
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
-      value: reject
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
       value: reject
   - domain_wildcard:
       match: '*'
@@ -487,11 +485,6 @@ rules:
 - rule_set:
     name: RFU-Ads
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
-    policy: AD
-    update_interval: 604800
-- rule_set:
-    name: AWAvenue-Ads
-    match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
     policy: AD
     update_interval: 604800
 # 位 ④ —— Apple 更新（OTA）：排在 `System` 之前、广告拦截之后。

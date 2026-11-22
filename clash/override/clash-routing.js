@@ -7,7 +7,8 @@
 //      · 22 个策略组（Proxy + Smart + 3 个 AI 应用组 + AI + 8 个应用组 + Apple Update + AD + 6 地区组）
 //        ⚠️ 分解式字面相加必须等于 22：「4 个 AI 组 + AI」会把 AI 重复计数成 23。
 //           ChatGPT / Gemini / Claude 是 3 个 AI 应用组，AI 是它们之外的第 4 个。
-//      · 25 份规则集（20 份 MRS + 5 份 yaml）+ 27 条规则
+//      · 24 份规则集（19 份 MRS + 5 份 yaml）+ 26 条规则
+//        2026-11-22：移除 AWAvenue-Ads（一份 MRS 规则集及其分流规则，已并入 RFU-Ads 94%）。
 //        ⚠️ 这些数字由 self-conf-skills/gates/clash/check_header_numbers.py 与脚本实际输出对拍，
 //           改了策略组或规则后如不同步更新，CI 会判负。
 //      · DNS 双层广告拦截（fake-ip-filter + nameserver-policy rcode://success）
@@ -46,7 +47,7 @@ function main(config) {
   if (!config["proxy-groups"]) config["proxy-groups"] = [];
 
   // 规则集整体重建：订阅自带的 rule-providers 一律丢弃，
-  // 只保留本脚本定义的 25 份（避免残留无用 provider 与命名冲突）。
+  // 只保留本脚本定义的 24 份（避免残留无用 provider 与命名冲突）。
   config["rule-providers"] = {};
 
   // 节点筛选（官方 groupbase.go 的 GetProxies 中依次应用）：
@@ -331,7 +332,7 @@ function main(config) {
     },
   ];
 
-  // ── 2. 规则集（20 份 MRS + 5 份 yaml）────────────────────────────────────
+  // ── 2. 规则集（19 份 MRS + 5 份 yaml）────────────────────────────────────
   const JS = "https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo";
   const rp = config["rule-providers"];
 
@@ -364,14 +365,7 @@ function main(config) {
   });
 
   // 自定义清单（上游没有对应 geosite 分类）
-  rp["AWAvenue-Ads"] = {
-    type: "http",
-    behavior: "domain",
-    format: "mrs",
-    url: "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs",
-    path: "./rule_provider/AWAvenue-Ads-Rule-Clash.mrs",
-    interval: 86400,
-  };
+  // 2026-11-22：移除 AWAvenue-Ads provider —— 已并入 RFU-Rules/mihomo-ads.yaml（94%）。
   rp["RFU-Direct"] = {
     type: "http",
     behavior: "classical",
@@ -423,7 +417,6 @@ function main(config) {
   config.rules = [
     "RULE-SET,RFU-Direct,DIRECT",
     "RULE-SET,RFU-Ads,AD",
-    "RULE-SET,AWAvenue-Ads,AD",
     "RULE-SET,apple-update,Apple Update",
     "RULE-SET,apple-system,DIRECT",
     "RULE-SET,geoip-private,DIRECT,no-resolve",
@@ -505,7 +498,6 @@ function main(config) {
     "fallback-filter": { geoip: true },
 
     "nameserver-policy": {
-      "rule-set:AWAvenue-Ads": "rcode://success",
       "rule-set:RFU-Ads": "rcode://success",
       // 官方示例是单名（rule-set:cn）。逗号多值无依据，拆成两条。
       "rule-set:private": [
@@ -534,7 +526,6 @@ function main(config) {
       "ntp.*.com",
       "+.pool.ntp.org",
       "+.market.xiaomi.com",
-      "rule-set:AWAvenue-Ads",
       "rule-set:RFU-Ads",
     ],
   };

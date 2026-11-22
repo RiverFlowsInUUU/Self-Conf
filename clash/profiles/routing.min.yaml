@@ -1,4 +1,4 @@
-#! version=routing_v1.0.4
+#! version=routing_v1.0.5
 ipv6: false
 proxy-providers:
   Airport:
@@ -360,13 +360,6 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.mrs
     path: ./rule_provider/geoip-cn.mrs
     interval: 86400
-  AWAvenue-Ads:
-    type: http
-    behavior: domain
-    format: mrs
-    url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs
-    path: ./rule_provider/AWAvenue-Ads-Rule-Clash.mrs
-    interval: 86400
   RFU-Direct:
     type: http
     behavior: classical
@@ -405,7 +398,6 @@ rule-providers:
 rules:
   - RULE-SET,RFU-Direct,DIRECT
   - RULE-SET,RFU-Ads,AD
-  - RULE-SET,AWAvenue-Ads,AD
   - RULE-SET,apple-update,Apple Update
   - RULE-SET,apple-system,DIRECT
   - RULE-SET,geoip-private,DIRECT,no-resolve
@@ -457,7 +449,6 @@ dns:
   fallback-filter:
     geoip: true
   nameserver-policy:
-    rule-set:AWAvenue-Ads: rcode://success
     rule-set:RFU-Ads: rcode://success
     rule-set:private:
       - https://doh.18bit.cn/dns-query
@@ -481,6 +472,5 @@ dns:
     - 'ntp.*.com'
     - +.pool.ntp.org
     - +.market.xiaomi.com
-    - rule-set:AWAvenue-Ads
     - rule-set:RFU-Ads
 proxies: []

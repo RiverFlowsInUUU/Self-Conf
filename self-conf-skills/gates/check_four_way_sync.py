@@ -101,9 +101,11 @@ SIDES = ("surge", "egern", "clash", "stash")
 #         **clash/stash 可以被改成任意值而判绿**（实测把 clash 的 `rfu-ads` 改成
 #         `DIRECT` = 广告拦截静默关闭，F5 仍报"四侧齐全"）。这比原实现更宽。
 #         ⇒ 现在四侧全写，判定改回"全字典相等"语义。
+# 2026-11-22：移除 `awavenue-ads` 豁免项 —— 该广告集四侧同步删除，已并入 RFU-Ads。
+# 留着会让下方「豁免 %d 条」读数虚高（key 不再出现于 keys，永不命中）——
+# 正是上面 ① 记过的死条目事故，勿再留。
 TARGET_EXEMPT = {
     "rfu-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
-    "awavenue-ads": {"surge": "REJECT", "egern": "AD", "clash": "AD", "stash": "AD"},
 }
 
 # ② 组名集合的刻意差异。
@@ -139,8 +141,7 @@ SOURCE_EQUIV = {
     # 姊妹仓 ads 那两件的两种格式（Surge .list ↔ mihomo .yaml，数据同为 Jinx 快照）；
     # 3885 条语义等价，只是语法不同（DOMAIN-WILDCARD ↔ DOMAIN-REGEX）
     "surge-ads": "rfu-ads",
-    # 同一 AWAvenue 仓库的两个格式变体（Surge 965 行 / Clash 962 行）
-    "awavenue-ads-rule-surge-rule-set": "awavenue-ads",
+    # 2026-11-22：移除 AWAvenue 两格式归一（广告集已删，无 source 会触发此映射）
     # `rules/apple_system.list` 头注自述 = Surge 官方内置 SYSTEM 的 2026-09-24 快照
     # ⇒ Surge 用内置、其余三侧用本仓快照，是同一份内容
     "system": "apple-system",

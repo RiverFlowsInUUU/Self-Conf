@@ -394,8 +394,7 @@ dns:
 
 ```yaml
 nameserver-policy:
-  "rule-set:AWAvenue-Ads": rcode://success      # 广告 → 空回答
-  "rule-set:RFU-Ads": rcode://success
+  "rule-set:RFU-Ads": rcode://success            # 广告 → 空回答（2026-11-22 起为唯一广告集，原 AWAvenue 已并入）
   "rule-set:private":                            # 私有域 → 国内 DoH
     - https://doh.18bit.cn/dns-query
   "rule-set:cn":                                 # 国内域名 → 国内 DoH

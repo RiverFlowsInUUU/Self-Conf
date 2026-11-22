@@ -150,12 +150,14 @@ def main():
                             ("https://", "tls://", "rcode://")):
                         bad.append("clash %s `dns.%s` 含非加密端点 %r"
                                    % (fam, key, srv))
-        # ③ 双层广告拦截的两条 rule-set 两边都要有
+        # ③ 广告拦截的 rule-set 两边都要有。
+        #    2026-11-22：原判据要求 AWAvenue + RFU 两条，随 AWAvenue 移除改为只守 RFU。
+        #    只断言 RFU（不再写「或 AWAvenue 任一」）—— 防止误删 RFU、残留别家广告集时判绿。
         for fam, d in mp.items():
             pol = d.get("nameserver-policy") or {}
             checked += 1
-            if "rule-set:AWAvenue-Ads" not in pol or "rule-set:RFU-Ads" not in pol:
-                bad.append("clash %s 的 nameserver-policy 缺广告拦截 rule-set" % fam)
+            if "rule-set:RFU-Ads" not in pol:
+                bad.append("clash %s 的 nameserver-policy 缺广告拦截 rule-set (RFU-Ads)" % fam)
 
     print("DNS 段跨配置一致性（防泄露标准不因分流粒度而变）")
     print("-" * 78)

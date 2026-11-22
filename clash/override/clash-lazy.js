@@ -5,7 +5,8 @@
 //  作用
 //    对任意 mihomo 订阅配置做整体覆写，使其与本仓库 profiles/lazy.yaml 一致：
 //      · 3 个策略组（Proxy / AI / AD）
-//      · 10 份规则集（6 份 MRS + 4 份 yaml）+ 13 条规则
+//      · 9 份规则集（5 份 MRS + 4 份 yaml）+ 12 条规则
+//        2026-11-22：移除 AWAvenue-Ads（一份 MRS 规则集及其分流规则，已并入 RFU-Ads 94%）。
 //      · DNS 双层广告拦截（fake-ip-filter + nameserver-policy rcode://success）
 //      · 订阅内的节点直接成为组内成员 —— 不再需要 Airport 订阅槽位
 //
@@ -98,7 +99,7 @@ function main(config) {
   const rp = {};
   config["rule-providers"] = rp;
 
-  // 6 份 MRS（原 GEOSITE / GEOIP 原生层，改为远程集以摆脱 geosite.dat 依赖）
+  // 5 份 MRS（原 GEOSITE / GEOIP 原生层，改为远程集以摆脱 geosite.dat 依赖）
   [
     { n: "private", b: "domain" },
     { n: "cn", b: "domain" },
@@ -127,15 +128,7 @@ function main(config) {
     };
   });
 
-  // 广告拦截第 2 条（上游提供 mihomo 二进制格式）
-  rp["AWAvenue-Ads"] = {
-    type: "http",
-    behavior: "domain",
-    format: "mrs",
-    url: "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs",
-    path: "./rule_provider/AWAvenue-Ads-Rule-Clash.mrs",
-    interval: 86400,
-  };
+  // 2026-11-22：移除 AWAvenue-Ads provider —— 已并入 RFU-Rules/mihomo-ads.yaml（94%）。
 
   // 直连白名单 / 广告主清单（自托管 RFU-Rules 仓，命名与分流版一致）
   rp["RFU-Direct"] = {
@@ -173,16 +166,15 @@ function main(config) {
     interval: 86400,
   };
 
-  // ── 3. 分流规则（13 条）────────────────────────────────────────────────
+  // ── 3. 分流规则（12 条）────────────────────────────────────────────────
   // 次序与 profiles/lazy.yaml 逐位一致：
-  //   ① 白名单  ② 广告拦截 ×2  ③ 内网 ×2  ④ Apple 系统服务
+  //   ① 白名单  ② 广告拦截  ③ 内网 ×2  ④ Apple 系统服务
   //   ⑤ AI 分流 ×2  ⑥ 国内域名 + 国内 IP  ⑦ 兜底
   config.rules = [
     // ① 白名单 —— 抢在广告规则之前放行
     "RULE-SET,RFU-Direct,DIRECT",
-    // ② 广告拦截 —— 两条并列清单，同一出口 AD
+    // ② 广告拦截 —— RFU-Ads，出口 AD（2026-11-22 移除原第二条 AWAvenue）
     "RULE-SET,RFU-Ads,AD",
-    "RULE-SET,AWAvenue-Ads,AD",
     // ③ Apple 系统服务（激活 / 推送 / 定位 / 配对）—— 排在内网之前，
     //    与分流版（apple-update → apple-system → 内网）及姊妹仓
     //    （System 在 Lan / Private 之前）同序
@@ -258,9 +250,8 @@ function main(config) {
     ],
 
     "nameserver-policy": {
-      // 广告两项**必须排在** rule-set:private / rule-set:cn 之前 —— 否则先命中 cn 就拿不到空回答；
+      // 广告项**必须排在** rule-set:private / rule-set:cn 之前 —— 否则先命中 cn 就拿不到空回答；
       // 且必须同时在 fake-ip-filter 里列一遍（见下），否则拦截不生效。
-      "rule-set:AWAvenue-Ads": "rcode://success",
       "rule-set:RFU-Ads": "rcode://success",
       // 官方示例是单名（geosite:xxx）。逗号多值无依据，拆成两条；
       // 同时统一用 rule-set: 前缀（与分流版一致，本仓规则集都是 rule-provider）。
@@ -291,7 +282,6 @@ function main(config) {
       "+.pool.ntp.org",
       "+.market.xiaomi.com",
       // 广告清单：与 nameserver-policy 中的广告项一一对应
-      "rule-set:AWAvenue-Ads",
       "rule-set:RFU-Ads",
     ],
   };

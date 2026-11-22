@@ -106,9 +106,9 @@ dns-server = 223.5.5.5, 119.29.29.29, 1.1.1.1, 8.8.8.8     # 裸 IP，不是 sys
 encrypted-dns-server = https://1.1.1.1/dns-query, …        # 至少一个 IP 字面量
 ```
 
-`encrypted-dns-server` 里保留了 `https://dns.google/dns-query` 与
-`https://dns.alidns.com/dns-query` 两个主机名端点 —— 这是**刻意的取舍**（见 §16），
-已在 profile 内用 `# audit-waive: 1` 声明。
+`encrypted-dns-server` 里保留 `https://dns.google/dns-query` 一个主机名端点 —— 这是
+**刻意的取舍**（见 §16），已在 profile 内用 `# audit-waive: 1` 声明。
+（2026-11-22 起：原第二个主机名端点 `dns.alidns.com` 已移除，详见 §3.1 变更说明。）
 
 ##### 出口 ②：旁路设备
 
@@ -178,18 +178,51 @@ RULE-SET,…,AI.list,…,no-resolve
 | 键 | 值 | 为什么 |
 |:---|:---|:-------|
 | `dns-server` | `223.5.5.5, 119.29.29.29, 1.1.1.1, 8.8.8.8` | 引导与连通性测试。**绝不用 `system`**。前两个是国内（快、稳），后两个境外（用于验证加密 DNS 前的连通性） |
-| `encrypted-dns-server` | `1.1.1.1` + `dns.google` + `dns.alidns.com` | 三个不同机构，任一故障有退路。1 个 IP 字面量保证冷启动可用 |
-| `encrypted-dns-follow-outbound-mode` | `false` | 见下 |
+| `encrypted-dns-server` | `1.1.1.1` + `1.0.0.1` + `dns.google`（2026-11-22 起，**原 `dns.alidns.com` 已移除**） | 两个 IP 字面量保证冷启动可用；详见下方「2026-11-22 DNS 单边调整」 |
+| `encrypted-dns-follow-outbound-mode` | `true`（2026-11-22 起，**原为 `false`**） | 见下方变更说明；旧口径（必须 false）已随端点结构改变而失效 |
 | `hijack-dns` | 6 个境外解析器的 `:53` | 出口 ② |
 | `allow-dns-svcb` | `false` | 不向应用下发 HTTPS/SVCB 记录。开启会让应用绕过 Surge 的部分解析路径 |
 | `exclude-simple-hostnames` | `true` | 单标签主机名（`nas`、`router`）直接交给系统解析，不产生查询 |
 | `read-etc-hosts` | `true` | 尊重本机 hosts |
 | `use-local-host-item-for-proxy` | `false` | 见下 |
 
-**`encrypted-dns-follow-outbound-mode` 为什么必须 `false`**
+**`encrypted-dns-follow-outbound-mode` 原为 `false`、2026-11-22 起改 `true`**
 
-设成 `true` 时，DoH 连接自己也要遵循代理规则。若代理规则里这个解析器域名指向代理，
-就形成「要解析它 → 需要它 → 要解析它」的环。Surge 会检测并回退明文，等于泄露。
+原口径（要求 false）：设成 `true` 时 DoH 连接自己也要遵循代理规则，若代理规则里
+解析器域名指向代理，会形成「要解析它 → 需要它 → 要解析它」的环，Surge 回退明文。
+
+改 true 的前提（2026-11-22）：端点结构已变 —— 加密端点以 **IP 字面量为主**
+（`1.1.1.1` / `1.0.0.1`），唯一域名 `dns.google` 由上方 IP 型 `dns-server` 引导解析，
+不经 DoH 自身，故「解析器域名指向代理」这个成环条件在现配置下不成立。
+profile 内已用 `# audit-waive: 4` 留痕，审计器判据本身未改。
+
+**何时回退**：若把加密端点改回「纯域名、且该域名会被代理规则命中」，必须同时把本键
+改回 `false` 并移除 `audit-waive: 4`，否则会重新引入成环风险。
+
+---
+
+##### 2026-11-22 DNS 单边调整（为什么改、为什么只改 Surge）
+
+**症状**：leak test（astrill / whoami.akamai.net）结果显示中国 ISP 解析器出口
+（阿里 / 电信 IP），而同一份配置此前不显示。
+
+**根因**：Surge 对多个 `encrypted-dns-server` 端点**并发查询、first answer wins**
+（先返回者胜），不按配置顺序。原端点含 `dns.alidns.com`（国内 DoH），它的响应常先返回，
+于是解析请求经国内出口完成 → leak test 看到中国 ISP。这不是某个域名或旁路由的锅，
+配置本身没改过，是并发竞速的结果随网络条件变化而显现。
+
+**改法**：① 移除国内 DoH 端点 `dns.alidns.com`；② 补 `1.0.0.1` 凑齐两个 IP 字面量；
+③ `encrypted-dns-follow-outbound-mode` 改 `true`，让 DoH 连接走节点出口，解析器出口显示境外。
+`dns-server` 那行（引导用裸 IP）**不动**。
+
+**为什么只改 Surge**：本次变化在电脑上实测有效（leak test 显示境外解析器），
+手机 / Egern / Clash / Stash 侧未做同等验证，按「最小变更面」原则不动；
+四侧 DNS 一致性闸门 `check_dns_parity.py` 只检查 Clash 内部 lazy/routing 一致性，
+不跨内核比较 DNS 端点，故单边改不会判负。日后若要在其他内核复制此改法，需单独实测。
+
+**用户取舍与代价**：DoH 走节点出口意味着解析器出口随节点所在地变化（本次实测为境外），
+这是对「不泄露中国 ISP」的隐私取舍；代价是解析路径依赖节点连通性，节点不可用时 DoH 需重连。
+冷启动期 `dns.google` 那一次明文引导解析仍在（由 IP 型 `dns-server` 完成，非 DoH 自身）。
 
 **`use-local-host-item-for-proxy` 为什么必须 `false`**
 
@@ -934,9 +967,12 @@ IP 类规则需要有已解析的地址。放在所有域名规则之后，使�
 `internet-test-url`（连通性检测）本模板用国内 204 —— 那测的是「本机能不能上网」，
 用国内端点更贴切。
 
-#### 16.2 保留 2 个主机名形式的加密 DNS 端点
+#### 16.2 保留主机名形式的加密 DNS 端点
 
-`dns.google` / `dns.alidns.com` 会被引导解析一次。换成纯 IP 字面量能消掉，
+（2026-11-22 起本仓现役只保留 `dns.google` 一个；原 `dns.alidns.com` 已移除，
+原因见 §3.1。下方"2 个"的历史论述作为取舍原理保留。）
+
+`dns.google`（原另有 `dns.alidns.com`）会被引导解析一次。换成纯 IP 字面量能消掉，
 但会失去两项收益：
 
 1. **按域名走 CDN 就近解析**；
@@ -1100,7 +1136,8 @@ dns-server = 223.5.5.5, 119.29.29.29, 1.1.1.1, 8.8.8.8
 | **可含境外** | 用于验证「加密 DNS 就绪前的连通性」，不是主路径 |
 
 ```
-encrypted-dns-server = https://1.1.1.1/dns-query, https://dns.google/dns-query, https://dns.alidns.com/dns-query
+# 现役值（2026-11-22 起）：两个 IP 字面量 + 一个域名端点
+encrypted-dns-server = https://1.1.1.1/dns-query, https://1.0.0.1/dns-query, https://dns.google/dns-query
 ```
 
 | 要点 | 说明 |
@@ -1116,12 +1153,15 @@ encrypted-dns-server = https://1.1.1.1/dns-query, https://dns.google/dns-query, 
 ```
 
 ```
-encrypted-dns-follow-outbound-mode = false
+encrypted-dns-follow-outbound-mode = false   # 通用原则；本仓现役 2026-11-22 起为 true（见下）
 ```
 
-**必须 `false`**。设 `true` 时 DoH 连接自己也要遵循代理规则 ——
+**通用原则**：设 `true` 时 DoH 连接自己也要遵循代理规则 ——
 若代理规则把解析器域名指向代理，就形成「要解析它 → 需要它 → 要解析它」的环，
 Surge 会检测并回退**明文**。
+**本仓例外（2026-11-22 起）**：端点改为以 IP 字面量为主、成环前提不成立，
+现役值改 `true` 走节点出口以避免国内 ISP 泄露；已用 `# audit-waive: 4` 留痕。
+详见《Surge · 逐键语义》话题的「2026-11-22 DNS 单边调整」小节。照抄本模板到其他场景时仍默认 `false`。
 
 ```
 hijack-dns = 8.8.8.8:53, 8.8.4.4:53, 1.1.1.1:53, 1.0.0.1:53, 9.9.9.9:53, 208.67.222.222:53
@@ -1504,7 +1544,7 @@ localhost = server:system
 ```
 [ ] dns-server 无 system、无主机名、≥2 个国内解析器
 [ ] encrypted-dns-server 至少 1 个 IP 字面量
-[ ] encrypted-dns-follow-outbound-mode = false
+[ ] encrypted-dns-follow-outbound-mode = false（本仓现役 2026-11-22 起为 true + waiver 4，见《Surge · 逐键语义》的「2026-11-22 DNS 单边调整」）
 [ ] hijack-dns 已配置
 [ ] use-local-host-item-for-proxy = false
 [ ] proxy-test-url 按用途选址（打分宜境外 / 连通性宜国内），不作为泄露项检查
@@ -1566,8 +1606,10 @@ Egern（见分支 B）、Shadowrocket（`dns-server` 语义不同）。
 ⭐ **`dns-server` 绝不能用 `system`。** 它承担引导与连通性测试职责。
 写 `system` 等于把引导这一步交给运营商 DHCP 下发的那台解析器 —— 那正是出口 ①。
 
-⭐ **`encrypted-dns-follow-outbound-mode` 必须 `false`。** 设 `true` 时 DoH 连接
+⭐ **`encrypted-dns-follow-outbound-mode` 默认必须 `false`。** 设 `true` 时 DoH 连接
 自己也要遵循代理规则，形成「解析它 → 需要它 → 解析它」的环，Surge 会回退明文。
+（本仓现役 2026-11-22 起为 `true` —— 端点已改为 IP 字面量为主、成环前提不成立，
+且 profile 内有 `# audit-waive: 4` 留痕；这是有实测依据的单边例外，详见《Surge · 逐键语义》的「2026-11-22 DNS 单边调整」。）
 
 ⭐ **`use-local-host-item-for-proxy` 必须 `false`。** 本地 DNS 映射只服务 DIRECT 路径；
 开启会把本地结果变成**硬性的代理目标**，破坏远端解析（走代理的域名应该由节点侧
@@ -1582,7 +1624,7 @@ Egern（见分支 B）、Shadowrocket（`dns-server` 语义不同）。
 | 1 | `encrypted-dns-server` 端点是否为 IP 字面量 | HIGH（任一非字面量） |
 | 2 | `dns-server` 是否显式、无 `system`、无主机名、≥2 个国内解析器 | HIGH / MEDIUM |
 | 3 | `hijack-dns` 是否覆盖已知的知名硬编码解析器 | LOW |
-| 4 | `encrypted-dns-follow-outbound-mode` 是否为 `false` | HIGH |
+| 4 | `encrypted-dns-follow-outbound-mode` 是否为 `false` | HIGH（本仓现役用 `audit-waive: 4` 豁免，判据未改，见《Surge · 逐键语义》的变更小节） |
 | 5 | `always-real-ip` 是否配置、`use-local-host-item-for-proxy` 是否为 `false` | HIGH / LOW |
 | 6 | `internet-test-url` / `proxy-test-url` / `proxy-test-udp` 的域名归属（**提示性**） | LOW |
 | 7 | 策略组引用的节点 / 组是否存在 | HIGH |
@@ -1619,8 +1661,8 @@ Egern（见分支 B）、Shadowrocket（`dns-server` 语义不同）。
 ```
 [General]
 dns-server = 223.5.5.5, 119.29.29.29, 1.1.1.1, 8.8.8.8
-encrypted-dns-server = https://1.1.1.1/dns-query, https://dns.google/dns-query, https://dns.alidns.com/dns-query
-encrypted-dns-follow-outbound-mode = false
+encrypted-dns-server = https://1.1.1.1/dns-query, https://1.0.0.1/dns-query, https://dns.google/dns-query
+encrypted-dns-follow-outbound-mode = true   # 2026-11-22 起（原 false）；端点 IP 为主故不成环，见《Surge · 逐键语义》的变更小节
 hijack-dns = 8.8.8.8:53, 8.8.4.4:53, 1.1.1.1:53, 1.0.0.1:53, 9.9.9.9:53, 208.67.222.222:53
 use-local-host-item-for-proxy = false
 test-timeout = 5

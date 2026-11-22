@@ -4,7 +4,7 @@
 #
 #  用途
 #    把任意 Stash 订阅改造成本仓「懒人版」结构：
-#      · 3 个策略组（Proxy / AI / AD）· 10 份规则集 · 13 条规则
+#      · 3 个策略组（Proxy / AI / AD）· 9 份规则集 · 12 条规则（2026-11-22 移除 AWAvenue）
 #      一个总出口，只做防泄露 + 广告拦截 + AI 分流，省心优先。
 #
 #    这是 clash/override/clash-lazy.js 的 **Stash 等价物**。
@@ -25,7 +25,7 @@
 
 name: 'self-conf · 懒人版'
 desc: |-
-  一个总出口：3 个策略组 / 10 份规则集 / 13 条规则。
+  一个总出口：3 个策略组 / 9 份规则集 / 12 条规则（2026-11-22 移除 AWAvenue）。
   只做防泄露 + 广告拦截 + AI 分流，省心优先。
   适用于任意 Stash 订阅 —— 节点自动并入各组，无需填写订阅地址。
 category: 'self-conf'
@@ -115,13 +115,7 @@ rule-providers: #!replace
     path: ./ruleset/geoip-cn.list
     interval: 86400
 
-  # ── 广告拦截（上游提供 mihomo 二进制格式；改用其 yaml 版）──────────────
-  AWAvenue-Ads:
-    behavior: domain
-    format: yaml
-    url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.yaml
-    path: ./ruleset/AWAvenue-Ads.yaml
-    interval: 86400
+  # 2026-11-22：移除 AWAvenue-Ads provider —— 已并入 RFU-Rules/mihomo-ads.yaml（94%）。
 
   # ── 直连白名单 / 广告主清单（自托管 RFU-Rules 仓）───────────────────────
   RFU-Direct:
@@ -162,9 +156,8 @@ rule-providers: #!replace
 rules: #!replace
   # ① 白名单 —— 抢在广告规则之前放行
   - RULE-SET,RFU-Direct,DIRECT
-  # ② 广告拦截 —— 两条并列清单，同一出口 AD
+  # ② 广告拦截 —— RFU-Ads，出口 AD（2026-11-22 移除原第二条 AWAvenue）
   - RULE-SET,RFU-Ads,AD
-  - RULE-SET,AWAvenue-Ads,AD
   # ③ Apple 系统服务（激活 / 推送 / 定位 / 配对）—— 排在内网之前
   - RULE-SET,apple-system,DIRECT
   # ④ 内网：私有 IP 段 + 私有域名，一律直连

@@ -1,4 +1,4 @@
-#! version=routing_v1.0.4
+#! version=routing_v1.0.5
 ipv6: false
 vif_only: true
 hijack_dns:
@@ -27,9 +27,6 @@ dns:
       value: Domestic-DNS
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
-      value: reject
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
       value: reject
   - domain_wildcard:
       match: '*'
@@ -263,11 +260,6 @@ rules:
 - rule_set:
     name: RFU-Ads
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
-    policy: AD
-    update_interval: 604800
-- rule_set:
-    name: AWAvenue-Ads
-    match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
     policy: AD
     update_interval: 604800
 - rule_set:

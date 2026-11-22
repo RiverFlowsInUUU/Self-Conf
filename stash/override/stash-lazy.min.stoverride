@@ -1,6 +1,6 @@
 name: 'self-conf · 懒人版'
 desc: |-
-  一个总出口：3 个策略组 / 10 份规则集 / 13 条规则。
+  一个总出口：3 个策略组 / 9 份规则集 / 12 条规则（2026-11-22 移除 AWAvenue）。
   只做防泄露 + 广告拦截 + AI 分流，省心优先。
   适用于任意 Stash 订阅 —— 节点自动并入各组，无需填写订阅地址。
 category: 'self-conf'
@@ -54,12 +54,6 @@ rule-providers: #!replace
     url: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.list
     path: ./ruleset/geoip-cn.list
     interval: 86400
-  AWAvenue-Ads:
-    behavior: domain
-    format: yaml
-    url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.yaml
-    path: ./ruleset/AWAvenue-Ads.yaml
-    interval: 86400
   RFU-Direct:
     behavior: classical
     format: yaml
@@ -87,7 +81,6 @@ rule-providers: #!replace
 rules: #!replace
   - RULE-SET,RFU-Direct,DIRECT
   - RULE-SET,RFU-Ads,AD
-  - RULE-SET,AWAvenue-Ads,AD
   - RULE-SET,apple-system,DIRECT
   - RULE-SET,geoip-private,DIRECT,no-resolve
   - RULE-SET,private,DIRECT

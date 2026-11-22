@@ -38,14 +38,14 @@
         实测：`zstd` 解压后是 `MRS\\x01` + 一坨压缩后缀 trie（存的是**反序**域名，
         且带按字符频率重排的字母表），正文**未能逆向出可用的解析**。
         但**头部是固定的**：magic `MRS` + version 1，其后 offset 9 起的
-        **大端 uint32 = 条目数**（19 份 meta-rules-dat + AWAvenue 全部对上，
+        **大端 uint32 = 条目数**（19 份 meta-rules-dat 全部对上，
         见 `mrs_entry_count()` 的注释）。
         ⇒ 本脚本的策略：**正文退化为文本版**，头部那条计数留作**完整性校验**。
 
     文本版退化链（.mrs ⇒ 同名文本版）：
         `<base>.list` → `<base>.yaml` → `<base>.yml` → `<base>.txt`
         meta-rules-dat 的 `geo/geosite/*.mrs` 与 `geo/geoip/*.mrs` 都有同名 `.list`；
-        AWAvenue 的 `.mrs` 没有 `.list`，但有同名 `.yaml`（961 条，与 .mrs 计数一致）。
+        （历史判例：已移除的 AWAvenue 的 `.mrs` 无 `.list`、只有同名 `.yaml`，961 条对齐。）
 
     判据（联网档）：
       · 境外探针（google.com / youtube.com / chatgpt.com …）⇒ 不得落到 DIRECT
@@ -195,13 +195,12 @@ def mrs_entry_count(url, offline):
     """读 `.mrs` 头部的条目数，拿来跟文本版对账。取不到/缺 zstandard ⇒ None。
 
     ⚠️ 只解析**头部**，正文仍是未逆向的压缩后缀 trie，不用它做匹配。
-       头部布局（实测 20 份全部自洽，MetaCubeX meta-rules-dat + AWAvenue）：
+       头部布局（实测 19 份 meta-rules-dat 全部自洽；历史上第 20 份 AWAvenue 亦验证过）：
            offset 0   3B  magic `MRS`
            offset 3   1B  version = 1
            offset 9   4B  **大端 uint32 = 条目数**
        对照证据：`geosite/cn.mrs` 头计数 111224 == `cn.list` 非空行 111224；
-       `geosite/spotify.mrs` 28 == `spotify.list` 28；`geoip/cn.mrs` 9648 == 9648；
-       AWAvenue `.mrs` 961 == 同名 `.yaml` 的 payload 961。
+       `geosite/spotify.mrs` 28 == `spotify.list` 28；`geoip/cn.mrs` 9648 == 9648。
     """
     try:
         import zstandard                                          # noqa: PLC0415
@@ -225,8 +224,8 @@ def mrs_entry_count(url, offline):
 def text_siblings(url):
     """`.mrs` 等 URL ⇒ 同名文本版候选（按优先级）。
 
-    实测：meta-rules-dat 的 geosite/geoip 都有 `.list`；AWAvenue 无 `.list` 但有 `.yaml`。
-    URL 本身已是文本格式时，**它自己排第一**（别多绕一趟 404）。
+    实测：meta-rules-dat 的 geosite/geoip 都有 `.list`（历史判例：已移除的 AWAvenue
+    无 `.list` 但有 `.yaml`）。URL 本身已是文本格式时，**它自己排第一**（别多绕一趟 404）。
     """
     m = re.search(r"\.(mrs|yaml|yml|txt|list)$", url, re.I)
     base = url[:m.start()] if m else url

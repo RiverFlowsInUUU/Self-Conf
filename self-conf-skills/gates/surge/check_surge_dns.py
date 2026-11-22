@@ -441,7 +441,8 @@ def check_10_ad_rule_policy(sections):
         t = parts[0].strip().upper()
         if t != "RULE-SET":
             continue
-        # 广告拦截规则集：URL 里带 ads 的那两条（本仓的 surge-ads.list 与 AWAvenue）
+        # 广告拦截规则集：URL 里带 ads 的（现为本仓 surge-ads.list 一条；
+        # 2026-11-22 前还有 AWAvenue，已移除）。按 URL 动态识别，改名需同步这里。
         url = parts[1].lower() if len(parts) > 1 else ""
         if "ads" not in url:
             continue

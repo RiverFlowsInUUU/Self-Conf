@@ -23,8 +23,9 @@
     ⑤ 规则引用的规则集 / 出口组都存在；末条为 MATCH
     ⑥ 规则集无孤儿；behavior/format ∈ Stash 官方支持的组合
 
-    另外断言规模：分流版 25 组 / 25 集 / 27 条（= 静态模板 `routing.yaml` 的形态，
+    另外断言规模：分流版 25 组 / 24 集 / 26 条（= 静态模板 `routing.yaml` 的形态，
     **不是**覆写脚本的 22 组 —— 差的 3 个是倍率子组，脚本做不到分档）。
+    2026-11-22：随 AWAvenue 移除，规则集 25→24、规则 27→26（懒人版 10→9 / 13→12）。
 
 退出码：0 = 通过 · 1 = 判负 · 2 = 环境/参数问题（文件缺失 / 解析失败）
 用法：
@@ -66,8 +67,8 @@ BUILTIN_POLICIES = {"DIRECT", "REJECT", "REJECT-DROP", "PASS", "COMPATIBLE", "GL
 #    对齐，用的是「倍率三档」结构（Smart → Low Mult./Auto/High Mult.），
 #    而 mihomo 覆写脚本做不到分档、只有 22 组。两者差的就是那 3 个倍率子组。
 FILES = {
-    "stash/override/stash-routing.stoverride": (25, 25, 27),
-    "stash/override/stash-lazy.stoverride": (3, 10, 13),
+    "stash/override/stash-routing.stoverride": (25, 24, 26),
+    "stash/override/stash-lazy.stoverride": (3, 9, 12),
 }
 
 

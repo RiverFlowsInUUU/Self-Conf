@@ -32,24 +32,6 @@
       }
      },
      {
-      "detail": "仅出现在 ['egern', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
-      "kind": "partial",
-      "present_in": [
-       "egern",
-       "surge"
-      ],
-      "source": "awavenue-ads-rule-surge-rule-set"
-     },
-     {
-      "detail": "同一规则集在不同内核挂到不同策略组 —— 多为刻意，改前先读 rulesets.md",
-      "kind": "target_mismatch",
-      "source": "awavenue-ads-rule-surge-rule-set",
-      "targets": {
-       "egern": "AD",
-       "surge": "REJECT"
-      }
-     },
-     {
       "detail": "仅出现在 ['surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
       "kind": "partial",
       "present_in": [
@@ -110,15 +92,6 @@
        "clash",
        "stash"
       ],
-      "source": "awavenue-ads"
-     },
-     {
-      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
-      "kind": "partial",
-      "present_in": [
-       "clash",
-       "stash"
-      ],
       "source": "geoip-private"
      },
      {
@@ -145,14 +118,6 @@
       "clash": "DIRECT",
       "egern": "DIRECT",
       "stash": "DIRECT"
-     },
-     "awavenue-ads": {
-      "clash": "AD",
-      "stash": "AD"
-     },
-     "awavenue-ads-rule-surge-rule-set": {
-      "egern": "AD",
-      "surge": "REJECT"
      },
      "category-ai-chat-!cn": {
       "clash": "AI",
@@ -261,13 +226,6 @@
        "options": [],
        "source": "RFU-Ads",
        "source_norm": "rfu-ads",
-       "target": "AD"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [],
-       "source": "AWAvenue-Ads",
-       "source_norm": "awavenue-ads",
        "target": "AD"
       },
       {
@@ -393,13 +351,6 @@
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list",
-       "source_norm": "awavenue-ads-rule-surge-rule-set",
-       "target": "AD"
-      },
-      {
-       "kind": "rule_set",
-       "options": [],
        "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/self-conf/main/rules/apple_system.list",
        "source_norm": "apple-system",
        "target": "DIRECT"
@@ -506,13 +457,6 @@
        "options": [],
        "source": "RFU-Ads",
        "source_norm": "rfu-ads",
-       "target": "AD"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [],
-       "source": "AWAvenue-Ads",
-       "source_norm": "awavenue-ads",
        "target": "AD"
       },
       {
@@ -634,16 +578,6 @@
        ],
        "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
-       "target": "REJECT"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [
-        "update-interval=604800",
-        "extended-matching"
-       ],
-       "source": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list",
-       "source_norm": "awavenue-ads-rule-surge-rule-set",
        "target": "REJECT"
       },
       {
@@ -777,24 +711,6 @@
        "egern",
        "surge"
       ],
-      "source": "awavenue-ads-rule-surge-rule-set"
-     },
-     {
-      "detail": "同一规则集在不同内核挂到不同策略组 —— 多为刻意，改前先读 rulesets.md",
-      "kind": "target_mismatch",
-      "source": "awavenue-ads-rule-surge-rule-set",
-      "targets": {
-       "egern": "AD",
-       "surge": "REJECT"
-      }
-     },
-     {
-      "detail": "仅出现在 ['egern', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
-      "kind": "partial",
-      "present_in": [
-       "egern",
-       "surge"
-      ],
       "source": "systemota"
      },
      {
@@ -886,15 +802,6 @@
        "stash"
       ],
       "source": "rfu-ads"
-     },
-     {
-      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
-      "kind": "partial",
-      "present_in": [
-       "clash",
-       "stash"
-      ],
-      "source": "awavenue-ads"
      },
      {
       "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
@@ -1001,14 +908,6 @@
      "apple-update": {
       "clash": "Apple Update",
       "stash": "Apple Update"
-     },
-     "awavenue-ads": {
-      "clash": "AD",
-      "stash": "AD"
-     },
-     "awavenue-ads-rule-surge-rule-set": {
-      "egern": "AD",
-      "surge": "REJECT"
      },
      "category-ai-chat-!cn": {
       "clash": "AI",
@@ -1387,13 +1286,6 @@
        "options": [],
        "source": "RFU-Ads",
        "source_norm": "rfu-ads",
-       "target": "AD"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [],
-       "source": "AWAvenue-Ads",
-       "source_norm": "awavenue-ads",
        "target": "AD"
       },
       {
@@ -1805,13 +1697,6 @@
        "options": [],
        "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
-       "target": "AD"
-      },
-      {
-       "kind": "rule_set",
-       "options": [],
-       "source": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list",
-       "source_norm": "awavenue-ads-rule-surge-rule-set",
        "target": "AD"
       },
       {
@@ -2215,13 +2100,6 @@
       {
        "kind": "RULE-SET",
        "options": [],
-       "source": "AWAvenue-Ads",
-       "source_norm": "awavenue-ads",
-       "target": "AD"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [],
        "source": "apple-update",
        "source_norm": "apple-update",
        "target": "Apple Update"
@@ -2619,16 +2497,6 @@
        ],
        "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list",
        "source_norm": "surge-ads",
-       "target": "REJECT"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [
-        "update-interval=604800",
-        "extended-matching"
-       ],
-       "source": "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list",
-       "source_norm": "awavenue-ads-rule-surge-rule-set",
        "target": "REJECT"
       },
       {

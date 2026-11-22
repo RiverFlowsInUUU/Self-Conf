@@ -1,4 +1,4 @@
-#! version=lazy_v1.0.4
+#! version=lazy_v1.0.5
 # ============================================================================
 # lazy · 懒人版
 #
@@ -75,9 +75,6 @@ dns:
       value: Domestic-DNS
   - proxy_rule_set:
       match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
-      value: reject
-  - proxy_rule_set:
-      match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
       value: reject
   - domain_wildcard:
       match: '*'
@@ -180,15 +177,10 @@ rules:
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-direct.list
     policy: DIRECT
     update_interval: 604800
-# ② 广告拦截 —— 两条并列（先 RFU-Ads，后 AWAvenue），都指向 AD。
+# ② 广告拦截 —— RFU-Ads，指向 AD。2026-11-22 移除原第二条 AWAvenue（已并入 RFU 94%）。
 - rule_set:
     name: RFU-Ads
     match: https://raw.githubusercontent.com/RiverFlowsInUUU/RFU-Rules/main/surge-ads.list
-    policy: AD
-    update_interval: 604800
-- rule_set:
-    name: AWAvenue-Ads
-    match: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge-RULE-SET.list
     policy: AD
     update_interval: 604800
 # ③ 系统域（`System`）—— 对齐 Surge 内置 `SYSTEM`。Egern 没有内置系统集，这里引用本仓
