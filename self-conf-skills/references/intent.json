@@ -746,7 +746,7 @@
        "egern",
        "surge"
       ],
-      "source": "claude"
+      "source": "claude-anthropic"
      },
      {
       "detail": "仅出现在 ['egern', 'surge'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
@@ -837,6 +837,15 @@
        "clash",
        "stash"
       ],
+      "source": "anthropic"
+     },
+     {
+      "detail": "仅出现在 ['clash', 'stash'] —— 多为内核机制差异（如 mihomo 拆分/内置），AGENTS.md 明示刻意不对齐",
+      "kind": "partial",
+      "present_in": [
+       "clash",
+       "stash"
+      ],
       "source": "category-ai-chat-!cn"
      },
      {
@@ -888,9 +897,7 @@
     "sources": {
      "anthropic": {
       "clash": "Claude",
-      "egern": "Claude",
-      "stash": "Claude",
-      "surge": "Claude"
+      "stash": "Claude"
      },
      "apple": {
       "egern": "DIRECT",
@@ -913,7 +920,7 @@
       "clash": "AI",
       "stash": "AI"
      },
-     "claude": {
+     "claude-anthropic": {
       "egern": "Claude",
       "surge": "Claude"
      },
@@ -1744,15 +1751,8 @@
       {
        "kind": "rule_set",
        "options": [],
-       "source": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Anthropic/Anthropic.list",
-       "source_norm": "anthropic",
-       "target": "Claude"
-      },
-      {
-       "kind": "rule_set",
-       "options": [],
-       "source": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Claude/Claude.list",
-       "source_norm": "claude",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Self-Conf/main/test-profiles/claude-anthropic.list",
+       "source_norm": "claude-anthropic",
        "target": "Claude"
       },
       {
@@ -2555,19 +2555,11 @@
       {
        "kind": "RULE-SET",
        "options": [
-        "update-interval=604800"
+        "update-interval=604800",
+        "no-resolve"
        ],
-       "source": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Anthropic/Anthropic.list",
-       "source_norm": "anthropic",
-       "target": "Claude"
-      },
-      {
-       "kind": "RULE-SET",
-       "options": [
-        "update-interval=604800"
-       ],
-       "source": "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Claude/Claude.list",
-       "source_norm": "claude",
+       "source": "https://raw.githubusercontent.com/RiverFlowsInUUU/Self-Conf/main/test-profiles/claude-anthropic.list",
+       "source_norm": "claude-anthropic",
        "target": "Claude"
       },
       {

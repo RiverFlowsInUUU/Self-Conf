@@ -176,8 +176,8 @@ SEMANTIC_ALIKE = {
     # Apple 直连域：Loyalsoldier `apple.txt` ↔ MetaCubeX `geosite/apple-cn`
     # ⚠️ 初版注释误写成「blackmatrix7 的 Apple」，全仓并无该集
     "apple": "apple-cn",
-    # Anthropic：blackmatrix7 的 Anthropic+Claude **两条** ↔ MetaCubeX `anthropic` 一条
-    "claude": "anthropic",
+    # Anthropic：自托管 `claude-anthropic`（整合多源） ↔ MetaCubeX `anthropic` 一条
+    "claude-anthropic": "anthropic",
     # YouTube Music：规则集 `YouTubeMusic` ↔ 直写的 `DOMAIN-SUFFIX,music.youtube.com`
     "youtubemusic": "music.youtube.com",
 }

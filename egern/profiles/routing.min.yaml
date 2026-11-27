@@ -1,4 +1,4 @@
-#! version=routing_v1.0.5
+#! version=routing_v1.0.6
 ipv6: false
 vif_only: true
 hijack_dns:
@@ -293,13 +293,8 @@ rules:
     policy: Gemini
     update_interval: 604800
 - rule_set:
-    name: Anthropic
-    match: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Anthropic/Anthropic.list
-    policy: Claude
-    update_interval: 604800
-- rule_set:
     name: Claude
-    match: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Surge/Claude/Claude.list
+    match: https://raw.githubusercontent.com/RiverFlowsInUUU/Self-Conf/main/test-profiles/claude-anthropic.list
     policy: Claude
     update_interval: 604800
 - rule_set:
